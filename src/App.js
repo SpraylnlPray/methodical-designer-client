@@ -23,6 +23,11 @@ function App() {
 	};
 
 	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
+		context: {
+			headers: {
+				"Access-Control-Allow-Origin": "*"
+			},
+		},
 		onError: error => console.log( error ),
 	} );
 	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
