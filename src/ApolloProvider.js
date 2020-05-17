@@ -1,6 +1,6 @@
 import React from 'react';
 import App from './App';
-import { ApolloClient, ApolloProvider, gql, HttpLink, ApolloLink, InMemoryCache } from '@apollo/client';
+import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import { deepCopy, generateLocalUUID } from './utils';
 import {
 	DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_LINKS_TAGS, LOCAL_NODES, LOCAL_NODES_TAGS,
