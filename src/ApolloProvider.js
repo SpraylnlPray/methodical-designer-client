@@ -5,6 +5,9 @@ import { deepCopy, generateLocalUUID } from './utils';
 import {
 	DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_LINKS_TAGS, LOCAL_NODES, LOCAL_NODES_TAGS,
 } from './queries/LocalQueries';
+import Favicon from 'react-favicon';
+
+const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
 const cache = new InMemoryCache( {
 	dataIdFromObject: ( { id } ) => id,
@@ -266,6 +269,7 @@ cache.writeQuery( {
 
 export default (
 	<ApolloProvider client={ client }>
+		<Favicon url={ icon_url }/>
 		<App/>
 	</ApolloProvider>
 );
