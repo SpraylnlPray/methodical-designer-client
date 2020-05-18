@@ -44,9 +44,6 @@ const uri = process.env.REACT_APP_ENV === 'prod' ? process.env.REACT_APP_PROD_HO
 const client = new ApolloClient( {
 	link: new HttpLink( {
 		uri,
-		headers: {
-			'Access-Control-Allow-Origin': '*',
-		},
 	} ),
 	cache,
 	resolvers: {
