@@ -39,13 +39,14 @@ const cache = new InMemoryCache( {
 	},
 } );
 
+const uri = process.env.REACT_APP_ENV === 'prod' ? process.env.REACT_APP_PROD_HOST : process.env.REACT_APP_DEV_HOST;
+
 const client = new ApolloClient( {
 	link: new HttpLink( {
-		// uri: 'http://localhost:8080/graphql',
-		uri: 'https://server.methodical.software/graphql',
+		uri,
 		headers: {
-			"Access-Control-Allow-Origin": "*"
-		}
+			'Access-Control-Allow-Origin': '*',
+		},
 	} ),
 	cache,
 	resolvers: {
