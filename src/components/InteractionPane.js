@@ -9,10 +9,13 @@ const InteractionPane = ( { client } ) => {
 	return (
 		<div className='bordered interaction-pane margin-base'>
 			<div>{ activeItem.itemId }</div>
-			<OptionBar/>
+			<OptionBar
+				activeItem={ activeItem }
+			/>
 			<InputPane
 				client={ client }
-				activeItem={ activeItem }/>
+				activeItem={ activeItem }
+			/>
 		</div>
 	);
 };

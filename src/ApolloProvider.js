@@ -260,8 +260,8 @@ cache.writeQuery( {
 		deletedNodes: [],
 		deletedLinks: [],
 		activeItem: {
-			itemId: '',
-			itemType: '',
+			itemId: 'app',
+			itemType: 'app',
 			__typename: 'ActiveItem',
 		},
 	},

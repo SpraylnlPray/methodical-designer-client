@@ -30,16 +30,22 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 		const options = theManager.graphOptions;
 
 		const events = {
-			selectNode: function( event ) {
-				let { nodes } = event;
+			click: function( event ) {
+				const { nodes, edges } = event;
+				if ( nodes.length > 0 ) {
+					setMakeAppActive( false );
+					setActiveItem( client, nodes[0], 'node' );
+				}
+				else if ( edges.length > 0 ) {
+					setMakeAppActive( false );
+					setActiveItem( client, edges[0], 'link' );
+				}
+			},
+			dragStart: function( event ) {
+				const { nodes } = event;
 				setMakeAppActive( false );
 				setActiveItem( client, nodes[0], 'node' );
-			},
-			selectEdge: function( event ) {
-				let { edges } = event;
-				setMakeAppActive( false );
-				setActiveItem( client, edges[0], 'link' );
-			},
+			}
 		};
 
 		return (

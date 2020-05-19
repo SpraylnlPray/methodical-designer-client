@@ -12,7 +12,7 @@ function CreateNode( props ) {
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
-		{ ...inputs, justMutated: false },
+		{ ...inputs },
 	);
 	const [ runMutation, { data, loading, error } ] = useMutation( CREATE_LOCAL_NODE );
 

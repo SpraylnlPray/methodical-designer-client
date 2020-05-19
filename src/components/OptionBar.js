@@ -3,7 +3,7 @@ import { Button } from 'semantic-ui-react';
 import { setActiveItem } from '../utils';
 import { useApolloClient } from '@apollo/client';
 
-const OptionBar = props => {
+const OptionBar = ( { activeItem } ) => {
 	const client = useApolloClient();
 
 	const handleClick = ( e ) => {
@@ -13,8 +13,10 @@ const OptionBar = props => {
 
 	return (
 		<div className='bordered margin-base'>
-			<Button value='createnode' onClick={ e => handleClick( e ) }>Create Node</Button>
-			<Button value='createlink' onClick={ e => handleClick( e ) }>Create Link</Button>
+			<Button active={ activeItem.itemId === 'createnode' } value='createnode' onClick={ e => handleClick( e ) }>Create
+				Node</Button>
+			<Button active={ activeItem.itemId === 'createlink' } value='createlink' onClick={ e => handleClick( e ) }>Create
+				Link</Button>
 		</div>
 	);
 };

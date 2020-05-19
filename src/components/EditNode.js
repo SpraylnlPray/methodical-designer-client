@@ -18,7 +18,7 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
-		{ ...inputs, justMutated: false },
+		{ ...inputs },
 	);
 
 	useEffect( () => {
