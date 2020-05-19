@@ -65,7 +65,6 @@ const EditNode = ( { activeItem, client } ) => {
 
 	return (
 		<Container>
-			<Header as='h2'>Edit a Node!</Header>
 			<Form className='create-form'>
 				<Form.Group className='create-group'>
 					<Form.Input
@@ -113,7 +112,7 @@ const EditNode = ( { activeItem, client } ) => {
 						name='unreliable'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Update!</Form.Button>
+				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
 				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>

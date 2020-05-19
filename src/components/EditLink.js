@@ -89,7 +89,6 @@ const EditLink = ( { activeItem, client } ) => {
 
 	return (
 		<Container>
-			<Header as='h2'>Edit a Link!</Header>
 			<Form className='create-form'>
 				<Form.Group className='create-group'>
 					<Form.Input
@@ -223,7 +222,7 @@ const EditLink = ( { activeItem, client } ) => {
 						name='optional'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Update!</Form.Button>
+				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
 				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>

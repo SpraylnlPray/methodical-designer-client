@@ -72,7 +72,6 @@ function CreateLink( props ) {
 
 	return (
 		<Container>
-			<Header as='h2'>Create a Link!</Header>
 			<Form className='create-form'>
 				<Form.Group className='create-group'>
 					<Form.Input
@@ -206,7 +205,7 @@ function CreateLink( props ) {
 						name='optional'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
+				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>

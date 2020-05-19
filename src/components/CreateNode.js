@@ -47,7 +47,6 @@ function CreateNode( props ) {
 
 	return (
 		<Container>
-			<Header as='h2'>Create a Node!</Header>
 			<Form className='create-form'>
 				<Form.Group className='create-group'>
 					<Form.Input
@@ -96,7 +95,7 @@ function CreateNode( props ) {
 						name='unreliable'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Create!</Form.Button>
+				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>
