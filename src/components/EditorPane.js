@@ -6,7 +6,7 @@ import { useQuery } from '@apollo/client';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
 import { Message, Icon } from 'semantic-ui-react';
 
-const EditorPane = ( { client, setMakeAppActive } ) => {
+const EditorPane = ( { client } ) => {
 
 	const { data: nodeData, startPolling: startNodePolling, stopPolling: stopNodePolling } = useQuery( GET_SERVER_NODES, {
 		onError: error => console.log( error ),
@@ -30,26 +30,32 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 		const options = theManager.graphOptions;
 
 		const events = {
-			click: function( event ) {
+			select: function( event ) {
 				const { nodes, edges } = event;
-				if ( nodes.length > 0 ) {
-					setMakeAppActive( false );
+				if (nodes.length === 0 && edges.length === 0) {
+					setActiveItem(client, 'app', 'app');
+				}
+				else if ( nodes.length > 0 ) {
 					setActiveItem( client, nodes[0], 'node' );
 				}
 				else if ( edges.length > 0 ) {
-					setMakeAppActive( false );
 					setActiveItem( client, edges[0], 'link' );
 				}
 			},
 			dragStart: function( event ) {
 				const { nodes } = event;
-				setMakeAppActive( false );
 				setActiveItem( client, nodes[0], 'node' );
 			},
 		};
 
+		// stopping events in the events object above is not possible
+		// so we handle the logic there, and stop the propagation here before it can get to the app level
+		function handleClick( e ) {
+			e.stopPropagation();
+		}
+
 		return (
-			<div className='bordered editor-pane margin-base'>
+			<div className='bordered editor-pane margin-base' onClick={ handleClick }>
 				<Graph
 					graph={ graph }
 					options={ options }
