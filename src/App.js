@@ -5,8 +5,7 @@ import HeaderArea from './components/HeaderArea';
 import { Grid } from 'semantic-ui-react';
 import './App.css';
 import { setActiveItem } from './utils';
-import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
-import { useApolloClient, useQuery } from '@apollo/client';
+import { useApolloClient } from '@apollo/client';
 
 function App() {
 	const id = 'app';
@@ -22,23 +21,6 @@ function App() {
 		setMakeAppActive( true );
 	};
 
-	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
-		context: {
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-		},
-		onError: error => console.log( error ),
-	} );
-	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
-		context: {
-			headers: {
-				"Access-Control-Allow-Origin": "*"
-			},
-		},
-		onError: error => console.log( error ),
-	} );
-
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>
 			<HeaderArea client={ client }/>
@@ -46,20 +28,14 @@ function App() {
 				<Grid.Row>
 					<Grid.Column width={ 4 }>
 						<InteractionPane
-							linkRefetch={ linkRefetch }
-							nodeRefetch={ nodeRefetch }
 							client={ client }
 						/>
 					</Grid.Column>
 					<Grid.Column width={ 12 }>
-						{ nodeData && linkData && (
-							<EditorPane
-								setMakeAppActive={ setMakeAppActive }
-								client={ client }
-								nodeData={ nodeData }
-								linkData={ linkData }
-							/>
-						) }
+						<EditorPane
+							setMakeAppActive={ setMakeAppActive }
+							client={ client }
+						/>
 					</Grid.Column>
 				</Grid.Row>
 			</Grid>

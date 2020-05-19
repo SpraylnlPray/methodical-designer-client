@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import { Container, Form, Header } from 'semantic-ui-react';
+import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
 import { enteredRequired } from '../utils';

@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
-import { Container, Form, Header } from 'semantic-ui-react';
+import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';

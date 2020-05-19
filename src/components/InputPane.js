@@ -5,7 +5,7 @@ import CreateNode from './CreateNode';
 import EditNode from './EditNode';
 import EditLink from './EditLink';
 
-const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
+const InputPane = ( { activeItem, client } ) => {
 
 	const handleClick = ( e ) => {
 		e.stopPropagation();
@@ -15,25 +15,18 @@ const InputPane = ( { activeItem, client, nodeRefetch, linkRefetch } ) => {
 	return (
 		<div className='bordered input-pane margin-base overflow-managed' onClick={ e => handleClick( e ) }>
 			{ activeItem.itemId === 'createnode' && activeItem.itemType === 'option' &&
-			<CreateNode
-				refetch={ nodeRefetch }
-			/> }
+			<CreateNode/> }
 			{ activeItem.itemId === 'createlink' && activeItem.itemType === 'option' &&
-			<CreateLink
-				refetch={ linkRefetch }
-			/> }
-
+			<CreateLink/> }
 			{ activeItem.itemType === 'node' &&
 			<EditNode
 				client={ client }
 				activeItem={ activeItem }
-				refetch={ nodeRefetch }
 			/> }
 			{ activeItem.itemType === 'link' &&
 			<EditLink
 				client={ client }
 				activeItem={ activeItem }
-				refetch={ linkRefetch }
 			/> }
 		</div>
 	);
