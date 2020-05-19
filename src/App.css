@@ -67,3 +67,20 @@
     padding-bottom: 0.5em;
     padding-top: 0.5em;
 }
+
+.editor-loading-message {
+    height: 95%;
+    width: 95% !important;
+    margin: 0 !important;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ui.floating.message {
+    -webkit-box-shadow: 0 0 0 1px rgba(34,36,38,.22) inset, 0 2px 4px 0 rgba(34,36,38,.12), 0 2px 10px 0 rgba(34,36,38,.15);
+    box-shadow: 0 0 0 1px rgba(34,36,38,.22) inset, 0 2px 4px 0 rgba(34,36,38,.12), 0 2px 10px 0 rgba(34,36,38,.15);
+}

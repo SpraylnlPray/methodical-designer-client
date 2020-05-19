@@ -4,10 +4,11 @@ import { setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
 import { useQuery } from '@apollo/client';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
+import { Message, Icon } from 'semantic-ui-react';
 
 const EditorPane = ( { client, setMakeAppActive } ) => {
-	console.log( 'rendering editor pane' );
-	const { data: nodeData, refetch: nodeRefetch } = useQuery( GET_SERVER_NODES, {
+
+	const { data: nodeData, startPolling: startNodePolling, stopPolling: stopNodePolling } = useQuery( GET_SERVER_NODES, {
 		context: {
 			headers: {
 				'Access-Control-Allow-Origin': '*',
@@ -15,7 +16,7 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 		},
 		onError: error => console.log( error ),
 	} );
-	const { data: linkData, refetch: linkRefetch } = useQuery( GET_SERVER_LINKS, {
+	const { data: linkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling } = useQuery( GET_SERVER_LINKS, {
 		context: {
 			headers: {
 				'Access-Control-Allow-Origin': '*',
@@ -25,6 +26,9 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 	} );
 
 	if ( nodeData && linkData ) {
+		stopNodePolling();
+		stopLinkPolling();
+
 		const theManager = new GraphManager( nodeData.Nodes, linkData.Links );
 		let nodes = theManager.nodeDisplayData;
 		let links = theManager.linkDisplayData;
@@ -59,19 +63,18 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 		);
 	}
 	else {
-		console.log( 'in else statement' );
-		nodeRefetch()
-			.catch( err => {
-				console.log( err );
-			} );
-		linkRefetch()
-			.catch( err => {
-				console.log( err );
-			} );
+		startNodePolling( 5000 );
+		startLinkPolling( 5000 );
 
 		return (
-			<div className='bordered editor-pane margin-base'>
-				Loading data
+			<div className='bordered editor-pane margin-base flex-center'>
+				<Message icon info floating className={ 'editor-loading-message' }>
+					<Icon name='circle notched' loading/>
+					<Message.Content>
+						<Message.Header>The server is starting up...</Message.Header>
+						This can take up to 30 seconds.
+					</Message.Content>
+				</Message>
 			</div>
 		);
 	}
