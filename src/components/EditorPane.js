@@ -9,19 +9,9 @@ import { Message, Icon } from 'semantic-ui-react';
 const EditorPane = ( { client, setMakeAppActive } ) => {
 
 	const { data: nodeData, startPolling: startNodePolling, stopPolling: stopNodePolling } = useQuery( GET_SERVER_NODES, {
-		context: {
-			headers: {
-				'Access-Control-Allow-Origin': '*',
-			},
-		},
 		onError: error => console.log( error ),
 	} );
 	const { data: linkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling } = useQuery( GET_SERVER_LINKS, {
-		context: {
-			headers: {
-				'Access-Control-Allow-Origin': '*',
-			},
-		},
 		onError: error => console.log( error ),
 	} );
 
