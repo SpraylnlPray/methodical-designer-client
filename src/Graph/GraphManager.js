@@ -251,7 +251,9 @@ export default class GraphManager {
 	};
 
 	haveSameNodes = ( link1, link2 ) => {
+		// eslint-disable-next-line
 		return link1.x.id === link2.x.id && link1.y.id === link2.y.id ||
+			// eslint-disable-next-line
 			link1.y.id === link2.x.id && link1.x.id === link2.y.id;
 	};
 

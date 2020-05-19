@@ -45,7 +45,7 @@ const EditorPane = ( { client, setMakeAppActive } ) => {
 				const { nodes } = event;
 				setMakeAppActive( false );
 				setActiveItem( client, nodes[0], 'node' );
-			}
+			},
 		};
 
 		return (
