@@ -8,7 +8,6 @@ const InteractionPane = ( { client } ) => {
 	const { data: { activeItem } } = useQuery( ACTIVE_ITEM );
 	return (
 		<div className='bordered interaction-pane margin-base'>
-			<div>{ activeItem.itemId }</div>
 			<OptionBar
 				activeItem={ activeItem }
 			/>

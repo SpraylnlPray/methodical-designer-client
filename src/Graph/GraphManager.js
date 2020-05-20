@@ -1,5 +1,6 @@
 import { LinkColors, NodeColors } from './Colors';
 import { ArrowShapes, NodeShapes } from './Shapes';
+import { NodeImages } from './Images';
 
 export default class GraphManager {
 	#nodes = {};
@@ -74,53 +75,19 @@ export default class GraphManager {
 
 	setNodeVisualizationProps( nodes ) {
 		nodes.forEach( node => {
-			switch ( node.type ) {
-				case 'API':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'AbstractUserInterface':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Persistence':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Query':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Command':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Event':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Object':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Computation':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Domain':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Invariant':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'ArchitecturalDecisionRecord':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				case 'Definition':
-					this.setNodeProps( node, NodeShapes[node.type], NodeColors[node.type] );
-					break;
-				default:
-					this.setNodeProps( node, NodeShapes.Default, NodeColors.Default );
-					break;
-			}
+			this.setNodeImage( node );
 		} );
 	}
 
-	setNodeProps( node, shape, color ) {
-		node.shape = shape;
-		node.color = color;
+	setNodeImage( node ) {
+		if ( NodeImages[node.type] ) {
+			node.image = NodeImages[node.type];
+			node.shape = 'image';
+		}
+		else {
+			node.shape = NodeShapes[node.type];
+			node.color = NodeColors[node.type];
+		}
 	}
 
 	createLinks() {
@@ -132,32 +99,18 @@ export default class GraphManager {
 	setLinkVisualizationProps( links ) {
 		links.forEach( link => {
 			const { x_end, y_end } = link;
-			switch ( link.type ) {
-				case 'PartOf':
-					this.setLinkProps( link, LinkColors[link.type], x_end, y_end );
-					break;
-				case 'Trigger':
-					this.setLinkProps( link, LinkColors[link.type], x_end, y_end );
-					break;
-				case 'Read':
-					this.setLinkProps( link, LinkColors[link.type], x_end, y_end );
-					break;
-				case 'Mutate':
-					this.setLinkProps( link, LinkColors[link.type], x_end, y_end );
-					break;
-				case 'Generic':
-					this.setLinkProps( link, LinkColors[link.type], x_end, y_end );
-					break;
-				default:
-					this.setLinkProps( link, LinkColors.Default, x_end, y_end );
-					break;
-			}
+			this.setLinkProps( link, x_end, y_end );
 		} );
 	}
 
-	setLinkProps( link, color, x_end, y_end ) {
+	setLinkProps( link, x_end, y_end ) {
 		// x is from, y is to!
-		link.color = color;
+		if ( LinkColors[link.type] ) {
+			link.color = LinkColors[link.type];
+		}
+		else {
+			link.color = LinkColors.Default;
+		}
 		link.arrows = {};
 
 		if ( x_end?.arrow?.length > 0 ) {

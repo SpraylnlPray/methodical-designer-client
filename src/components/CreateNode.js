@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import { Container, Form } from 'semantic-ui-react';
+import { Container, Form, Dropdown } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
 import { useMutation } from '@apollo/client';
@@ -59,10 +59,13 @@ function CreateNode( props ) {
 						name='label'
 						value={ store.required['label'] }
 					/>
-					<Form.Select
+					<Form.Dropdown
 						className='create-required-select create-input'
 						fluid
 						clearable
+						floating
+						search
+						selection
 						label='Type'
 						options={ typeOptions }
 						placeholder='Type'

@@ -1,4 +1,4 @@
-import { ACTIVE_ITEM } from './queries/LocalQueries';
+import { ACTIVE_ITEM, LOG_MESSAGES } from './queries/LocalQueries';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
@@ -9,6 +9,17 @@ export const setActiveItem = ( client, itemId, itemType ) => {
 				itemType,
 				__typename: 'ActiveItem',
 			},
+		},
+	} );
+};
+
+export const addLogMessage = ( client, msg ) => {
+	const { logMessages } = client.readQuery( { query: LOG_MESSAGES } );
+	const newMessages = [ ...logMessages, msg ];
+	client.writeQuery( {
+		query: LOG_MESSAGES,
+		data: {
+			logMessages: newMessages,
 		},
 	} );
 };

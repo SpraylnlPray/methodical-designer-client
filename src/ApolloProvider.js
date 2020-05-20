@@ -248,6 +248,7 @@ const client = new ApolloClient( {
 cache.writeQuery( {
 	query: gql`
     query {
+      logMessages
       deletedNodes
       deletedLinks
       activeItem {
@@ -257,6 +258,7 @@ cache.writeQuery( {
     }
 	`,
 	data: {
+		logMessages: [],
 		deletedNodes: [],
 		deletedLinks: [],
 		activeItem: {

@@ -4,8 +4,8 @@ import SavePane from './SavePane';
 
 const HeaderArea = ( { client } ) => {
 	return (
-		<div className='bordered margin-base flex-area'>
-			<Header as='h1'>Methodical Designer</Header>
+		<div className='bordered margin-base header-area'>
+			<Header className='main-header' as='h1'>Methodical Designer</Header>
 			<SavePane client={ client }/>
 		</div>
 	);

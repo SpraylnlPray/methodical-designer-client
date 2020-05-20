@@ -1,5 +1,11 @@
 import { gql } from '@apollo/client';
 
+export const LOG_MESSAGES = gql`
+  query {
+    logMessages @client
+  }
+`;
+
 export const ACTIVE_ITEM = gql`
   query {
     activeItem @client {

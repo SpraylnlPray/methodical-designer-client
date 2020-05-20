@@ -31,6 +31,7 @@ const EditLink = ( { activeItem, client } ) => {
 
 	useEffect( () => {
 		dispatch( { type: 'UPDATE', data: inputs } );
+		// eslint-disable-next-line
 	}, [ activeItem ] );
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_LINK );

@@ -8,6 +8,7 @@ import {
 import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../TransactionUtils';
 import LoadingMessage from './LoadingMessage';
+import { addLogMessage } from '../utils';
 
 const SavePane = ( { client } ) => {
 	const [ runCreateNode, { loading: nodeCreateLoading } ] = useMutation( CREATE_NODE );
@@ -50,15 +51,16 @@ const SavePane = ( { client } ) => {
 			let deleteLinkPromises = [];
 			let deleteNodePromises = [];
 
+			addLogMessage( client, `saving created nodes` );
 			for ( let node of createdNodes ) {
-				console.log( 'saving created node ', node );
+				addLogMessage( client, `saving created node ${ node }` );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, label, type, props: { story, synchronous, unreliable } };
 				nodePromises.push( runCreateNode( { variables } ) );
 			}
-
+			addLogMessage( client, `saving updated nodes` );
 			for ( let node of editedNodes ) {
-				console.log( 'saving updated node ', node );
+				addLogMessage( client, `saving updated node ${ node.id }` );
 				const { id, label, story, synchronous, type, unreliable } = node;
 				const variables = { id, props: { label, type, story, synchronous, unreliable } };
 				nodePromises.push( runUpdateNode( { variables } ) );
@@ -66,16 +68,16 @@ const SavePane = ( { client } ) => {
 
 			Promise.all( nodePromises )
 			.then( () => {
-				console.log( 'finished creating and updating nodes, will now handle created links' );
+				addLogMessage( client, `finished creating and updating nodes, will now handle created links` );
 				for ( let link of createdLinks ) {
-					console.log( 'saving created link ', link );
+					addLogMessage( client, `saving created link ${ link.id }` );
 					const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 					const variables = { id, label, type, x_id, y_id, props: { story, optional } };
 					createLinkPromises.push( runCreateLink( { variables } ) );
 				}
 				Promise.all( createLinkPromises )
 				.then( () => {
-					console.log( 'finished creating links, will now handle sequences and link ends' );
+					addLogMessage( client, `finished creating links, will now handle sequences and link ends` );
 					for ( let link of createdLinks ) {
 						handleSequence( link, createLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
 						handleLinkEnds( link, createLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
@@ -83,9 +85,9 @@ const SavePane = ( { client } ) => {
 
 					Promise.all( createLinkEndAndSeqPromises )
 					.then( () => {
-						console.log( 'finished sequences and link ends, will now handle edited links' );
+						addLogMessage( client, `finished sequences and link ends, will now handle edited links` );
 						for ( let link of editedLinks ) {
-							console.log( 'saving edited link ', link );
+							addLogMessage( client, `saving edited link ${ link }` );
 							const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 							const variables = { id, props: { story, optional, label, type, x_id, y_id } };
 							editedLinkPromises.push( runUpdateLink( { variables } ) );
@@ -93,7 +95,7 @@ const SavePane = ( { client } ) => {
 
 						Promise.all( editedLinkPromises )
 						.then( () => {
-							console.log( 'finished saving edited links, will now handle sequences and link ends' );
+							addLogMessage( client, `finished saving edited links, will now handle sequences and link ends` );
 							for ( let link of editedLinks ) {
 								handleSequence( link, editedLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
 								handleLinkEnds( link, editedLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
@@ -101,21 +103,21 @@ const SavePane = ( { client } ) => {
 
 							Promise.all( editedLinkEndAndSeqPromises )
 							.then( () => {
-								console.log( 'finished sequences and link ends, will now delete links' );
+								addLogMessage( client, `finished sequences and link ends, will now delete links` );
 								for ( let link of deletedLinks ) {
 									deleteLinkOrNode( link, deleteLinkPromises, runDeleteLink );
 								}
 
 								Promise.all( deleteLinkPromises )
 								.then( () => {
-									console.log( 'finished deleting links, will now delete nodes' );
+									addLogMessage( client, `finished deleting links, will now delete nodes` );
 									for ( let node of deletedNodes ) {
 										deleteLinkOrNode( node, deleteNodePromises, runDeleteNode );
 									}
 
 									Promise.all( deleteNodePromises )
 									.then( () => {
-										console.log( 'finished deleting nodes, resetting local store' );
+										addLogMessage( client, `finished deleting nodes, resetting local store` );
 										client.writeQuery( {
 											query: gql`
                         query {
@@ -128,12 +130,12 @@ const SavePane = ( { client } ) => {
 											},
 										} );
 									} );
-								} ).catch( reason => console.log( `failed because of ${ reason }` ) );
-							} ).catch( reason => console.log( `failed because of ${ reason }` ) );
-						} ).catch( reason => console.log( `failed because of ${ reason }` ) );
-					} ).catch( reason => console.log( `failed because of ${ reason }` ) );
-				} ).catch( reason => console.log( `failed because of ${ reason }` ) );
-			} ).catch( reason => console.log( `failed because of ${ reason }` ) );
+								} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
+							} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
+						} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
+					} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
+				} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
+			} ).catch( reason => addLogMessage( client, `failed because of ${ reason }` ) );
 		}
 	};
 	const statusRender = () => {
@@ -172,9 +174,9 @@ const SavePane = ( { client } ) => {
 	};
 
 	return (
-		<div className='flex-area bordered'>
+		<div className='flex-area save-area'>
 			{ statusRender() }
-			<Button onClick={ handleSave }>Save to DB</Button>
+			<Button className='save-button' onClick={ handleSave }>Save</Button>
 		</div>
 	);
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
-import { setActiveItem } from '../utils';
+import { addLogMessage, setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
 import { useQuery } from '@apollo/client';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
@@ -32,19 +32,26 @@ const EditorPane = ( { client } ) => {
 		const events = {
 			select: function( event ) {
 				const { nodes, edges } = event;
-				if (nodes.length === 0 && edges.length === 0) {
-					setActiveItem(client, 'app', 'app');
-				}
-				else if ( nodes.length > 0 ) {
+				if ( nodes.length > 0 ) {
+					addLogMessage( client, `setting active item to node ${ nodes[0] }` );
 					setActiveItem( client, nodes[0], 'node' );
 				}
 				else if ( edges.length > 0 ) {
+					addLogMessage( client, `setting active item to link ${ edges[0] }` );
 					setActiveItem( client, edges[0], 'link' );
 				}
 			},
 			dragStart: function( event ) {
 				const { nodes } = event;
+				addLogMessage( client, `setting active item to node ${ nodes[0] }` );
 				setActiveItem( client, nodes[0], 'node' );
+			},
+			click: function( event ) {
+				const { nodes, edges } = event;
+				if ( nodes.length === 0 && edges.length === 0 ) {
+					addLogMessage( client, `setting active item to app` );
+					setActiveItem( client, 'app', 'app' );
+				}
 			},
 		};
 

@@ -87,6 +87,7 @@ function CreateLink( props ) {
 					<Form.Dropdown
 						className='create-required-select create-input'
 						fluid
+						floating
 						clearable
 						search
 						selection
@@ -100,6 +101,7 @@ function CreateLink( props ) {
 					/>
 					<Form.Dropdown
 						fluid
+						floating
 						clearable
 						search
 						selection
@@ -114,6 +116,7 @@ function CreateLink( props ) {
 					/>
 					<Form.Dropdown
 						fluid
+						floating
 						clearable
 						search
 						selection
@@ -136,6 +139,7 @@ function CreateLink( props ) {
 					/>
 					<Form.Dropdown
 						fluid
+						floating
 						clearable
 						search
 						selection
@@ -150,6 +154,7 @@ function CreateLink( props ) {
 					/>
 					<Form.Dropdown
 						fluid
+						floating
 						clearable
 						search
 						selection
