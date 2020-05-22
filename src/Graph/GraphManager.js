@@ -5,6 +5,8 @@ import { NodeImages } from './Images';
 export default class GraphManager {
 	#nodes = {};
 	#links = {};
+	#linkDict = {};
+	#nodeDict = {};
 	#options = {
 		layout: {
 			improvedLayout: true,
@@ -42,12 +44,13 @@ export default class GraphManager {
 			enabled: true,
 		},
 	};
-	#linkDict = {};
+
 
 	constructor( nodes, links ) {
 		this.#nodes = nodes;
 		this.#links = links;
 		this.#linkDict = this.createLinkDict();
+		this.#nodeDict = this.createNodeDict();
 	}
 
 	get graphOptions() {
@@ -55,28 +58,77 @@ export default class GraphManager {
 	}
 
 	get nodeDisplayData() {
-		const nodeList = this.#nodes.map( node => ({ id: node.id, label: node.label, type: node.type }) );
-		this.setNodeVisualizationProps( nodeList );
+		this.handleContainer();
+		this.setNodeVisualizationProps();
+		return this.createNodeList();
+	}
+
+	createNodeList() {
+		let nodeList = [];
+		for ( let nodeID in this.#nodeDict ) {
+			let node = this.#nodeDict[nodeID];
+			nodeList.push( {
+				id: node.id,
+				label: node.label,
+				type: node.type,
+				hidden: !!node.hidden,
+				image: node.image,
+				shape: node.shape,
+			} );
+		}
 		return nodeList;
 	}
 
+	handleContainer() {
+		for ( let nodeID in this.#nodeDict ) {
+			let node = this.#nodeDict[nodeID];
+			// if the node is a container
+			if ( node.type === 'Container' ) {
+				// find any links connected to it
+				this.handleConnectedNodes( node );
+			}
+		}
+	}
+
+	handleConnectedNodes( container ) {
+		for ( let linkID in this.#linkDict ) {
+			const link = this.#linkDict[linkID];
+			// if the x node is the container, hide the y node and vice versa
+			if ( link.x.id === container.id ) {
+				// if the container has collapse to true, the node will be hidden
+				this.#nodeDict[link.y.id].hidden = !!container.collapse;
+			}
+			else if ( link.y.id === container.id ) {
+				this.#nodeDict[link.x.id].hidden = !!container.collapse;
+			}
+		}
+	}
+
 	get linkDisplayData() {
-		return this.createLinks( this.#linkDict );
+		return this.createLinks();
+	}
+
+	createNodeDict() {
+		let dict = {};
+		this.#nodes.forEach( node => {
+			dict[node.id] = { ...node };
+		} );
+		return dict;
 	}
 
 	createLinkDict() {
 		let dict = {};
 		this.#links.forEach( link => {
 			dict[link.id] = { ...link };
-			dict[link.id].added = false;
 		} );
 		return dict;
 	};
 
 	setNodeVisualizationProps( nodes ) {
-		nodes.forEach( node => {
+		for ( let nodeID in this.#nodeDict ) {
+			let node = this.#nodeDict[nodeID];
 			this.setNodeImage( node );
-		} );
+		}
 	}
 
 	setNodeImage( node ) {

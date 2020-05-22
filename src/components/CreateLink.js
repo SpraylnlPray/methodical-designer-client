@@ -2,13 +2,13 @@ import React, { useReducer } from 'react';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
-import { enteredRequired } from '../utils';
+import { addLogMessage, enteredRequired } from '../utils';
 import { LOCAL_NODES } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';
 import { arrowOptions, typeOptions } from '../linkOptions';
 
-function CreateLink( props ) {
+function CreateLink( { client } ) {
 	const inputs = {
 		required: { label: '', type: '', x_id: '', y_id: '' },
 		props: { story: '', optional: false },
@@ -59,6 +59,7 @@ function CreateLink( props ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
+			addLogMessage( client, `creating node`);
 			const { required, props, x_end, y_end, seq } = store;
 			const variables = { ...required, props, x_end, y_end, seq };
 			runCreateLink( { variables } )

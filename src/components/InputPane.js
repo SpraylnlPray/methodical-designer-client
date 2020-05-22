@@ -15,9 +15,9 @@ const InputPane = ( { activeItem, client } ) => {
 	return (
 		<div className='bordered input-pane margin-base overflow-managed' onClick={ e => handleClick( e ) }>
 			{ activeItem.itemId === 'createnode' && activeItem.itemType === 'option' &&
-			<CreateNode/> }
+			<CreateNode client={ client }/> }
 			{ activeItem.itemId === 'createlink' && activeItem.itemType === 'option' &&
-			<CreateLink/> }
+			<CreateLink client={ client }/> }
 			{ activeItem.itemType === 'node' &&
 			<EditNode
 				client={ client }

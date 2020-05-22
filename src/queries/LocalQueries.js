@@ -37,6 +37,7 @@ export const LOCAL_NODES_TAGS = gql`
       story
       synchronous
       unreliable
+      collapse
       created
       edited
     }

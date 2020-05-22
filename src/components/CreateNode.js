@@ -1,13 +1,13 @@
 import React, { useReducer } from 'react';
-import { Container, Form, Dropdown } from 'semantic-ui-react';
+import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
 import { useMutation } from '@apollo/client';
 import { CREATE_LOCAL_NODE } from '../queries/LocalMutations';
-import { enteredRequired } from '../utils';
+import { addLogMessage, enteredRequired } from '../utils';
 import { typeOptions } from '../nodeOptions';
 
-function CreateNode( props ) {
+function CreateNode( { client } ) {
 	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
 
 	const [ store, dispatch ] = useReducer(
@@ -31,6 +31,7 @@ function CreateNode( props ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
+			addLogMessage( client, `creating node`);
 			runMutation( {
 				variables: {
 					...store.required,

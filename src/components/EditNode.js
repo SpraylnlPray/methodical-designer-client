@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { LOCAL_NODES } from '../queries/LocalQueries';
+import { LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { enteredRequired, setActiveItem } from '../utils';
@@ -10,11 +10,13 @@ import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client } ) => {
 
-	const { data: { Nodes } } = useQuery( LOCAL_NODES );
-	const { label, type, story, synchronous, unreliable } = Nodes.find( node => {
-		return node.id === activeItem.itemId;
-	} );
+	const { data: { Nodes } } = useQuery( LOCAL_NODES_TAGS );
+	const node = Nodes.find( node => node.id === activeItem.itemId );
+	const { label, type, story, synchronous, unreliable } = node;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
+	if ( node.type === 'Container' ) {
+		inputs.props.collapse = !!node.collapse;
+	}
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
@@ -112,6 +114,15 @@ const EditNode = ( { activeItem, client } ) => {
 						checked={ store.props['unreliable'] }
 						name='unreliable'
 					/>
+					{ node.type === 'Container' &&
+					<Form.Checkbox
+						className='create-input'
+						label='Collapse'
+						onChange={ handlePropsChange }
+						checked={ store.props['collapse'] }
+						name='collapse'
+					/>
+					}
 				</Form.Group>
 				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
 				<Form.Button onClick={ handleDelete }>Delete</Form.Button>

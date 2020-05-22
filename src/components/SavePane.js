@@ -79,8 +79,8 @@ const SavePane = ( { client } ) => {
 				.then( () => {
 					addLogMessage( client, `finished creating links, will now handle sequences and link ends` );
 					for ( let link of createdLinks ) {
-						handleSequence( link, createLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
-						handleLinkEnds( link, createLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
+						handleSequence( client, link, createLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
+						handleLinkEnds( client, link, createLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
 					}
 
 					Promise.all( createLinkEndAndSeqPromises )
@@ -97,22 +97,22 @@ const SavePane = ( { client } ) => {
 						.then( () => {
 							addLogMessage( client, `finished saving edited links, will now handle sequences and link ends` );
 							for ( let link of editedLinks ) {
-								handleSequence( link, editedLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
-								handleLinkEnds( link, editedLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
+								handleSequence( client, link, editedLinkEndAndSeqPromises, runMergeSeq, runDeleteSeq );
+								handleLinkEnds( client, link, editedLinkEndAndSeqPromises, runMergeLinkEnd, runDeleteLinkEnd );
 							}
 
 							Promise.all( editedLinkEndAndSeqPromises )
 							.then( () => {
 								addLogMessage( client, `finished sequences and link ends, will now delete links` );
 								for ( let link of deletedLinks ) {
-									deleteLinkOrNode( link, deleteLinkPromises, runDeleteLink );
+									deleteLinkOrNode( client, link, deleteLinkPromises, runDeleteLink );
 								}
 
 								Promise.all( deleteLinkPromises )
 								.then( () => {
 									addLogMessage( client, `finished deleting links, will now delete nodes` );
 									for ( let node of deletedNodes ) {
-										deleteLinkOrNode( node, deleteNodePromises, runDeleteNode );
+										deleteLinkOrNode(client, node, deleteNodePromises, runDeleteNode );
 									}
 
 									Promise.all( deleteNodePromises )

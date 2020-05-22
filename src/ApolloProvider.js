@@ -27,6 +27,9 @@ const cache = new InMemoryCache( {
 				edited( existingData ) {
 					return existingData || false;
 				},
+				collapse( existingData ) {
+					return existingData || false;
+				},
 			},
 		},
 		Link: {
@@ -58,7 +61,17 @@ const client = new ApolloClient( {
 				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
 
 				const newId = generateLocalUUID();
-				const newNode = { id: newId, label, type, story, synchronous, unreliable, created: true, edited: false };
+				const newNode = {
+					id: newId,
+					label,
+					type,
+					story,
+					synchronous,
+					unreliable,
+					created: true,
+					edited: false,
+					__typename: 'Node',
+				};
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
@@ -87,6 +100,7 @@ const client = new ApolloClient( {
 					sequence: seq,
 					created: true,
 					edited: false,
+					__typename: 'Link',
 				};
 				const newLinks = Links.concat( newLink );
 

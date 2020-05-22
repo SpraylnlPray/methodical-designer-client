@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { Divider, Button } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { LOG_MESSAGES } from '../queries/LocalQueries';
 
 function LogStream() {
