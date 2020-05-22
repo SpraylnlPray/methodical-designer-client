@@ -3,19 +3,10 @@ import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
 import { useQuery } from '@apollo/client';
-import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
 import { Message, Icon } from 'semantic-ui-react';
 import { LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 
-const EditorPane = ( { client } ) => {
-
-	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling } = useQuery( GET_SERVER_NODES, {
-		onError: error => console.log( error ),
-	} );
-	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling } = useQuery( GET_SERVER_LINKS, {
-		onError: error => console.log( error ),
-	} );
-
+const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling, serverLinkData, startLinkPolling, stopLinkPolling } ) => {
 	const { data: nodeData } = useQuery( LOCAL_NODES_TAGS, {
 		onError: error => console.log( error ),
 	} );

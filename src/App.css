@@ -151,3 +151,12 @@
     bottom: 0;
     font-size: 0.8em;
 }
+
+.rights-pane {
+    display: flex;
+    align-items: center;
+}
+
+.rights-button {
+    height: 2.5em;
+}

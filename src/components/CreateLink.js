@@ -3,12 +3,14 @@ import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
 import { addLogMessage, enteredRequired } from '../utils';
-import { LOCAL_NODES } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LOCAL_NODES } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';
 import { arrowOptions, typeOptions } from '../linkOptions';
 
 function CreateLink( { client } ) {
+	const { data: editingData } = useQuery( EDITING_RIGHTS );
+
 	const inputs = {
 		required: { label: '', type: '', x_id: '', y_id: '' },
 		props: { story: '', optional: false },
@@ -59,7 +61,7 @@ function CreateLink( { client } ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			addLogMessage( client, `creating node`);
+			addLogMessage( client, `creating node` );
 			const { required, props, x_end, y_end, seq } = store;
 			const variables = { ...required, props, x_end, y_end, seq };
 			runCreateLink( { variables } )
@@ -211,7 +213,8 @@ function CreateLink( { client } ) {
 						name='optional'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
+				{/* if the user doesn't have editing rights, it should be disabled */}
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>

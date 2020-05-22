@@ -15,24 +15,28 @@ function LogStream() {
 	) );
 
 	const scrollToBottom = () => {
-		if (messagesEndRef.current) {
+		if ( messagesEndRef.current ) {
 			messagesEndRef.current.scrollIntoView( { behavior: 'smooth' } );
 		}
 	};
 
-	const handleClick = ( e ) => {
+	const handleHeaderClick = ( e ) => {
 		e.stopPropagation();
 		setVisible( !visible );
+	};
+
+	const handleBodyClick = ( e ) => {
+		e.stopPropagation();
 	};
 
 	useEffect( scrollToBottom, [ messageList ] );
 
 	return (
 		<div className='log-container'>
-			<Button onClick={ handleClick } className='log-header'>LogStream</Button>
+			<Button onClick={ handleHeaderClick } className='log-header'>LogStream</Button>
 			{ visible &&
 			<div>
-				<ul className='log-stream overflow-managed'>
+				<ul className='log-stream overflow-managed' onClick={ handleBodyClick }>
 					{ messageList }
 					<div ref={ messagesEndRef }/>
 				</ul>

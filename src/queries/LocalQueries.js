@@ -121,3 +121,9 @@ export const LOCAL_LINKS_TAGS = gql`
     }
   }
 `;
+
+export const EDITING_RIGHTS = gql`
+  query {
+    hasEditRights @client
+  }
+`;

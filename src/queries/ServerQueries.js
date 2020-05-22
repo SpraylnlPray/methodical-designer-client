@@ -15,6 +15,16 @@ export const GET_SERVER_NODES = gql`
   }
 `;
 
+export const IS_BEING_EDITED = gql`
+  query getIsBeingEdited {
+    IsProjectBeingEdited {
+      isBeingEdited
+      success
+      message
+    }
+  }
+`;
+
 export const GET_SERVER_LINKS = gql`
   query links {
     Links {

@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { enteredRequired, setActiveItem } from '../utils';
@@ -9,6 +9,7 @@ import { DELETE_LOCAL_LINK, UPDATE_LOCAL_LINK } from '../queries/LocalMutations'
 import { arrowOptions, typeOptions } from '../linkOptions';
 
 const EditLink = ( { activeItem, client } ) => {
+	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const { data: { Links } } = useQuery( LOCAL_LINKS );
 	const LinksCopy = JSON.parse( JSON.stringify( Links ) );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = LinksCopy.find( link => link.id === activeItem.itemId );
@@ -223,8 +224,8 @@ const EditLink = ( { activeItem, client } ) => {
 						name='optional'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
-				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

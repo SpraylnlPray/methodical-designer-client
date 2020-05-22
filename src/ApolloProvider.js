@@ -263,6 +263,7 @@ cache.writeQuery( {
 	query: gql`
     query {
       logMessages
+			hasEditRights
       deletedNodes
       deletedLinks
       activeItem {
@@ -273,6 +274,7 @@ cache.writeQuery( {
 	`,
 	data: {
 		logMessages: [],
+		hasEditRights: false,
 		deletedNodes: [],
 		deletedLinks: [],
 		activeItem: {

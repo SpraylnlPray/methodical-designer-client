@@ -2,12 +2,14 @@ import React, { useReducer } from 'react';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { addLogMessage, enteredRequired } from '../utils';
 import { typeOptions } from '../nodeOptions';
+import { EDITING_RIGHTS } from '../queries/LocalQueries';
 
 function CreateNode( { client } ) {
+	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
 
 	const [ store, dispatch ] = useReducer(
@@ -99,7 +101,7 @@ function CreateNode( { client } ) {
 						name='unreliable'
 					/>
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>

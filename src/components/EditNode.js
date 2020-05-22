@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { LOCAL_NODES_TAGS } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { enteredRequired, setActiveItem } from '../utils';
@@ -9,7 +9,7 @@ import { DELETE_LOCAL_NODE, UPDATE_LOCAL_NODE } from '../queries/LocalMutations'
 import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client } ) => {
-
+	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const { data: { Nodes } } = useQuery( LOCAL_NODES_TAGS );
 	const node = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = node;
@@ -124,8 +124,8 @@ const EditNode = ( { activeItem, client } ) => {
 					/>
 					}
 				</Form.Group>
-				<Form.Button onClick={ handleSubmit }>Save!</Form.Button>
-				<Form.Button onClick={ handleDelete }>Delete</Form.Button>
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

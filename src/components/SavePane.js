@@ -5,12 +5,16 @@ import {
 	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
 	UPDATE_LINK, UPDATE_NODE,
 } from '../queries/ServerMutations';
-import { DELETED_LINKS, DELETED_NODES, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
+import {
+	DELETED_LINKS, DELETED_NODES, EDITING_RIGHTS, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS,
+} from '../queries/LocalQueries';
 import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../TransactionUtils';
 import LoadingMessage from './LoadingMessage';
 import { addLogMessage } from '../utils';
 
 const SavePane = ( { client } ) => {
+	const { data: editingData } = useQuery( EDITING_RIGHTS );
+
 	const [ runCreateNode, { loading: nodeCreateLoading } ] = useMutation( CREATE_NODE );
 	const [ runUpdateNode, { loading: nodeUpdateLoading } ] = useMutation( UPDATE_NODE );
 	const [ runCreateLink, { loading: createLinkLoading } ] = useMutation( CREATE_LINK );
@@ -176,7 +180,7 @@ const SavePane = ( { client } ) => {
 	return (
 		<div className='flex-area save-area'>
 			{ statusRender() }
-			<Button className='save-button' onClick={ handleSave }>Save</Button>
+			<Button disabled={ !editingData.hasEditRights } className='save-button' onClick={ handleSave }>Save</Button>
 		</div>
 	);
 };

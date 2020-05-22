@@ -1,5 +1,23 @@
 import { gql } from '@apollo/client';
 
+export const REQUEST_EDITING_RIGHTS = gql`
+  mutation requestEditRights{
+    RequestEditRights {
+      message
+      success
+    }
+  }
+`;
+
+export const FREE_EDITING_RIGHTS = gql`
+  mutation freeEditRights {
+    FreeEditRights {
+      message
+      success
+    }
+  }
+`;
+
 export const CREATE_NODE = gql`
   mutation($id: ID!, $label: String!, $type: NodeType!, $props: NodeCreateInput){
     CreateNode(id: $id, label: $label, type: $type, props: $props) {
