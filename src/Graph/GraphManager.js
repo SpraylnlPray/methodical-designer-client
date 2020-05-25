@@ -58,7 +58,7 @@ export default class GraphManager {
 	}
 
 	get nodeDisplayData() {
-		this.handleContainer();
+		this.handleCollapsables();
 		this.setNodeVisualizationProps();
 		return this.createNodeList();
 	}
@@ -79,27 +79,50 @@ export default class GraphManager {
 		return nodeList;
 	}
 
-	handleContainer() {
+	handleCollapsables() {
+		for ( let nodeID in this.#nodeDict ) {
+			let node = this.#nodeDict[nodeID];
+			node.hidden = false;
+		}
 		for ( let nodeID in this.#nodeDict ) {
 			let node = this.#nodeDict[nodeID];
 			// if the node is a container
-			if ( node.type === 'Container' ) {
+			if ( this.isCollapsable( node ) && node.collapse ) {
 				// find any links connected to it
-				this.handleConnectedNodes( node );
+				this.handleConnectedNodes( node, node, node.collapse );
 			}
 		}
 	}
 
-	handleConnectedNodes( container ) {
+	isCollapsable( node ) {
+		return node.type === 'Container' || node.type === 'Domain';
+	}
+
+	// collapsable: the 'parent' element of a 'part-of' connection
+	// sourceNode: the node who dispatched the 'collapse' call
+	// hide: true or false, whether to set 'hidden' to true or false
+	handleConnectedNodes( collapsable, sourceNode, hide ) {
+		// get all connected nodes to this collapsable
+		const connectedNodesIDs = [];
 		for ( let linkID in this.#linkDict ) {
 			const link = this.#linkDict[linkID];
-			// if the x node is the container, hide the y node and vice versa
-			if ( link.x.id === container.id ) {
-				// if the container has collapse to true, the node will be hidden
-				this.#nodeDict[link.y.id].hidden = !!container.collapse;
+			// if the x node is the collapsable, save the y node ID and vice versa
+			if ( link.x.id === collapsable.id ) {
+				connectedNodesIDs.push( link.y.id );
 			}
-			else if ( link.y.id === container.id ) {
-				this.#nodeDict[link.x.id].hidden = !!container.collapse;
+			else if ( link.y.id === collapsable.id ) {
+				connectedNodesIDs.push( link.x.id );
+			}
+		}
+		for ( let nodeID of connectedNodesIDs ) {
+			let nodeToBeAdapted = this.#nodeDict[nodeID];
+			if ( !nodeToBeAdapted.visited && nodeToBeAdapted.id !== sourceNode.id ) {
+				// set the hidden property to the specified value
+				nodeToBeAdapted.hidden = hide;
+				nodeToBeAdapted.visited = true;
+				if ( this.isCollapsable( nodeToBeAdapted ) ) {
+					this.handleConnectedNodes( nodeToBeAdapted, sourceNode, nodeToBeAdapted.hidden );
+				}
 			}
 		}
 	}

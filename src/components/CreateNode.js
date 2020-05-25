@@ -33,17 +33,16 @@ function CreateNode( { client } ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			addLogMessage( client, `creating node`);
+			addLogMessage( client, `creating node` );
 			runMutation( {
 				variables: {
 					...store.required,
 					props: store.props,
 				},
 			} )
-				.catch( e => console.log( e ) );
+				.catch( e => addLogMessage( client, `Failed when creating node: ${ e }` ) );
 		}
 		else {
-			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
 	};

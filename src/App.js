@@ -6,14 +6,13 @@ import { Grid } from 'semantic-ui-react';
 import './App.css';
 import { useApolloClient, useQuery } from '@apollo/client';
 import LogStream from './components/LogStream';
-import { addLogMessage, setActiveItem } from './utils';
+import { setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 
 function App() {
 	const client = useApolloClient();
 
 	const handleClick = () => {
-		addLogMessage( client, `setting active item to app` );
 		setActiveItem( client, 'app', 'app' );
 	};
 

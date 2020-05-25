@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
-import { enteredRequired, setActiveItem } from '../utils';
+import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 import { DELETE_LOCAL_LINK, UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { arrowOptions, typeOptions } from '../linkOptions';
@@ -68,13 +68,12 @@ const EditLink = ( { activeItem, client } ) => {
 	};
 
 	const handleSubmit = ( e ) => {
-		e.preventDefault();
 		e.stopPropagation();
 		if ( enteredRequired( store.required ) ) {
 			const { required, x_end, y_end, seq } = store;
 			const props = { ...store.props, ...required };
 			runUpdate( { variables: { id: activeItem.itemId, props, x_end, y_end, seq } } )
-				.catch( e => console.log( e ) );
+				.catch( e => addLogMessage( client, `Failed when editing link: ${ e }` ) );
 		}
 		else {
 			console.log( 'Must provide required inputs!' );
@@ -85,7 +84,8 @@ const EditLink = ( { activeItem, client } ) => {
 	const handleDelete = ( e ) => {
 		e.preventDefault();
 		e.stopPropagation();
-		runDelete( { variables: { id: activeItem.itemId } } );
+		runDelete( { variables: { id: activeItem.itemId } } )
+			.catch(e => addLogMessage( client, `Failed when deleting link: ${ e }` ))
 		setActiveItem( client, 'app', 'app' );
 	};
 

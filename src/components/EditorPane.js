@@ -7,16 +7,18 @@ import { Message, Icon } from 'semantic-ui-react';
 import { LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 
 const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling, serverLinkData, startLinkPolling, stopLinkPolling } ) => {
-	const { data: nodeData } = useQuery( LOCAL_NODES_TAGS, {
-		onError: error => console.log( error ),
+	const { data: nodeData, refetch: nodeRefetch } = useQuery( LOCAL_NODES_TAGS, {
+		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
 	} );
-	const { data: linkData } = useQuery( LOCAL_LINKS_TAGS, {
-		onError: error => console.log( error ),
+	const { data: linkData, refetch: linkRefetch } = useQuery( LOCAL_LINKS_TAGS, {
+		onError: error => addLogMessage( client, `Failed when getting local links: ${ error }` ),
 	} );
 
 	if ( serverNodeData && serverLinkData && nodeData && linkData ) {
 		stopNodePolling();
 		stopLinkPolling();
+		// nodeRefetch();
+		// linkRefetch();
 
 		const theManager = new GraphManager( nodeData.Nodes, linkData.Links );
 		let nodes = theManager.nodeDisplayData;
@@ -32,23 +34,19 @@ const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling
 			select: function( event ) {
 				const { nodes, edges } = event;
 				if ( nodes.length > 0 ) {
-					addLogMessage( client, `setting active item to node ${ nodes[0] }` );
 					setActiveItem( client, nodes[0], 'node' );
 				}
 				else if ( edges.length > 0 ) {
-					addLogMessage( client, `setting active item to link ${ edges[0] }` );
 					setActiveItem( client, edges[0], 'link' );
 				}
 			},
 			dragStart: function( event ) {
 				const { nodes } = event;
-				addLogMessage( client, `setting active item to node ${ nodes[0] }` );
 				setActiveItem( client, nodes[0], 'node' );
 			},
 			click: function( event ) {
 				const { nodes, edges } = event;
 				if ( nodes.length === 0 && edges.length === 0 ) {
-					addLogMessage( client, `setting active item to app` );
 					setActiveItem( client, 'app', 'app' );
 				}
 			},

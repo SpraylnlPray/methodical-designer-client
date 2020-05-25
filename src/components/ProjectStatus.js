@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
+import { useApolloClient, useMutation } from '@apollo/client';
 import { Message, Button } from 'semantic-ui-react';
 import { FREE_EDITING_RIGHTS, REQUEST_EDITING_RIGHTS } from '../queries/ServerMutations';
-import {
-	DELETED_LINKS, DELETED_NODES, EDITING_RIGHTS, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS,
-} from '../queries/LocalQueries';
+import { EDITING_RIGHTS } from '../queries/LocalQueries';
+import { addLogMessage } from '../utils';
+import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
-const ProjectStatus = ( { nodeRefetch, linkRefetch } ) => {
-	const { data } = useQuery( EDITING_RIGHTS );
-
-	const { data: localNodeData } = useQuery( LOCAL_NODES_TAGS );
-	const { data: localLinkData } = useQuery( LOCAL_LINKS_TAGS );
-	const { data: deletedNodesData } = useQuery( DELETED_NODES );
-	const { data: deletedLinksData } = useQuery( DELETED_LINKS );
+const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
+	const { nodeRefetch, linkRefetch } = props;
+	const client = useApolloClient();
 
 	const [ negativeRequest, setNegativeRequest ] = useState( false );
 
@@ -45,38 +41,32 @@ const ProjectStatus = ( { nodeRefetch, linkRefetch } ) => {
 
 	const handleFreeRights = ( e ) => {
 		e.stopPropagation();
-		const { Nodes } = localNodeData;
-		const { Links } = localLinkData;
-
-		const { deletedNodes } = deletedNodesData;
-		const { deletedLinks } = deletedLinksData;
-
-		const createdNodes = Nodes.filter( node => node.created );
-		const notNewlyCreatedNodes = Nodes.filter( node => !node.created );
-		const editedNodes = notNewlyCreatedNodes.filter( node => node.edited );
-
-		const createdLinks = Links.filter( link => link.created );
-		const notNewlyCreatedLinks = Links.filter( link => !link.created );
-		const editedLinks = notNewlyCreatedLinks.filter( link => link.edited );
-		if ( deletedNodes.length > 0 || deletedLinks.length > 0
-			|| createdNodes.length > 0 || editedNodes.length > 0
-			|| createdLinks.length > 0 || editedLinks.length > 0 ) {
+		if ( hasUnsavedLocalChanges() ) {
 			alert( 'Please first save local changes to the DB' );
 		}
 		else {
 			runFreeRights()
-				.catch( err => console.log( err ) );
+				.catch( err => addLogMessage( client, `Failed when freeing rights: ${ err }` ) );
 		}
 	};
 
 	const handleRequestEditRights = ( e ) => {
 		e.stopPropagation();
 		runRequestRights()
-			.catch( err => console.log( err ) );
+			.catch( err => addLogMessage( client, `Failed when requesting rights: ${ err }` ) );
 	};
 
-	if ( data ) {
-		if ( !data.hasEditRights ) {
+	const handleForceRights = ( e ) => {
+		e.stopPropagation();
+		runFreeRights()
+			.then( res => runRequestRights()
+				.catch( err => addLogMessage( client, `Failed when requesting rights: ${ err }` ) ) )
+			.catch( err => addLogMessage( client, `Failed when freeing rights: ${ err }` ) );
+
+	};
+
+	if ( editingData ) {
+		if ( !editingData.hasEditRights ) {
 			const contentText = negativeRequest ? 'Another user has editing rights.' : 'You have no editing rights yet.';
 
 			return (
@@ -85,7 +75,9 @@ const ProjectStatus = ( { nodeRefetch, linkRefetch } ) => {
 						<Message.Header>No Edit Rights</Message.Header>
 						<Message.Content>{ contentText }</Message.Content>
 					</Message>
-					<Button className='rights-button' onClick={ handleRequestEditRights }>Request Now</Button>
+					<Button color='teal' className='rights-button' onClick={ handleRequestEditRights }>Request Now</Button>
+					{ negativeRequest &&
+					<Button color='red' className='rights-button' onClick={ handleForceRights }>Force Rights</Button> }
 				</div>
 			);
 		}
@@ -103,4 +95,4 @@ const ProjectStatus = ( { nodeRefetch, linkRefetch } ) => {
 	}
 };
 
-export default ProjectStatus;
+export default withLocalDataAccess( ProjectStatus );

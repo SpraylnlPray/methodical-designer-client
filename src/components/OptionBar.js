@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from 'semantic-ui-react';
-import { addLogMessage, setActiveItem } from '../utils';
+import { setActiveItem } from '../utils';
 import { useApolloClient } from '@apollo/client';
 
 const OptionBar = ( { activeItem } ) => {
@@ -8,7 +8,6 @@ const OptionBar = ( { activeItem } ) => {
 
 	const handleClick = ( e ) => {
 		e.stopPropagation();
-		addLogMessage( client, `setting active item to ${ e.target.value }` );
 		setActiveItem( client, e.target.value, 'option' );
 	};
 

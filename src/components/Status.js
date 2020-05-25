@@ -15,7 +15,7 @@ const Status = ( { loading, error, data } ) => {
 	}
 
 	if ( data ) {
-		setActiveItem( client, 'app', 'app' );
+		// setActiveItem( client, 'app', 'app' );
 	}
 
 	return (

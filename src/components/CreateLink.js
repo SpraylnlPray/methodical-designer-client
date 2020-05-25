@@ -68,7 +68,6 @@ function CreateLink( { client } ) {
 				.catch( e => console.log( e ) );
 		}
 		else {
-			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
 	};

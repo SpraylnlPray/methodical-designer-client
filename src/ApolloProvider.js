@@ -112,16 +112,19 @@ const client = new ApolloClient( {
 
 			updateNode: ( _root, variables, { cache } ) => {
 				const { id, props } = variables;
-
 				const { Nodes } = cache.readQuery( { query: LOCAL_NODES_TAGS } );
 				const newNodes = Nodes.filter( node => node.id !== id );
 				let nodeToEdit = Nodes.filter( node => node.id === id )[0];
 				nodeToEdit = deepCopy( nodeToEdit );
 
 				for ( let prop in props ) {
-					nodeToEdit[prop] = props[prop];
+					if ( nodeToEdit[prop] !== props[prop] ) {
+						if ( prop !== 'collapse' ) {
+							nodeToEdit.edited = true;
+						}
+						nodeToEdit[prop] = props[prop];
+					}
 				}
-				nodeToEdit.edited = true;
 
 				cache.writeQuery( {
 					query: LOCAL_NODES_TAGS,
@@ -263,7 +266,7 @@ cache.writeQuery( {
 	query: gql`
     query {
       logMessages
-			hasEditRights
+      hasEditRights
       deletedNodes
       deletedLinks
       activeItem {

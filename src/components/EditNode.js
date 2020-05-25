@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
-import { enteredRequired, setActiveItem } from '../utils';
+import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 import { DELETE_LOCAL_NODE, UPDATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { typeOptions } from '../nodeOptions';
@@ -14,7 +14,7 @@ const EditNode = ( { activeItem, client } ) => {
 	const node = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = node;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
-	if ( node.type === 'Container' ) {
+	if ( node.type === 'Container' || node.type === 'Domain' ) {
 		inputs.props.collapse = !!node.collapse;
 	}
 
@@ -44,17 +44,16 @@ const EditNode = ( { activeItem, client } ) => {
 	};
 
 	const handleSubmit = ( e ) => {
-		e.preventDefault();
+		e.stopPropagation();
 		if ( enteredRequired( store.required ) ) {
 			// in this query all entries are optional as they can be edited or not
 			// at some point I'll have to refactor this on the server side
 			let props = { ...store.props, ...store.required };
 			let variables = { id: activeItem.itemId, props };
 			runUpdate( { variables } )
-				.catch( e => console.log( e ) );
+				.catch( e => addLogMessage( client, `Failed when editing node: ${ e }` ) );
 		}
 		else {
-			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
 	};
@@ -62,7 +61,8 @@ const EditNode = ( { activeItem, client } ) => {
 	const handleDelete = ( e ) => {
 		e.preventDefault();
 		e.stopPropagation();
-		runDelete( { variables: { id: activeItem.itemId } } );
+		runDelete( { variables: { id: activeItem.itemId } } )
+			.catch( e => addLogMessage( client, `Failed when deleting node: ${ e }` ) );
 		setActiveItem( client, 'app', 'app' );
 	};
 
@@ -114,7 +114,7 @@ const EditNode = ( { activeItem, client } ) => {
 						checked={ store.props['unreliable'] }
 						name='unreliable'
 					/>
-					{ node.type === 'Container' &&
+					{ (node.type === 'Container' || node.type === 'Domain') &&
 					<Form.Checkbox
 						className='create-input'
 						label='Collapse'
