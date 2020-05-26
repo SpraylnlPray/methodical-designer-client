@@ -24,6 +24,7 @@ const EditLink = ( { activeItem, client } ) => {
 
 	const { data: { Nodes } } = useQuery( LOCAL_NODES );
 	let nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+	nodeOptions.sort( ( node1, node2 ) => node1.text.localeCompare( node2.text ) );
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
