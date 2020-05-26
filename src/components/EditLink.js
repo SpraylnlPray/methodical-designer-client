@@ -38,15 +38,10 @@ const EditLink = ( { activeItem, client } ) => {
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_LINK );
 	const [ runDelete ] = useMutation( DELETE_LOCAL_LINK );
 
-	const handleEndChange = ( e, data ) => {
+	const handleEndChange = ( e, data, xy ) => {
 		const name = data.name;
 		const value = data.value;
-		if ( data.placeholder.toLowerCase().includes( 'x' ) ) {
-			dispatch( { type: 'ADD_X_END', name, value } );
-		}
-		else if ( data.placeholder.toLowerCase().includes( 'y' ) ) {
-			dispatch( { type: 'ADD_Y_END', name, value } );
-		}
+		dispatch( { type: `ADD_${ xy.toUpperCase() }_END`, name, value } );
 	};
 
 	const handleRequiredChange = ( e, data ) => {
@@ -89,6 +84,8 @@ const EditLink = ( { activeItem, client } ) => {
 		setActiveItem( client, 'app', 'app' );
 	};
 
+	const isPartOf = store.required['type'] === 'PartOf';
+
 	return (
 		<Container>
 			<Form className='create-form'>
@@ -118,9 +115,9 @@ const EditLink = ( { activeItem, client } ) => {
 						value={ store.required['type'] }
 					/>
 					<Form.Dropdown
-						placeholder='X-Node'
 						fluid
-						label='X-Node'
+						label={ isPartOf ? 'Parent-Node' : 'X-Node' }
+						placeholder={ isPartOf ? 'Parent-Node' : 'X-Node' }
 						clearable
 						search
 						selection
@@ -137,27 +134,27 @@ const EditLink = ( { activeItem, client } ) => {
 						search
 						selection
 						className='create-required-select create-input'
-						label='X-Arrow'
-						placeholder='X-Arrow'
+						label={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
+						placeholder={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
 						name='arrow'
 						value={ store.x_end['arrow'] }
 						options={ arrowOptions }
-						onChange={ handleEndChange }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
 					/>
 					<Form.Input
 						fluid
 						className='create-required-select create-input'
-						label='X-Note'
-						placeholder='X-Note'
-						onChange={ handleEndChange }
+						label={ isPartOf ? 'Parent-Note' : 'X-Note' }
+						placeholder={ isPartOf ? 'Parent-Note' : 'X-Note' }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
 						name='note'
 						value={ store.x_end['note'] }
 					/>
 					<Form.Dropdown
 						fluid
 						className='create-required-select create-input'
-						label='Y-Node'
-						placeholder='Y-Node'
+						label={ isPartOf ? 'Child-Node' : 'Y-Node' }
+						placeholder={ isPartOf ? 'Child-Node' : 'Y-Node' }
 						required
 						clearable
 						search
@@ -173,19 +170,19 @@ const EditLink = ( { activeItem, client } ) => {
 						search
 						selection
 						className='create-required-select create-input'
-						label='Y-Arrow'
-						placeholder='Y-Arrow'
+						label={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
+						placeholder={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
 						name='arrow'
 						value={ store.y_end['arrow'] }
 						options={ arrowOptions }
-						onChange={ handleEndChange }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
 					/>
 					<Form.Input
 						fluid
 						className='create-required-select create-input'
-						label='Y-Note'
-						placeholder='Y-Note'
-						onChange={ handleEndChange }
+						label={ isPartOf ? 'Child-Note' : 'Y-Note' }
+						placeholder={ isPartOf ? 'Child-Note' : 'Y-Note' }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
 						name='note'
 						value={ store.y_end['note'] }
 					/>
@@ -224,8 +221,10 @@ const EditLink = ( { activeItem, client } ) => {
 						name='optional'
 					/>
 				</Form.Group>
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+				<div className='edit-button-area'>
+					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

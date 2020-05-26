@@ -32,8 +32,8 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 		const createdLinks = getCreatedLinks();
 		const editedLinks = getEditedLinks();
 
-		const { deletedNodes } = getDeletedNodes();
-		const { deletedLinks } = getDeletedLinks();
+		const deletedNodes = getDeletedNodes();
+		const deletedLinks = getDeletedLinks();
 
 		let nodePromises = [];
 		let createLinkPromises = [];
@@ -45,14 +45,12 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 
 		addLogMessage( client, `saving created nodes` );
 		for ( let node of createdNodes ) {
-			addLogMessage( client, `saving created node ${ node }` );
 			const { id, label, story, synchronous, type, unreliable } = node;
 			const variables = { id, label, type, props: { story, synchronous, unreliable } };
 			nodePromises.push( runCreateNode( { variables } ) );
 		}
 		addLogMessage( client, `saving updated nodes` );
 		for ( let node of editedNodes ) {
-			addLogMessage( client, `saving updated node ${ node.id }` );
 			const { id, label, story, synchronous, type, unreliable } = node;
 			const variables = { id, props: { label, type, story, synchronous, unreliable } };
 			nodePromises.push( runUpdateNode( { variables } ) );
@@ -62,7 +60,6 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 		.then( () => {
 			addLogMessage( client, `finished creating and updating nodes, will now handle created links` );
 			for ( let link of createdLinks ) {
-				addLogMessage( client, `saving created link ${ link.id }` );
 				const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 				const variables = { id, label, type, x_id, y_id, props: { story, optional } };
 				createLinkPromises.push( runCreateLink( { variables } ) );
@@ -79,7 +76,6 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 				.then( () => {
 					addLogMessage( client, `finished sequences and link ends, will now handle edited links` );
 					for ( let link of editedLinks ) {
-						addLogMessage( client, `saving edited link` + link );
 						const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 						const variables = { id, props: { story, optional, label, type, x_id, y_id } };
 						editedLinkPromises.push( runUpdateLink( { variables } ) );
@@ -128,7 +124,6 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 				} ).catch( reason => addLogMessage( client, `failed updating link because of ${ reason }` ) );
 			} ).catch( reason => addLogMessage( client, `failed updating sequence/link because of ${ reason }` ) );
 		} ).catch( reason => addLogMessage( client, `failed creating link because of ${ reason }` ) );
-
 	};
 	const statusRender = () => {
 		if ( nodeCreateLoading ) {
@@ -179,7 +174,7 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 	return (
 		<div className='flex-area save-area'>
 			{ statusRender() }
-			<Button disabled={ disableSave() } className='save-button' onClick={ handleSave }>Save</Button>
+			<Button color='grey' disabled={ disableSave() } className='save-button' onClick={ handleSave }>Save</Button>
 		</div>
 	);
 };

@@ -15,13 +15,13 @@ export const NodeShapes = {
 };
 
 export const ArrowShapes = {
-	Sharp: 'vee',
+	SharpArrow: 'vee',
 	Curve: 'curve',
 	Diamond: 'diamond',
 	Arrow: 'arrow',
 	Box: 'box',
 	Triangle: 'triangle',
 	Bar: 'bar',
-	default: 'arrow',
+	Default: 'arrow',
 	InvTriangle: 'inv_triangle',
 };

@@ -35,6 +35,7 @@ export const LOCAL_NODES_TAGS = gql`
       label
       type
       story
+      sequence
       synchronous
       unreliable
       collapse

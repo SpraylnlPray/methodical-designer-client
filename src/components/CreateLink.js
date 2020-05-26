@@ -1,4 +1,4 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
@@ -21,6 +21,7 @@ function CreateLink( { client } ) {
 
 	const { data: { Nodes } } = useQuery( LOCAL_NODES );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+	nodeOptions.sort( ( node1, node2 ) => node1.text < node2.text );
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
@@ -29,15 +30,10 @@ function CreateLink( { client } ) {
 
 	const [ runCreateLink, { data, loading, error } ] = useMutation( CREATE_LOCAL_LINK );
 
-	const handleEndChange = ( e, data ) => {
+	const handleEndChange = ( e, data, xy ) => {
 		const name = data.name;
 		const value = data.value;
-		if ( data.placeholder.toLowerCase().includes( 'x' ) ) {
-			dispatch( { type: 'ADD_X_END', name, value } );
-		}
-		else if ( data.placeholder.toLowerCase().includes( 'y' ) ) {
-			dispatch( { type: 'ADD_Y_END', name, value } );
-		}
+		dispatch( { type: `ADD_${ xy.toUpperCase() }_END`, name, value } );
 	};
 
 	const handleRequiredChange = ( e, data ) => {
@@ -71,6 +67,12 @@ function CreateLink( { client } ) {
 			alert( 'Must provide required inputs!' );
 		}
 	};
+
+	const isPartOf = store.required['type'] === 'PartOf';
+	useEffect( () => {
+		dispatch( { type: 'ADD_X_END', name: 'arrow', value: 'Default' } );
+		// eslint-disable-next-line
+	}, [ isPartOf ] );
 
 	return (
 		<Container>
@@ -108,8 +110,8 @@ function CreateLink( { client } ) {
 						search
 						selection
 						className='create-required-select create-input'
-						label='X-Node'
-						placeholder='X-Node'
+						label={ isPartOf ? 'Parent-Node' : 'X-Node' }
+						placeholder={ isPartOf ? 'Parent-Node' : 'X-Node' }
 						required
 						onChange={ handleRequiredChange }
 						options={ nodeOptions }
@@ -123,19 +125,19 @@ function CreateLink( { client } ) {
 						search
 						selection
 						className='create-required-select create-input'
-						label='X-Arrow'
-						placeholder='X-Arrow'
+						label={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
+						placeholder={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
 						name='arrow'
 						value={ store.x_end['arrow'] }
 						options={ arrowOptions }
-						onChange={ handleEndChange }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
 					/>
 					<Form.Input
 						fluid
 						className='create-required-select create-input'
-						label='X-Note'
-						placeholder='X-Note'
-						onChange={ handleEndChange }
+						label={ isPartOf ? 'Parent-Note' : 'X-Note' }
+						placeholder={ isPartOf ? 'Parent-Note' : 'X-Note' }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
 						name='note'
 						value={ store.x_end['note'] }
 					/>
@@ -146,8 +148,8 @@ function CreateLink( { client } ) {
 						search
 						selection
 						className='create-required-select create-input'
-						label='Y-Node'
-						placeholder='Y-Node'
+						label={ isPartOf ? 'Child-Node' : 'Y-Node' }
+						placeholder={ isPartOf ? 'Child-Node' : 'Y-Node' }
 						required
 						onChange={ handleRequiredChange }
 						options={ nodeOptions }
@@ -161,19 +163,19 @@ function CreateLink( { client } ) {
 						search
 						selection
 						className='create-required-select create-input'
-						label='Y-Arrow'
-						placeholder='Y-Arrow'
+						label={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
+						placeholder={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
 						name='arrow'
 						value={ store.y_end['arrow'] }
 						options={ arrowOptions }
-						onChange={ handleEndChange }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
 					/>
 					<Form.Input
 						fluid
 						className='create-required-select create-input'
-						label='Y-Note'
-						placeholder='Y-Note'
-						onChange={ handleEndChange }
+						label={ isPartOf ? 'Child-Note' : 'Y-Note' }
+						placeholder={ isPartOf ? 'Child-Note' : 'Y-Note' }
+						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
 						name='note'
 						value={ store.y_end['note'] }
 					/>
@@ -212,8 +214,8 @@ function CreateLink( { client } ) {
 						name='optional'
 					/>
 				</Form.Group>
-				{/* if the user doesn't have editing rights, it should be disabled */}
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+				{/* if the user doesn't have editing rights, it should be disabled */ }
+				<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>

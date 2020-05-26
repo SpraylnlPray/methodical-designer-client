@@ -12,8 +12,10 @@ const OptionBar = ( { activeItem } ) => {
 	};
 
 	return (
-		<div className='bordered margin-base option-bar'>
+		<div className='margin-base option-bar'>
 			<Button
+				toggle
+				color='teal'
 				className='option-button'
 				active={ activeItem.itemId === 'createnode' }
 				value='createnode'
@@ -21,6 +23,8 @@ const OptionBar = ( { activeItem } ) => {
 				Create Node
 			</Button>
 			<Button
+				toggle
+				color='teal'
 				className='option-button'
 				active={ activeItem.itemId === 'createlink' }
 				value='createlink'

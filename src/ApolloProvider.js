@@ -30,6 +30,9 @@ const cache = new InMemoryCache( {
 				collapse( existingData ) {
 					return existingData || false;
 				},
+				sequence( existingData ) {
+					return existingData || {};
+				},
 			},
 		},
 		Link: {

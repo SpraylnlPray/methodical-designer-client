@@ -100,7 +100,7 @@ function CreateNode( { client } ) {
 						name='unreliable'
 					/>
 				</Form.Group>
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+				<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 			</Form>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</Container>

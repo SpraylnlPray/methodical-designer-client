@@ -17,7 +17,7 @@
 }
 
 .input-pane {
-    height: 780px;
+    height: 800px;
 }
 
 .editor-pane {
@@ -25,7 +25,7 @@
 }
 
 .create-form {
-    padding: 5px;
+    padding: 0 0 5px 5px;
     display: flex;
     flex-direction: column;
 }
@@ -33,6 +33,7 @@
 .create-group {
     display: flex;
     flex-wrap: wrap;
+    width: 410px;
 }
 
 .create-required-input, .create-required-select, .create-props-input, .create-props-select {
@@ -40,7 +41,7 @@
 }
 
 .create-input {
-    padding: 5px 0;
+    padding: 1px 0;
 }
 
 .status {
@@ -159,4 +160,15 @@
 
 .rights-button {
     height: 2.5em;
+    font-weight: 600 !important;
+}
+
+.edit-button-area {
+    display: flex;
+    width: 90%;
+    justify-content: space-evenly;
+}
+
+.ui.form .field {
+    margin-bottom: 0;
 }

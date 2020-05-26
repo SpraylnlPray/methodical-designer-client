@@ -7,8 +7,8 @@ export const typeOptions = [
 ];
 
 export const arrowOptions = [
-	{ 'text': 'Default', 'value': 'default' },
-	{ 'text': 'Sharp Arrow', 'value': 'Sharp' },
+	{ 'text': 'Default', 'value': 'Default' },
+	{ 'text': 'Sharp Arrow', 'value': 'SharpArrow' },
 	{ 'text': 'Curve', 'value': 'Curve' },
 	{ 'text': 'Diamond', 'value': 'Diamond' },
 	{ 'text': 'Inverse Triangle', 'value': 'InvTriangle' },

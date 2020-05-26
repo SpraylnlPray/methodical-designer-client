@@ -15,7 +15,7 @@ export const NodeColors = {
 };
 
 export const LinkColors = {
-	PartOf: '#838487',
+	PartOf: '#8FBC8F',
 	Trigger: '#92B6D5',
 	Read: '#4C6A92',
 	Mutate: '#006E51',

@@ -1,20 +1,15 @@
-import { addLogMessage } from './utils';
-
 export const saveSequence = ( client, link, promises, fnc ) => {
-	addLogMessage( client, `saving sequence` + link.sequence + ' on ' + link );
 	const { group, seq } = link.sequence;
 	const variables = { link_id: link.id, props: { group, seq: Number( seq ) } };
 	promises.push( fnc( { variables } ) );
 };
 
 export const deleteSequence = ( client, link, promises, fnc ) => {
-	addLogMessage( client, `deleting sequence` + link.sequence + ' on ' + link );
 	const { id: link_id } = link;
 	promises.push( fnc( { variables: { link_id } } ) );
 };
 
 export const saveLinkEnd = ( client, link, promises, end, fnc ) => {
-	addLogMessage( client, `saving link end` + link[end] + ' on ' + link );
 	const { arrow, note } = link[end];
 	const variables = {
 		link_id: link.id,
@@ -28,7 +23,6 @@ export const saveLinkEnd = ( client, link, promises, end, fnc ) => {
 };
 
 export const deleteLinkEnd = ( client, link, promises, end, fnc ) => {
-	addLogMessage( client, `deleting link end` + link[end] + ' on ' + link );
 	const variables = { link_id: link.id, xy: end === 'x_end' ? 'x' : 'y' };
 	promises.push( fnc( { variables } ) );
 };
@@ -58,7 +52,6 @@ export const handleLinkEnds = ( client, link, promises, saveFnc, deleteFnc ) => 
 };
 
 export const deleteLinkOrNode = ( client, entity, promises, deleteFnc ) => {
-	addLogMessage( client, `deleting` + entity );
 	const { id } = entity;
 	promises.push( deleteFnc( { variables: { id } } ) );
 };

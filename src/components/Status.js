@@ -1,12 +1,8 @@
 import React from 'react';
 import { Icon, Message } from 'semantic-ui-react';
-import { useApolloClient } from '@apollo/client';
-import { setActiveItem } from '../utils';
 // todo: add error output for more than just graphql errors
 
 const Status = ( { loading, error, data } ) => {
-	const client = useApolloClient();
-
 	let errors = {};
 	if ( error ) {
 		errors = error.graphQLErrors.map( ( { message }, i ) => (

@@ -124,8 +124,10 @@ const EditNode = ( { activeItem, client } ) => {
 					/>
 					}
 				</Form.Group>
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
-				<Form.Button disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+				<div className='edit-button-area'>
+					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
+					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
 		</Container>

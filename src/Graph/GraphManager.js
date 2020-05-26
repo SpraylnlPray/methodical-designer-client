@@ -86,10 +86,10 @@ export default class GraphManager {
 		}
 		for ( let nodeID in this.#nodeDict ) {
 			let node = this.#nodeDict[nodeID];
-			// if the node is a container
+			// if the node is a container or domain and its childs should be hidden
 			if ( this.isCollapsable( node ) && node.collapse ) {
 				// find any links connected to it
-				this.handleConnectedNodes( node, node, node.collapse );
+				this.handleConnectedNodes( node, node );
 			}
 		}
 	}
@@ -101,27 +101,24 @@ export default class GraphManager {
 	// collapsable: the 'parent' element of a 'part-of' connection
 	// sourceNode: the node who dispatched the 'collapse' call
 	// hide: true or false, whether to set 'hidden' to true or false
-	handleConnectedNodes( collapsable, sourceNode, hide ) {
+	handleConnectedNodes( collapsable, sourceNode ) {
 		// get all connected nodes to this collapsable
 		const connectedNodesIDs = [];
 		for ( let linkID in this.#linkDict ) {
 			const link = this.#linkDict[linkID];
-			// if the x node is the collapsable, save the y node ID and vice versa
+			// if the x node is the collapsable, save the y node ID
 			if ( link.x.id === collapsable.id ) {
 				connectedNodesIDs.push( link.y.id );
-			}
-			else if ( link.y.id === collapsable.id ) {
-				connectedNodesIDs.push( link.x.id );
 			}
 		}
 		for ( let nodeID of connectedNodesIDs ) {
 			let nodeToBeAdapted = this.#nodeDict[nodeID];
 			if ( !nodeToBeAdapted.visited && nodeToBeAdapted.id !== sourceNode.id ) {
 				// set the hidden property to the specified value
-				nodeToBeAdapted.hidden = hide;
+				nodeToBeAdapted.hidden = true;
 				nodeToBeAdapted.visited = true;
 				if ( this.isCollapsable( nodeToBeAdapted ) ) {
-					this.handleConnectedNodes( nodeToBeAdapted, sourceNode, nodeToBeAdapted.hidden );
+					this.handleConnectedNodes( nodeToBeAdapted, sourceNode );
 				}
 			}
 		}
@@ -186,8 +183,13 @@ export default class GraphManager {
 		else {
 			link.color = LinkColors.Default;
 		}
-		link.arrows = {};
 
+		if ( link.sequence ) {
+			const { group, seq } = link.sequence;
+			link.label = `${ group } - ${ seq }`;
+		}
+
+		link.arrows = {};
 		if ( x_end?.arrow?.length > 0 ) {
 			link.arrows.from = {
 				enabled: true,
@@ -274,8 +276,8 @@ export default class GraphManager {
 
 	getDefaultLinkData = link => {
 		// x is from, y is to!
-		const { id, x: { id: from }, y: { id: to }, label, type, x_end, y_end } = link;
-		return { id, from, to, label, type, x_end, y_end };
+		const { id, x: { id: from }, y: { id: to }, label, type, x_end, y_end, sequence } = link;
+		return { id, from, to, label, type, x_end, y_end, sequence };
 	};
 
 	haveSameNodes = ( link1, link2 ) => {

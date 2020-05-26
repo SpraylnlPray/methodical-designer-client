@@ -1,5 +1,4 @@
 import React from 'react';
-import { setActiveItem } from '../utils';
 import CreateLink from './CreateLink';
 import CreateNode from './CreateNode';
 import EditNode from './EditNode';
@@ -9,7 +8,6 @@ const InputPane = ( { activeItem, client } ) => {
 
 	const handleClick = ( e ) => {
 		e.stopPropagation();
-		// setActiveItem( client, activeItem.itemId, activeItem.itemType );
 	};
 
 	return (

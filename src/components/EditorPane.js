@@ -7,18 +7,16 @@ import { Message, Icon } from 'semantic-ui-react';
 import { LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
 
 const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling, serverLinkData, startLinkPolling, stopLinkPolling } ) => {
-	const { data: nodeData, refetch: nodeRefetch } = useQuery( LOCAL_NODES_TAGS, {
+	const { data: nodeData } = useQuery( LOCAL_NODES_TAGS, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
 	} );
-	const { data: linkData, refetch: linkRefetch } = useQuery( LOCAL_LINKS_TAGS, {
+	const { data: linkData } = useQuery( LOCAL_LINKS_TAGS, {
 		onError: error => addLogMessage( client, `Failed when getting local links: ${ error }` ),
 	} );
 
 	if ( serverNodeData && serverLinkData && nodeData && linkData ) {
 		stopNodePolling();
 		stopLinkPolling();
-		// nodeRefetch();
-		// linkRefetch();
 
 		const theManager = new GraphManager( nodeData.Nodes, linkData.Links );
 		let nodes = theManager.nodeDisplayData;

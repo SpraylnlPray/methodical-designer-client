@@ -88,7 +88,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 						<Message.Header>You have editing rights!</Message.Header>
 						<Message.Content>Feel free to make changes</Message.Content>
 					</Message>
-					<Button className='rights-button' onClick={ handleFreeRights }>Free Editing Rights</Button>
+					<Button color='teal' className='rights-button' onClick={ handleFreeRights }>Free Editing Rights</Button>
 				</div>
 			);
 		}
