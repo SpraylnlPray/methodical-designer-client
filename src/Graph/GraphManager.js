@@ -10,7 +10,6 @@ export default class GraphManager {
 	#nodeDict = {};
 	#options = {
 		layout: {
-			hierarchical: true,
 			improvedLayout: true,
 		},
 		edges: {
