@@ -1,6 +1,7 @@
 import { LinkColors, NodeColors } from './Colors';
 import { ArrowShapes, NodeShapes } from './Shapes';
 import { NodeImages } from './Images';
+import { deepCopy } from '../utils';
 
 export default class GraphManager {
 	#nodes = {};
@@ -117,6 +118,7 @@ export default class GraphManager {
 				// set the hidden property to the specified value
 				nodeToBeAdapted.hidden = true;
 				nodeToBeAdapted.visited = true;
+				nodeToBeAdapted.hiddenBy = sourceNode.id;
 				if ( this.isCollapsable( nodeToBeAdapted ) ) {
 					this.handleConnectedNodes( nodeToBeAdapted, sourceNode );
 				}
@@ -131,7 +133,7 @@ export default class GraphManager {
 	createNodeDict() {
 		let dict = {};
 		this.#nodes.forEach( node => {
-			dict[node.id] = { ...node };
+			dict[node.id] = deepCopy( node );
 		} );
 		return dict;
 	}
@@ -139,7 +141,7 @@ export default class GraphManager {
 	createLinkDict() {
 		let dict = {};
 		this.#links.forEach( link => {
-			dict[link.id] = { ...link };
+			dict[link.id] = deepCopy( link );
 		} );
 		return dict;
 	};
@@ -163,6 +165,7 @@ export default class GraphManager {
 	}
 
 	createLinks() {
+		this.snap();
 		const linkList = this.getLinkList();
 		this.setLinkVisualizationProps( linkList );
 		return linkList;
@@ -207,6 +210,16 @@ export default class GraphManager {
 		}
 	}
 
+	getOtherLinks( link ) {
+		const otherLinks = [];
+		for ( let linkID in this.#linkDict ) {
+			if ( linkID !== link.id ) {
+				otherLinks.push( this.#linkDict[linkID] );
+			}
+		}
+		return otherLinks;
+	}
+
 	getLinkList() {
 		// this is an array of arrays
 		// each array inside contains the links between two nodes that are connected by multiple links
@@ -219,9 +232,9 @@ export default class GraphManager {
 			// if the link has not been checked yet
 			if ( !link.added ) {
 				// get all links that are not the link itself
-				const linksToCheck = this.#links.filter( checkLink => checkLink.id !== link.id );
+				const linksToCheck = this.getOtherLinks( link );
 				linksToCheck.forEach( linkToCheck => {
-						// if link to check link hasn't been added yet
+						// if link to check hasn't been added yet
 						if ( !linkToCheck.added ) {
 							// if both are connected to the same nodes
 							if ( this.haveSameNodes( link, linkToCheck ) ) {
@@ -252,6 +265,32 @@ export default class GraphManager {
 		const multipleLinkData = this.normalizeMultipleConnections( multipleConnectionsList );
 
 		return multipleLinkData.concat( normalLinkData );
+	}
+
+	snap() {
+		for ( let linkID in this.#linkDict ) {
+			let link = this.#linkDict[linkID];
+			const x_node = this.#nodeDict[link.x.id];
+			const y_node = this.#nodeDict[link.y.id];
+			// snapping should only happen if one of them is still visible
+			if ( !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
+				// if x_node is hidden, it has a 'hiddenBy' ID where the link should now snap to
+				if ( this.isHidden( x_node ) ) {
+					this.#linkDict[linkID].x.id = x_node.hiddenBy;
+				}
+				else if ( this.isHidden( y_node ) ) {
+					this.#linkDict[linkID].y.id = y_node.hiddenBy;
+				}
+			}
+		}
+	}
+
+	isHidden( node ) {
+		return node.hidden;
+	}
+
+	areBothHidden( node1, node2 ) {
+		return this.isHidden( node1 ) && this.isHidden( node2 );
 	}
 
 	normalizeMultipleConnections = multipleConnectionsList => {
@@ -297,7 +336,7 @@ export default class GraphManager {
 			link1.added = true;
 		}
 		else {
-			// otherwise add just the checked link to the temp array
+			// otherwise add just the not checked link to the temp array
 			similarLinks.push( link2 );
 		}
 		this.#linkDict[link2.id].added = true;

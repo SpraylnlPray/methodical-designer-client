@@ -27,11 +27,11 @@ const cache = new InMemoryCache( {
 				edited( existingData ) {
 					return existingData || false;
 				},
-				collapse( existingData ) {
+				deleted(existingData) {
 					return existingData || false;
 				},
-				sequence( existingData ) {
-					return existingData || {};
+				collapse( existingData ) {
+					return existingData || false;
 				},
 			},
 		},

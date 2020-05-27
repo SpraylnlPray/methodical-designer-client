@@ -4,10 +4,10 @@ import { addLogMessage, setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
 import { useQuery } from '@apollo/client';
 import { Message, Icon } from 'semantic-ui-react';
-import { LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
+import { LOCAL_LINKS_TAGS, EDITOR_NODE_DATA } from '../queries/LocalQueries';
 
 const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling, serverLinkData, startLinkPolling, stopLinkPolling } ) => {
-	const { data: nodeData } = useQuery( LOCAL_NODES_TAGS, {
+	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
 	} );
 	const { data: linkData } = useQuery( LOCAL_LINKS_TAGS, {

@@ -1,5 +1,11 @@
 import { gql } from '@apollo/client';
 
+export const NODES_DATA = gql`
+  query {
+    Nodes @client
+  }
+`;
+
 export const LOG_MESSAGES = gql`
   query {
     logMessages @client
@@ -28,6 +34,17 @@ export const LOCAL_NODES = gql`
   }
 `;
 
+export const EDITOR_NODE_DATA = gql`
+  query {
+    Nodes @client {
+      id
+      label
+      type
+      collapse
+    }
+  }
+`;
+
 export const LOCAL_NODES_TAGS = gql`
   query {
     Nodes @client {
@@ -35,7 +52,6 @@ export const LOCAL_NODES_TAGS = gql`
       label
       type
       story
-      sequence
       synchronous
       unreliable
       collapse
