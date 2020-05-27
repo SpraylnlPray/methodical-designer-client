@@ -2,7 +2,7 @@ import React, { useEffect, useReducer } from 'react';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
-import { addLogMessage, enteredRequired, compareLabels } from '../utils';
+import { addLogMessage, enteredRequired } from '../utils';
 import { EDITING_RIGHTS, LOCAL_NODES } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';

@@ -184,9 +184,11 @@ export default class GraphManager {
 			link.color = LinkColors.Default;
 		}
 
-		if ( link.sequence ) {
+		if ( link?.sequence ) {
 			const { group, seq } = link.sequence;
-			link.label = `${ group } - ${ seq }`;
+			if ( group?.length > 0 || seq?.length > 0 ) {
+				link.label = `${ group } - ${ seq }`;
+			}
 		}
 
 		link.arrows = {};
