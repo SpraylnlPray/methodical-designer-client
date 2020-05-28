@@ -107,6 +107,34 @@ export const LOCAL_LINKS = gql`
   }
 `;
 
+export const EDITOR_LINK_DATA = gql`
+	query {
+		Links @client {
+			id
+			label
+			type
+			x {
+				id
+			}
+			y {
+				id
+			}
+      x_end {
+        arrow
+        note
+      }
+      y_end {
+        arrow
+        note
+      }
+      sequence {
+        group
+        seq
+      }
+		}
+	}
+`;
+
 export const LOCAL_LINKS_TAGS = gql`
   query {
     Links @client {
