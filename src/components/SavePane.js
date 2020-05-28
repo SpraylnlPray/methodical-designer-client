@@ -30,20 +30,18 @@ const SavePane = ( {
 	const handleDiscard = e => {
 		e.stopPropagation();
 		getNodes();
-		getLinks()
-		.then(
-			client.writeQuery( {
-				query: gql`
-          query {
-            deletedNodes
-            deletedLinks
-          }`,
-				data: {
-					deletedNodes: [],
-					deletedLinks: [],
-				},
-			} ),
-		);
+		getLinks();
+		client.writeQuery( {
+			query: gql`
+        query {
+          deletedNodes
+          deletedLinks
+        }`,
+			data: {
+				deletedNodes: [],
+				deletedLinks: [],
+			},
+		} );
 	};
 
 	const handleSave = e => {
