@@ -2,11 +2,12 @@ import React from 'react';
 import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
-import { useQuery } from '@apollo/client';
-import { Message, Icon } from 'semantic-ui-react';
+import { useApolloClient, useQuery } from '@apollo/client';
 import { LOCAL_LINKS_TAGS, EDITOR_NODE_DATA } from '../queries/LocalQueries';
 
-const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling, serverLinkData, startLinkPolling, stopLinkPolling } ) => {
+const EditorPane = () => {
+	const client = useApolloClient();
+
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
 	} );
@@ -14,10 +15,7 @@ const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling
 		onError: error => addLogMessage( client, `Failed when getting local links: ${ error }` ),
 	} );
 
-	if ( serverNodeData && serverLinkData && nodeData && linkData ) {
-		stopNodePolling();
-		stopLinkPolling();
-
+	if ( nodeData && linkData ) {
 		const theManager = new GraphManager( nodeData.Nodes, linkData.Links );
 		let nodes = theManager.nodeDisplayData;
 		let links = theManager.linkDisplayData;
@@ -63,22 +61,6 @@ const EditorPane = ( { client, serverNodeData, startNodePolling, stopNodePolling
 					options={ options }
 					events={ events }
 				/>
-			</div>
-		);
-	}
-	else {
-		startNodePolling( 5000 );
-		startLinkPolling( 5000 );
-
-		return (
-			<div className='bordered editor-pane margin-base flex-center'>
-				<Message icon info floating className={ 'editor-loading-message' }>
-					<Icon name='circle notched' loading/>
-					<Message.Content>
-						<Message.Header>The server is starting up...</Message.Header>
-						This can take up to 30 seconds.
-					</Message.Content>
-				</Message>
 			</div>
 		);
 	}

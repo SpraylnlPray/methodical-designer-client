@@ -6,8 +6,9 @@ import { Grid } from 'semantic-ui-react';
 import './App.css';
 import { useApolloClient, useQuery } from '@apollo/client';
 import LogStream from './components/LogStream';
-import { setActiveItem } from './utils';
+import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
+import ServerStartupMessage from './components/ServerStartupMessage';
 
 function App() {
 	const client = useApolloClient();
@@ -16,28 +17,39 @@ function App() {
 		setActiveItem( client, 'app', 'app' );
 	};
 
-	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling, refetch: nodeRefetch }
+	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling }
 					= useQuery( GET_SERVER_NODES, {
-		onError: error => console.log( error ),
+		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 	} );
-	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling, refetch: linkRefetch }
+	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling }
 					= useQuery( GET_SERVER_LINKS, {
-		onError: error => console.log( error ),
+		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 	} );
+
+	function EditorArea() {
+		if ( serverNodeData && serverLinkData ) {
+			stopNodePolling();
+			stopLinkPolling();
+			return (<EditorPane/>);
+		}
+		else {
+			startNodePolling( 5000 );
+			startLinkPolling( 5000 );
+
+			return (<ServerStartupMessage/>);
+		}
+	}
 
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>
-			<HeaderArea client={ client } nodeRefetch={ nodeRefetch } linkRefetch={ linkRefetch }/>
+			<HeaderArea client={ client }/>
 			<Grid>
 				<Grid.Row>
 					<Grid.Column width={ 4 }>
 						<InteractionPane client={ client }/>
 					</Grid.Column>
 					<Grid.Column width={ 12 }>
-						<EditorPane serverNodeData={ serverNodeData } startNodePolling={ startNodePolling }
-												stopNodePolling={ stopNodePolling }
-												serverLinkData={ serverLinkData } startLinkPolling={ startLinkPolling }
-												stopLinkPolling={ stopLinkPolling } client={ client }/>
+						{ EditorArea() }
 					</Grid.Column>
 				</Grid.Row>
 			</Grid>

@@ -7,7 +7,7 @@ import { addLogMessage } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
 const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
-	const { nodeRefetch, linkRefetch } = props;
+	const { getNodes, getLinks } = props;
 	const client = useApolloClient();
 
 	const [ negativeRequest, setNegativeRequest ] = useState( false );
@@ -25,8 +25,8 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 	const [ runRequestRights ] = useMutation( REQUEST_EDITING_RIGHTS, {
 		update( cache, { data: { RequestEditRights } } ) {
 			if ( RequestEditRights.success ) {
-				nodeRefetch();
-				linkRefetch();
+				getNodes();
+				getLinks();
 				setNegativeRequest( false );
 			}
 			else {

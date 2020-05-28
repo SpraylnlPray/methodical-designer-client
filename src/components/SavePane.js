@@ -14,7 +14,7 @@ const SavePane = ( {
 										 props, getDeletedLinks, getDeletedNodes, getEditedLinks, getEditedNodes,
 										 getCreatedLinks, getCreatedNodes, hasUnsavedLocalChanges, editingData,
 									 } ) => {
-	const { client, nodeRefetch, linkRefetch } = props;
+	const { client, getNodes, getLinks } = props;
 
 	const [ runCreateNode, { loading: nodeCreateLoading } ] = useMutation( CREATE_NODE );
 	const [ runUpdateNode, { loading: nodeUpdateLoading } ] = useMutation( UPDATE_NODE );
@@ -29,8 +29,8 @@ const SavePane = ( {
 
 	const handleDiscard = e => {
 		e.stopPropagation();
-		nodeRefetch();
-		linkRefetch()
+		getNodes();
+		getLinks()
 		.then(
 			client.writeQuery( {
 				query: gql`
