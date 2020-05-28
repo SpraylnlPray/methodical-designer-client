@@ -273,7 +273,7 @@ export default class GraphManager {
 			const x_node = this.#nodeDict[link.x.id];
 			const y_node = this.#nodeDict[link.y.id];
 			// snapping should only happen if one of them is still visible
-			if ( !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
+			if ( x_node && y_node && !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
 				// if x_node is hidden, it has a 'hiddenBy' ID where the link should now snap to
 				if ( this.isHidden( x_node ) ) {
 					this.#linkDict[linkID].x.id = x_node.hiddenBy;

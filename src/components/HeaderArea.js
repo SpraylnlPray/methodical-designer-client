@@ -8,7 +8,7 @@ const HeaderArea = ( { client, nodeRefetch, linkRefetch } ) => {
 		<div className='bordered margin-base header-area'>
 			<Header className='main-header' as='h1'>Methodical Designer</Header>
 			<ProjectStatus client={ client } linkRefetch={ linkRefetch } nodeRefetch={ nodeRefetch }/>
-			<SavePane client={ client }/>
+			<SavePane client={ client } linkRefetch={ linkRefetch } nodeRefetch={ nodeRefetch }/>
 		</div>
 	);
 };

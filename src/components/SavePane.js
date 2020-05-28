@@ -10,9 +10,11 @@ import LoadingMessage from './LoadingMessage';
 import { addLogMessage } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
-const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, getEditedNodes,
-										 getCreatedLinks, getCreatedNodes, hasUnsavedLocalChanges, editingData } ) => {
-	const { client } = props;
+const SavePane = ( {
+										 props, getDeletedLinks, getDeletedNodes, getEditedLinks, getEditedNodes,
+										 getCreatedLinks, getCreatedNodes, hasUnsavedLocalChanges, editingData,
+									 } ) => {
+	const { client, nodeRefetch, linkRefetch } = props;
 
 	const [ runCreateNode, { loading: nodeCreateLoading } ] = useMutation( CREATE_NODE );
 	const [ runUpdateNode, { loading: nodeUpdateLoading } ] = useMutation( UPDATE_NODE );
@@ -25,7 +27,27 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 	const [ runMergeLinkEnd, { loading: mergeLinkEndLoading } ] = useMutation( MERGE_LINK_END );
 	const [ runDeleteLinkEnd, { loading: deleteLinkEndLoading } ] = useMutation( DELETE_LINK_END );
 
+	const handleDiscard = e => {
+		e.stopPropagation();
+		nodeRefetch();
+		linkRefetch()
+		.then(
+			client.writeQuery( {
+				query: gql`
+          query {
+            deletedNodes
+            deletedLinks
+          }`,
+				data: {
+					deletedNodes: [],
+					deletedLinks: [],
+				},
+			} ),
+		);
+	};
+
 	const handleSave = e => {
+		e.stopPropagation();
 		const createdNodes = getCreatedNodes();
 		const editedNodes = getEditedNodes();
 
@@ -160,7 +182,7 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 		return '';
 	};
 
-	const disableSave = () => {
+	const disableButton = () => {
 		// save button should be disable if the user has no edit rights, or no local changes that need to be saved
 		if ( !editingData.hasEditRights ) {
 			return true;
@@ -174,7 +196,9 @@ const SavePane = ( { props, getDeletedLinks, getDeletedNodes, getEditedLinks, ge
 	return (
 		<div className='flex-area save-area'>
 			{ statusRender() }
-			<Button color='grey' disabled={ disableSave() } className='save-button' onClick={ handleSave }>Save</Button>
+			<Button color='grey' disabled={ disableButton() } className='save-button' onClick={ handleSave }>Save</Button>
+			<Button color='grey' disabled={ disableButton() } className='discard-button' onClick={ handleDiscard }>Discard
+				Local Changes</Button>
 		</div>
 	);
 };

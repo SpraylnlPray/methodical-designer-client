@@ -110,6 +110,13 @@
     margin-right: 10px !important;
 }
 
+.discard-button {
+    height: 2.5em;
+    width: 7em;
+    padding: 0 !important;
+    margin-right: 10px !important;
+}
+
 .main-header {
     margin: 0 !important;
     font-size: 40px !important;

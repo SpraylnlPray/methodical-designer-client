@@ -6,9 +6,8 @@ import { Grid } from 'semantic-ui-react';
 import './App.css';
 import { useApolloClient, useQuery } from '@apollo/client';
 import LogStream from './components/LogStream';
-import { deepCopy, setActiveItem } from './utils';
+import { setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
-import { NODES_DATA } from './queries/LocalQueries';
 
 function App() {
 	const client = useApolloClient();
@@ -19,27 +18,6 @@ function App() {
 
 	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling, refetch: nodeRefetch }
 					= useQuery( GET_SERVER_NODES, {
-		onCompleted: ( { Nodes } ) => {
-			const nodesData = [];
-			for ( let node of Nodes ) {
-				let nodeCopy = deepCopy( node );
-				const { id, label, type, story, synchronous, unreliable } = nodeCopy;
-				let nodeData = {
-					__typename: 'Node',
-					id,
-					label,
-					type,
-					story,
-					synchronous,
-					unreliable,
-				};
-				nodesData.push( nodeData );
-			}
-			client.writeQuery( {
-				query: NODES_DATA,
-				data: { Nodes: nodesData },
-			} );
-		},
 		onError: error => console.log( error ),
 	} );
 	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling, refetch: linkRefetch }
