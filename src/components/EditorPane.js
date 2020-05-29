@@ -1,13 +1,11 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
-import GraphManager from '../Graph/GraphManager';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
-// import { Icon, Message } from 'semantic-ui-react';
 
 
-const EditorPane = () => {
+const EditorPane = ( { graphManager } ) => {
 	const client = useApolloClient();
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
@@ -18,16 +16,14 @@ const EditorPane = () => {
 	} );
 
 	if ( nodeData && linkData ) {
-		const theManager = new GraphManager( nodeData.Nodes, linkData.Links );
-		let nodes = theManager.nodeDisplayData;
-		let links = theManager.linkDisplayData;
+		graphManager.nodes = nodeData.Nodes;
+		graphManager.links = linkData.Links;
 
 		const graph = {
-			nodes,
-			edges: links,
+			nodes: graphManager.nodeDisplayData,
+			edges: graphManager.linkDisplayData,
 		};
-		const options = theManager.graphOptions;
-
+		const options = graphManager.graphOptions;
 		const events = {
 			select: function( event ) {
 				const { nodes, edges } = event;
@@ -66,20 +62,6 @@ const EditorPane = () => {
 			</div>
 		);
 	}
-	// else {
-	// 	return (
-	// 		<div>
-	// 			<div className='bordered editor-pane margin-base flex-center'>
-	// 				<Message icon info floating className={ 'editor-loading-message' }>
-	// 					<Icon name='circle notched' loading/>
-	// 					<Message.Content>
-	// 						<Message.Header>Creating Graph...</Message.Header>
-	// 					</Message.Content>
-	// 				</Message>
-	// 			</div>
-	// 		</div>
-	// 	)
-	// }
 };
 
 export default EditorPane;

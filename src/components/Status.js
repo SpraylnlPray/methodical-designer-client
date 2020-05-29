@@ -1,19 +1,7 @@
 import React from 'react';
 import { Icon, Message } from 'semantic-ui-react';
-// todo: add error output for more than just graphql errors
 
 const Status = ( { loading, error, data } ) => {
-	let errors = {};
-	if ( error ) {
-		errors = error.graphQLErrors.map( ( { message }, i ) => (
-			<li className='content' key={ i }>{ message }</li>
-		) );
-	}
-
-	if ( data ) {
-		// setActiveItem( client, 'app', 'app' );
-	}
-
 	return (
 		<div className='status'>
 			{ loading && (
@@ -28,7 +16,7 @@ const Status = ( { loading, error, data } ) => {
 				<Message error size='mini'>
 					<Message.Header>Error!</Message.Header>
 					<Message.Content>
-						{ errors }
+						Please see the log stream for further information
 					</Message.Content>
 				</Message>
 			) }

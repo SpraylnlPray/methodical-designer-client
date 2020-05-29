@@ -10,9 +10,11 @@ import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import ServerStartupMessage from './components/ServerStartupMessage';
 import { LINKS, NODES } from './queries/LocalQueries';
+import GraphManager from './Graph/GraphManager';
 
 function App() {
 	const client = useApolloClient();
+	const graphManager = new GraphManager();
 
 	const handleClick = () => {
 		setActiveItem( client, 'app', 'app' );
@@ -60,11 +62,11 @@ function App() {
 		},
 	} );
 
-	function EditorArea() {
+	const EditorArea = () => {
 		if ( serverNodeData && serverLinkData ) {
 			stopNodePolling();
 			stopLinkPolling();
-			return (<EditorPane/>);
+			return (<EditorPane graphManager={ graphManager }/>);
 		}
 		else {
 			startNodePolling( 5000 );
@@ -72,7 +74,7 @@ function App() {
 
 			return (<ServerStartupMessage/>);
 		}
-	}
+	};
 
 	return (
 		<div className='bordered app margin-base' onClick={ handleClick }>

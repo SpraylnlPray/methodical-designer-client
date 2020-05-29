@@ -7,7 +7,6 @@ export default class GraphManager {
 	#nodes = {};
 	#links = {};
 	#linkDict = {};
-	#nodeDict = {};
 	#options = {
 		layout: {
 			improvedLayout: true,
@@ -46,12 +45,13 @@ export default class GraphManager {
 		},
 	};
 
+	set nodes( nodes ) {
+		this.#nodes = deepCopy( nodes );
+	}
 
-	constructor( nodes, links ) {
-		this.#nodes = nodes;
+	set links( links ) {
 		this.#links = links;
 		this.#linkDict = this.createLinkDict();
-		this.#nodeDict = this.createNodeDict();
 	}
 
 	get graphOptions() {
@@ -59,85 +59,12 @@ export default class GraphManager {
 	}
 
 	get nodeDisplayData() {
-		this.handleCollapsables();
 		this.setNodeVisualizationProps();
-		return this.createNodeList();
-	}
-
-	createNodeList() {
-		let nodeList = [];
-		for ( let nodeID in this.#nodeDict ) {
-			let node = this.#nodeDict[nodeID];
-			nodeList.push( {
-				id: node.id,
-				label: node.label,
-				type: node.type,
-				hidden: !!node.hidden,
-				image: node.image,
-				shape: node.shape,
-			} );
-		}
-		return nodeList;
-	}
-
-	handleCollapsables() {
-		for ( let nodeID in this.#nodeDict ) {
-			let node = this.#nodeDict[nodeID];
-			node.hidden = false;
-		}
-		for ( let nodeID in this.#nodeDict ) {
-			let node = this.#nodeDict[nodeID];
-			// if the node is a container or domain and its childs should be hidden
-			if ( this.isCollapsable( node ) && node.collapse ) {
-				// find any links connected to it
-				this.handleConnectedNodes( node, node );
-			}
-		}
-	}
-
-	isCollapsable( node ) {
-		return node.type === 'Container' || node.type === 'Domain';
-	}
-
-	// collapsable: the 'parent' element of a 'part-of' connection
-	// sourceNode: the node who dispatched the 'collapse' call
-	// hide: true or false, whether to set 'hidden' to true or false
-	handleConnectedNodes( collapsable, sourceNode ) {
-		// get all connected nodes to this collapsable
-		const connectedNodesIDs = [];
-		for ( let linkID in this.#linkDict ) {
-			const link = this.#linkDict[linkID];
-			// if the x node is the collapsable, save the y node ID
-			if ( link.x.id === collapsable.id && link.type === 'PartOf' ) {
-				connectedNodesIDs.push( link.y.id );
-			}
-		}
-		for ( let nodeID of connectedNodesIDs ) {
-			let nodeToBeAdapted = this.#nodeDict[nodeID];
-			if ( !nodeToBeAdapted.visited && nodeToBeAdapted.id !== sourceNode.id ) {
-				// set the hidden property to the specified value
-				nodeToBeAdapted.hidden = true;
-				nodeToBeAdapted.visited = true;
-				nodeToBeAdapted.hiddenBy = sourceNode.id;
-				if ( this.isCollapsable( nodeToBeAdapted ) ) {
-					this.handleConnectedNodes( nodeToBeAdapted, sourceNode );
-				}
-			}
-		}
+		return this.#nodes;
 	}
 
 	get linkDisplayData() {
 		return this.createLinks();
-	}
-
-	createNodeDict() {
-		let dict = {};
-		this.#nodes.forEach( node => {
-			if ( !node.deleted ) {
-				dict[node.id] = deepCopy( node );
-			}
-		} );
-		return dict;
 	}
 
 	createLinkDict() {
@@ -150,9 +77,8 @@ export default class GraphManager {
 		return dict;
 	};
 
-	setNodeVisualizationProps( nodes ) {
-		for ( let nodeID in this.#nodeDict ) {
-			let node = this.#nodeDict[nodeID];
+	setNodeVisualizationProps() {
+		for ( let node of this.#nodes ) {
 			this.setNodeImage( node );
 		}
 	}
@@ -274,8 +200,8 @@ export default class GraphManager {
 	snap() {
 		for ( let linkID in this.#linkDict ) {
 			let link = this.#linkDict[linkID];
-			const x_node = this.#nodeDict[link.x.id];
-			const y_node = this.#nodeDict[link.y.id];
+			const x_node = this.#nodes.find( node => node.id === link.x.id );
+			const y_node = this.#nodes.find( node => node.id === link.y.id );
 			// snapping should only happen if one of them is still visible
 			if ( x_node && y_node && !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
 				// if x_node is hidden, it has a 'hiddenBy' ID where the link should now snap to

@@ -5,7 +5,7 @@ import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
-import { DELETE_LOCAL_NODE, UPDATE_LOCAL_NODE } from '../queries/LocalMutations';
+import { COLLAPSE_NODE, DELETE_LOCAL_NODE, UPDATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client } ) => {
@@ -14,9 +14,6 @@ const EditNode = ( { activeItem, client } ) => {
 	const node = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = node;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
-	if ( node.type === 'Container' || node.type === 'Domain' ) {
-		inputs.props.collapse = !!node.collapse;
-	}
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
@@ -30,6 +27,7 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const [ runUpdate, { data: updateData, loading: updateLoading, error: updateError } ] = useMutation( UPDATE_LOCAL_NODE );
 	const [ runDelete ] = useMutation( DELETE_LOCAL_NODE );
+	const [ runCollapse ] = useMutation( COLLAPSE_NODE );
 
 	const handleRequiredChange = ( e, data ) => {
 		const name = data.name;
@@ -59,11 +57,27 @@ const EditNode = ( { activeItem, client } ) => {
 	};
 
 	const handleDelete = ( e ) => {
-		e.preventDefault();
 		e.stopPropagation();
 		runDelete( { variables: { id: activeItem.itemId } } )
 			.catch( e => addLogMessage( client, `Failed when deleting node: ${ e }` ) );
 		setActiveItem( client, 'app', 'app' );
+	};
+
+	const handleCollapse = ( e ) => {
+		e.stopPropagation();
+		runCollapse( { variables: { id: activeItem.itemId } } );
+	};
+
+	const isCollapsable = () => store.required['type'] === 'Container' || store.required['type'] === 'Domain';
+	const isCollapsed = () => {
+		return isCollapsable() && node.collapsed;
+	};
+
+	const collapseButtonText = () => {
+		if ( isCollapsed() ) {
+			return 'Expand';
+		}
+		return 'Collapse';
 	};
 
 	return (
@@ -114,19 +128,13 @@ const EditNode = ( { activeItem, client } ) => {
 						checked={ store.props['unreliable'] }
 						name='unreliable'
 					/>
-					{ (node.type === 'Container' || node.type === 'Domain') &&
-					<Form.Checkbox
-						className='create-input'
-						label='Collapse'
-						onChange={ handlePropsChange }
-						checked={ store.props['collapse'] }
-						name='collapse'
-					/>
-					}
 				</Form.Group>
 				<div className='edit-button-area'>
 					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+					{ isCollapsable() &&
+					<Form.Button color='teal' onClick={ handleCollapse }>{ collapseButtonText() }</Form.Button>
+					}
 				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>

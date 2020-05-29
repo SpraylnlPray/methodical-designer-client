@@ -36,3 +36,9 @@ export const DELETE_LOCAL_LINK = gql`
     deleteLink(id: $id) @client
   }
 `;
+
+export const COLLAPSE_NODE = gql`
+  mutation CollapseNode($id: ID!) {
+    collapseNode(id: $id) @client
+  }
+`;

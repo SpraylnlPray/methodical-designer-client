@@ -1,8 +1,8 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { deepCopy, generateLocalUUID } from './utils';
-import { LINKS_WITH_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
+import { LINKS_WITH_TAGS, NODE_COLLAPSE_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
@@ -10,13 +10,6 @@ const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png'
 const cache = new InMemoryCache( {
 	dataIdFromObject: ( { id } ) => id,
 	typePolicies: {
-		Query: {
-			fields: {
-				Nodes( existingData ) {
-					return existingData;
-				},
-			},
-		},
 		Node: {
 			fields: {
 				created( existingData ) {
@@ -28,7 +21,13 @@ const cache = new InMemoryCache( {
 				deleted( existingData ) {
 					return existingData || false;
 				},
-				collapse( existingData ) {
+				collapsed( existingData ) {
+					return existingData || false;
+				},
+				hidden( existingData ) {
+					return existingData || false;
+				},
+				hiddenBy( existingData ) {
 					return existingData || false;
 				},
 			},
@@ -58,7 +57,6 @@ const client = new ApolloClient( {
 	cache,
 	resolvers: {
 		Mutation: {
-
 			addNode: ( _root, variables, { cache } ) => {
 				const { label, props, type } = variables;
 				const { Nodes } = cache.readQuery( { query: NODES_DATA } );
@@ -228,6 +226,23 @@ const client = new ApolloClient( {
 				else {
 					cache.evict( linkToDelete.id );
 				}
+			},
+
+			collapseNode: ( _root, variables, { cache } ) => {
+				const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
+				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
+
+				let nodesCopy = deepCopy( Nodes );
+				let collapsable = nodesCopy.find( node => node.id === variables.id );
+				// invert collapse property on node
+				collapsable.collapsed = !collapsable.collapsed;
+
+				let connectedNodes = handleConnectedNodes( collapsable, collapsable, Links, nodesCopy );
+
+				cache.writeQuery( {
+					query: NODE_COLLAPSE_TAGS,
+					data: { Nodes: connectedNodes.concat( collapsable ) },
+				} );
 			},
 		},
 	},

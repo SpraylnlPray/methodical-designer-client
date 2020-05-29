@@ -51,13 +51,25 @@ export const NODE_TAGS = gql`
   }
 `;
 
+export const NODE_COLLAPSE_TAGS = gql`
+  query {
+    Nodes @client {
+      collapsed
+      hidden
+      hiddenBy
+    }
+  }
+`;
+
 export const EDITOR_NODE_DATA = gql`
   query {
     Nodes @client {
       id
       label
       type
-      collapse
+      collapsed
+      hidden
+      hiddenBy
       deleted
     }
   }
@@ -72,8 +84,10 @@ export const NODES_WITH_TAGS = gql`
       story
       synchronous
       unreliable
-      collapse
+      collapsed
       created
+      hidden
+      hiddenBy
       edited
       deleted
     }
@@ -111,17 +125,17 @@ export const LINKS_DATA = gql`
 `;
 
 export const EDITOR_LINK_DATA = gql`
-	query {
-		Links @client {
-			id
-			label
-			type
-			x {
-				id
-			}
-			y {
-				id
-			}
+  query {
+    Links @client {
+      id
+      label
+      type
+      x {
+        id
+      }
+      y {
+        id
+      }
       x_end {
         arrow
         note
@@ -135,8 +149,8 @@ export const EDITOR_LINK_DATA = gql`
         seq
       }
       deleted
-		}
-	}
+    }
+  }
 `;
 
 export const LINKS_WITH_TAGS = gql`

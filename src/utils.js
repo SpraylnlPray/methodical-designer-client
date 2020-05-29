@@ -41,3 +41,36 @@ export const generateLocalUUID = () => {
 };
 
 export const deepCopy = obj => JSON.parse( JSON.stringify( obj ) );
+
+export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy ) => {
+	let nodesWithoutCollapsable = nodesCopy.filter( node => node.id !== collapsable.id );
+
+	// get all nodes connected to the collapsable
+	const connectedNodeIDs = [];
+	for ( let link of links ) {
+		// if the x/parent node is the collapsable, save the y ID
+		if ( link.x.id === collapsable.id && link.type === 'PartOf' ) {
+			connectedNodeIDs.push( link.y.id );
+		}
+	}
+	// set their hidden property to the ones of the container/domain that initiated the expand/collapse action
+	nodesWithoutCollapsable.forEach( node => {
+		if ( connectedNodeIDs.includes( node.id ) ) {
+			node.hidden = sourceNode.collapsed;
+			// if the node gets hidden, make sure to save which node is the source of the hide action
+			if ( node.hidden ) {
+				node.hiddenBy = sourceNode.id;
+			}
+			// if the adapted node is a collapsable itself, it should also hide its respective children
+			if ( isCollapsable( node ) ) {
+				handleConnectedNodes( node, collapsable, links, nodesCopy );
+			}
+		}
+	} );
+
+	return nodesWithoutCollapsable;
+};
+
+const isCollapsable = ( node ) => {
+	return node.type === 'Container' || node.type === 'Domain';
+};
