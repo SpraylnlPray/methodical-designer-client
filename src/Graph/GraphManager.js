@@ -108,7 +108,7 @@ export default class GraphManager {
 		for ( let linkID in this.#linkDict ) {
 			const link = this.#linkDict[linkID];
 			// if the x node is the collapsable, save the y node ID
-			if ( link.x.id === collapsable.id ) {
+			if ( link.x.id === collapsable.id && link.type === 'PartOf' ) {
 				connectedNodesIDs.push( link.y.id );
 			}
 		}

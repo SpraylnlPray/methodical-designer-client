@@ -70,7 +70,9 @@ function CreateLink( { client } ) {
 
 	const isPartOf = store.required['type'] === 'PartOf';
 	useEffect( () => {
-		dispatch( { type: 'ADD_X_END', name: 'arrow', value: 'Default' } );
+		if ( isPartOf ) {
+			dispatch( { type: 'ADD_X_END', name: 'arrow', value: 'Default' } );
+		}
 		// eslint-disable-next-line
 	}, [ isPartOf ] );
 
