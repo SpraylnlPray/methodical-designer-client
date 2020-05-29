@@ -3,7 +3,7 @@ import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
 import { addLogMessage, enteredRequired } from '../utils';
-import { EDITING_RIGHTS, LOCAL_NODES } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, NODES_DATA } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';
 import { arrowOptions, typeOptions } from '../linkOptions';
@@ -19,7 +19,7 @@ function CreateLink( { client } ) {
 		seq: { group: '', seq: '' },
 	};
 
-	const { data: { Nodes } } = useQuery( LOCAL_NODES );
+	const { data: { Nodes } } = useQuery( NODES_DATA );
 	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	nodeOptions.sort( ( node1, node2 ) => node1.text.localeCompare( node2.text ) );
 

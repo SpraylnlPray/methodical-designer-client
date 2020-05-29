@@ -133,7 +133,9 @@ export default class GraphManager {
 	createNodeDict() {
 		let dict = {};
 		this.#nodes.forEach( node => {
-			dict[node.id] = deepCopy( node );
+			if ( !node.deleted ) {
+				dict[node.id] = deepCopy( node );
+			}
 		} );
 		return dict;
 	}
@@ -141,7 +143,9 @@ export default class GraphManager {
 	createLinkDict() {
 		let dict = {};
 		this.#links.forEach( link => {
-			dict[link.id] = deepCopy( link );
+			if ( !link.deleted ) {
+				dict[link.id] = deepCopy( link );
+			}
 		} );
 		return dict;
 	};

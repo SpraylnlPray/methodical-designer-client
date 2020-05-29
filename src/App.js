@@ -9,6 +9,7 @@ import LogStream from './components/LogStream';
 import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import ServerStartupMessage from './components/ServerStartupMessage';
+import { LINKS, NODES } from './queries/LocalQueries';
 
 function App() {
 	const client = useApolloClient();
@@ -20,10 +21,43 @@ function App() {
 	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling }
 					= useQuery( GET_SERVER_NODES, {
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
+		onCompleted: data => {
+			const localNodes = [];
+			for ( let node of data.Nodes ) {
+				const localNode = {
+					...node,
+					edited: false,
+					created: false,
+					deleted: false,
+				};
+				localNodes.push( localNode );
+			}
+
+			client.writeQuery( {
+				query: NODES,
+				data: { Nodes: localNodes },
+			} );
+		},
 	} );
 	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling }
 					= useQuery( GET_SERVER_LINKS, {
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
+		onCompleted: data => {
+			const localLinks = [];
+			for ( let link of data.Links ) {
+				const localLink = {
+					...link,
+					edited: false,
+					created: false,
+					deleted: false,
+				};
+				localLinks.push( localLink );
+			}
+			client.writeQuery( {
+				query: LINKS,
+				data: { Links: localLinks },
+			} );
+		},
 	} );
 
 	function EditorArea() {

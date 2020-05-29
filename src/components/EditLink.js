@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { EDITING_RIGHTS, LOCAL_LINKS, LOCAL_NODES } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LINKS_DATA, NODES_DATA } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
@@ -10,7 +10,7 @@ import { arrowOptions, typeOptions } from '../linkOptions';
 
 const EditLink = ( { activeItem, client } ) => {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
-	const { data: { Links } } = useQuery( LOCAL_LINKS );
+	const { data: { Links } } = useQuery( LINKS_DATA );
 	const LinksCopy = JSON.parse( JSON.stringify( Links ) );
 	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = LinksCopy.find( link => link.id === activeItem.itemId );
 
@@ -22,7 +22,7 @@ const EditLink = ( { activeItem, client } ) => {
 		seq: seq ? seq : { group: '', seq: '' },
 	};
 
-	const { data: { Nodes } } = useQuery( LOCAL_NODES );
+	const { data: { Nodes } } = useQuery( NODES_DATA );
 	let nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
 	nodeOptions.sort( ( node1, node2 ) => node1.text.localeCompare( node2.text ) );
 

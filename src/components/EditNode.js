@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { EDITING_RIGHTS, LOCAL_NODES_TAGS } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, NODES_WITH_TAGS } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
@@ -10,7 +10,7 @@ import { typeOptions } from '../nodeOptions';
 
 const EditNode = ( { activeItem, client } ) => {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
-	const { data: { Nodes } } = useQuery( LOCAL_NODES_TAGS );
+	const { data: { Nodes } } = useQuery( NODES_WITH_TAGS );
 	const node = Nodes.find( node => node.id === activeItem.itemId );
 	const { label, type, story, synchronous, unreliable } = node;
 	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };

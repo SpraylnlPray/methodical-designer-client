@@ -1,8 +1,14 @@
 import { gql } from '@apollo/client';
 
-export const NODES_DATA = gql`
+export const NODES = gql`
   query {
     Nodes @client
+  }
+`;
+
+export const LINKS = gql`
+  query {
+    Links @client
   }
 `;
 
@@ -21,7 +27,7 @@ export const ACTIVE_ITEM = gql`
   }
 `;
 
-export const LOCAL_NODES = gql`
+export const NODES_DATA = gql`
   query {
     Nodes @client {
       id
@@ -30,6 +36,17 @@ export const LOCAL_NODES = gql`
       story
       synchronous
       unreliable
+    }
+  }
+`;
+
+export const NODE_TAGS = gql`
+  query {
+    Nodes @client {
+      id
+      deleted
+      edited
+      created
     }
   }
 `;
@@ -41,11 +58,12 @@ export const EDITOR_NODE_DATA = gql`
       label
       type
       collapse
+      deleted
     }
   }
 `;
 
-export const LOCAL_NODES_TAGS = gql`
+export const NODES_WITH_TAGS = gql`
   query {
     Nodes @client {
       id
@@ -57,27 +75,12 @@ export const LOCAL_NODES_TAGS = gql`
       collapse
       created
       edited
+      deleted
     }
   }
 `;
 
-export const DELETED_NODES = gql`
-  query {
-    deletedNodes @client {
-      id
-    }
-  }
-`;
-
-export const DELETED_LINKS = gql`
-  query {
-    deletedLinks @client {
-      id
-    }
-  }
-`;
-
-export const LOCAL_LINKS = gql`
+export const LINKS_DATA = gql`
   query {
     Links @client {
       id
@@ -131,11 +134,12 @@ export const EDITOR_LINK_DATA = gql`
         group
         seq
       }
+      deleted
 		}
 	}
 `;
 
-export const LOCAL_LINKS_TAGS = gql`
+export const LINKS_WITH_TAGS = gql`
   query {
     Links @client {
       id
@@ -163,6 +167,7 @@ export const LOCAL_LINKS_TAGS = gql`
       }
       created
       edited
+      deleted
     }
   }
 `;

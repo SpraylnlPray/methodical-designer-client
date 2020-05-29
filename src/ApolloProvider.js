@@ -2,9 +2,7 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import { deepCopy, generateLocalUUID } from './utils';
-import {
-	DELETED_LINKS, DELETED_NODES, LOCAL_LINKS, LOCAL_LINKS_TAGS, LOCAL_NODES, LOCAL_NODES_TAGS,
-} from './queries/LocalQueries';
+import { LINKS_WITH_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
@@ -27,7 +25,7 @@ const cache = new InMemoryCache( {
 				edited( existingData ) {
 					return existingData || false;
 				},
-				deleted(existingData) {
+				deleted( existingData ) {
 					return existingData || false;
 				},
 				collapse( existingData ) {
@@ -41,6 +39,9 @@ const cache = new InMemoryCache( {
 					return existingData || false;
 				},
 				edited( existingData ) {
+					return existingData || false;
+				},
+				deleted( existingData ) {
 					return existingData || false;
 				},
 			},
@@ -60,17 +61,14 @@ const client = new ApolloClient( {
 
 			addNode: ( _root, variables, { cache } ) => {
 				const { label, props, type } = variables;
-				const { story, synchronous, unreliable } = props;
-				const { Nodes } = cache.readQuery( { query: LOCAL_NODES } );
+				const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 
 				const newId = generateLocalUUID();
 				const newNode = {
 					id: newId,
 					label,
 					type,
-					story,
-					synchronous,
-					unreliable,
+					...props,
 					created: true,
 					edited: false,
 					__typename: 'Node',
@@ -78,7 +76,7 @@ const client = new ApolloClient( {
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
-					query: LOCAL_NODES_TAGS,
+					query: NODES_WITH_TAGS,
 					data: { Nodes: newNodes },
 				} );
 			},
@@ -87,7 +85,7 @@ const client = new ApolloClient( {
 				const { optional, story } = props;
 				const x = { id: x_id };
 				const y = { id: y_id };
-				const { Links } = cache.readQuery( { query: LOCAL_LINKS_TAGS } );
+				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
 				const newId = generateLocalUUID();
 				const newLink = {
@@ -108,14 +106,14 @@ const client = new ApolloClient( {
 				const newLinks = Links.concat( newLink );
 
 				cache.writeQuery( {
-					query: LOCAL_LINKS_TAGS,
+					query: LINKS_WITH_TAGS,
 					data: { Links: newLinks },
 				} );
 			},
 
 			updateNode: ( _root, variables, { cache } ) => {
 				const { id, props } = variables;
-				const { Nodes } = cache.readQuery( { query: LOCAL_NODES_TAGS } );
+				const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
 				const newNodes = Nodes.filter( node => node.id !== id );
 				let nodeToEdit = Nodes.filter( node => node.id === id )[0];
 				nodeToEdit = deepCopy( nodeToEdit );
@@ -130,7 +128,7 @@ const client = new ApolloClient( {
 				}
 
 				cache.writeQuery( {
-					query: LOCAL_NODES_TAGS,
+					query: NODES_WITH_TAGS,
 					data: { Nodes: newNodes.concat( nodeToEdit ) },
 				} );
 			},
@@ -141,7 +139,7 @@ const client = new ApolloClient( {
 				const y = { id: y_id };
 				props = { label, type, optional, story, x, y, sequence, x_end, y_end };
 
-				const { Links } = cache.readQuery( { query: LOCAL_LINKS_TAGS } );
+				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 				const newLinks = Links.filter( link => link.id !== id );
 				let linkToEdit = Links.filter( link => link.id === id )[0];
 				linkToEdit = deepCopy( linkToEdit );
@@ -152,30 +150,28 @@ const client = new ApolloClient( {
 				linkToEdit.edited = true;
 
 				cache.writeQuery( {
-					query: LOCAL_LINKS_TAGS,
+					query: LINKS_WITH_TAGS,
 					data: { Links: newLinks.concat( linkToEdit ) },
 				} );
 			},
 
 			deleteNode: ( _root, variables, { cache } ) => {
-				const { Nodes } = cache.readQuery( { query: LOCAL_NODES_TAGS } );
-				const { deletedNodes } = cache.readQuery( { query: DELETED_NODES } );
-				const { Links } = cache.readQuery( { query: LOCAL_LINKS_TAGS } );
-				const { deletedLinks } = cache.readQuery( { query: DELETED_LINKS } );
+				const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
+				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
 				let nodeToDelete = Nodes.find( node => node.id === variables.id );
 				let newNodes = Nodes.filter( node => node.id !== variables.id );
 				let linksCopy = deepCopy( Links );
-				let linksToDelete = [];
 
+				// handle links connected to the deleted node
 				linksCopy = linksCopy.map( link => {
 					let sameNodes = link.x.id === link.y.id;
-					let isToDeleteNode = link.x.id === nodeToDelete.id;
+					let isNodeToDelete = link.x.id === nodeToDelete.id;
 					// if both link ends are connected to the same node and this node is the one to be deleted
-					if ( sameNodes && isToDeleteNode ) {
-						// AND the link exists in the DB save the link to the ones that'll be deleted
+					if ( sameNodes && isNodeToDelete ) {
+						// AND the link exists in the DB mark the link as deleted
 						if ( !link.created ) {
-							linksToDelete.push( link );
+							link.deleted = true;
 						}
 						// otherwise remove it from the cache
 						else {
@@ -194,25 +190,11 @@ const client = new ApolloClient( {
 					return link;
 				} );
 
-				// create a new array that doesn't contain any deleted link
-				linksCopy = linksCopy.filter( link => {
-					for ( let deletedLink of linksToDelete ) {
-						if ( link.id === deletedLink.id ) {
-							return false;
-						}
-					}
-					return true;
-				} );
-
-				cache.writeQuery( {
-					query: LOCAL_NODES_TAGS,
-					data: { Nodes: newNodes },
-				} );
 
 				// if the node to delete exists in the DB, add it to the ones to be deleted
-				let newDeletedNodes = deletedNodes;
 				if ( !nodeToDelete.created ) {
-					newDeletedNodes = deletedNodes.concat( nodeToDelete );
+					nodeToDelete = deepCopy( nodeToDelete );
+					nodeToDelete.deleted = true;
 				}
 				// otherwise remove it from the cache
 				else {
@@ -220,46 +202,32 @@ const client = new ApolloClient( {
 				}
 
 				cache.writeQuery( {
-					query: DELETED_NODES,
-					data: { deletedNodes: newDeletedNodes },
+					query: NODES_WITH_TAGS,
+					data: { Nodes: newNodes.concat( nodeToDelete ) },
 				} );
 
 				cache.writeQuery( {
-					query: LOCAL_LINKS_TAGS,
+					query: LINKS_WITH_TAGS,
 					data: { Links: linksCopy },
-				} );
-
-				cache.writeQuery( {
-					query: DELETED_LINKS,
-					data: {
-						deletedLinks: deletedLinks.concat( linksToDelete ),
-					},
 				} );
 			},
 			deleteLink: ( _root, variables, { cache } ) => {
-				const { Links } = cache.readQuery( { query: LOCAL_LINKS_TAGS } );
-				const { deletedLinks } = cache.readQuery( { query: DELETED_LINKS } );
+				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
 				const newLinks = Links.filter( link => link.id !== variables.id );
-				const linkToDelete = Links.filter( link => link.id === variables.id )[0];
+				let linkToDelete = Links.filter( link => link.id === variables.id )[0];
 
-				cache.writeQuery( {
-					query: LOCAL_LINKS,
-					data: { Links: newLinks },
-				} );
-
-				let newDeletedLinks = deletedLinks;
 				if ( !linkToDelete.created ) {
-					newDeletedLinks = deletedLinks.concat( linkToDelete );
+					linkToDelete = deepCopy( linkToDelete );
+					linkToDelete.deleted = true;
+					cache.writeQuery( {
+						query: LINKS_WITH_TAGS,
+						data: { Links: newLinks.concat( linkToDelete ) },
+					} );
 				}
 				else {
 					cache.evict( linkToDelete.id );
 				}
-
-				cache.writeQuery( {
-					query: DELETED_LINKS,
-					data: { deletedLinks: newDeletedLinks },
-				} );
 			},
 		},
 	},
@@ -270,8 +238,6 @@ cache.writeQuery( {
     query {
       logMessages
       hasEditRights
-      deletedNodes
-      deletedLinks
       activeItem {
         itemId
         itemType
@@ -281,8 +247,6 @@ cache.writeQuery( {
 	data: {
 		logMessages: [],
 		hasEditRights: false,
-		deletedNodes: [],
-		deletedLinks: [],
 		activeItem: {
 			itemId: 'app',
 			itemType: 'app',

@@ -1,15 +1,11 @@
 import React from 'react';
 import { useQuery } from '@apollo/client';
-import {
-	DELETED_LINKS, DELETED_NODES, EDITING_RIGHTS, LOCAL_LINKS_TAGS, LOCAL_NODES_TAGS,
-} from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LINKS_WITH_TAGS, NODES_WITH_TAGS } from '../queries/LocalQueries';
 
 const withLocalDataAccess = ( Component ) => {
 	return function( props ) {
-		const { data: localNodeData } = useQuery( LOCAL_NODES_TAGS );
-		const { data: localLinkData } = useQuery( LOCAL_LINKS_TAGS );
-		const { data: deletedNodesData } = useQuery( DELETED_NODES );
-		const { data: deletedLinksData } = useQuery( DELETED_LINKS );
+		const { data: localNodeData } = useQuery( NODES_WITH_TAGS );
+		const { data: localLinkData } = useQuery( LINKS_WITH_TAGS );
 		const { data: editingData } = useQuery( EDITING_RIGHTS );
 
 		const getCreatedNodes = () => {
@@ -35,13 +31,13 @@ const withLocalDataAccess = ( Component ) => {
 		};
 
 		const getDeletedNodes = () => {
-			const { deletedNodes } = deletedNodesData;
-			return deletedNodes;
+			const { Nodes } = localNodeData;
+			return Nodes.filter( node => node.deleted );
 		};
 
 		const getDeletedLinks = () => {
-			const { deletedLinks } = deletedLinksData;
-			return deletedLinks;
+			const { Links } = localLinkData;
+			return Links.filter( link => link.deleted );
 		};
 
 		const hasUnsavedLocalChanges = () => {

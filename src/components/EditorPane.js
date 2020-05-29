@@ -3,7 +3,9 @@ import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import GraphManager from '../Graph/GraphManager';
 import { useApolloClient, useQuery } from '@apollo/client';
-import { LOCAL_LINKS_TAGS, EDITOR_NODE_DATA } from '../queries/LocalQueries';
+import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
+// import { Icon, Message } from 'semantic-ui-react';
+
 
 const EditorPane = () => {
 	const client = useApolloClient();
@@ -11,7 +13,7 @@ const EditorPane = () => {
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
 	} );
-	const { data: linkData } = useQuery( LOCAL_LINKS_TAGS, {
+	const { data: linkData } = useQuery( EDITOR_LINK_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local links: ${ error }` ),
 	} );
 
@@ -64,6 +66,20 @@ const EditorPane = () => {
 			</div>
 		);
 	}
+	// else {
+	// 	return (
+	// 		<div>
+	// 			<div className='bordered editor-pane margin-base flex-center'>
+	// 				<Message icon info floating className={ 'editor-loading-message' }>
+	// 					<Icon name='circle notched' loading/>
+	// 					<Message.Content>
+	// 						<Message.Header>Creating Graph...</Message.Header>
+	// 					</Message.Content>
+	// 				</Message>
+	// 			</div>
+	// 		</div>
+	// 	)
+	// }
 };
 
 export default EditorPane;

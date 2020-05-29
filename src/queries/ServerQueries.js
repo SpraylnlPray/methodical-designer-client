@@ -9,18 +9,6 @@ export const GET_SERVER_NODES = gql`
       story
       synchronous
       unreliable
-      created
-      edited
-    }
-  }
-`;
-
-export const IS_BEING_EDITED = gql`
-  query getIsBeingEdited {
-    IsProjectBeingEdited {
-      isBeingEdited
-      success
-      message
     }
   }
 `;
@@ -51,8 +39,6 @@ export const GET_SERVER_LINKS = gql`
         group
         seq
       }
-      created
-      edited
     }
   }
 `;

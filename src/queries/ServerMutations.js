@@ -30,8 +30,6 @@ export const CREATE_NODE = gql`
         story
         synchronous
         unreliable
-        created
-        edited
       }
     }
   }
@@ -48,8 +46,6 @@ export const CREATE_LINK = gql`
         type
         story
         optional
-        created
-        edited
       }
     }
   }
@@ -67,8 +63,6 @@ export const UPDATE_NODE = gql`
         story
         synchronous
         unreliable
-        created
-        edited
       }
     }
   }
@@ -85,8 +79,6 @@ export const UPDATE_LINK = gql`
         type
         story
         optional
-        created
-        edited
       }
     }
   }
