@@ -54,9 +54,24 @@ export const NODE_TAGS = gql`
 export const NODE_COLLAPSE_TAGS = gql`
   query {
     Nodes @client {
+      id
       collapsed
       hidden
       hiddenBy
+    }
+  }
+`;
+
+export const LINK_NODES = gql`
+  query { 
+    Links @client {
+      id
+      x {
+        id
+      }
+      y {
+        id
+      }
     }
   }
 `;

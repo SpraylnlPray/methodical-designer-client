@@ -6,7 +6,7 @@ import { deepCopy } from '../utils';
 export default class GraphManager {
 	#nodes = {};
 	#links = {};
-	#linkDict = {};
+	#multipleConnIds = [];
 	#options = {
 		layout: {
 			improvedLayout: true,
@@ -47,11 +47,12 @@ export default class GraphManager {
 
 	set nodes( nodes ) {
 		this.#nodes = deepCopy( nodes );
+		this.#nodes = this.#nodes.filter( node => !node.deleted );
 	}
 
 	set links( links ) {
-		this.#links = links;
-		this.#linkDict = this.createLinkDict();
+		this.#links = deepCopy( links );
+		this.#links = this.#links.filter( link => !link.deleted );
 	}
 
 	get graphOptions() {
@@ -64,18 +65,11 @@ export default class GraphManager {
 	}
 
 	get linkDisplayData() {
-		return this.createLinks();
+		this.snap();
+		this.handleMultipleConnections();
+		this.setLinkVisualizationProps();
+		return this.#links;
 	}
-
-	createLinkDict() {
-		let dict = {};
-		this.#links.forEach( link => {
-			if ( !link.deleted ) {
-				dict[link.id] = deepCopy( link );
-			}
-		} );
-		return dict;
-	};
 
 	setNodeVisualizationProps() {
 		for ( let node of this.#nodes ) {
@@ -94,15 +88,8 @@ export default class GraphManager {
 		}
 	}
 
-	createLinks() {
-		this.snap();
-		const linkList = this.getLinkList();
-		this.setLinkVisualizationProps( linkList );
-		return linkList;
-	};
-
-	setLinkVisualizationProps( links ) {
-		links.forEach( link => {
+	setLinkVisualizationProps() {
+		this.#links.forEach( link => {
 			const { x_end, y_end } = link;
 			this.setLinkProps( link, x_end, y_end );
 		} );
@@ -140,79 +127,91 @@ export default class GraphManager {
 		}
 	}
 
-	getOtherLinks( link ) {
-		const otherLinks = [];
-		for ( let linkID in this.#linkDict ) {
-			if ( linkID !== link.id ) {
-				otherLinks.push( this.#linkDict[linkID] );
-			}
-		}
-		return otherLinks;
-	}
-
-	getLinkList() {
-		// this is an array of arrays
-		// each array inside contains the links between two nodes that are connected by multiple links
-		const multipleConnectionsList = [];
-		const normalLinks = [];
-		// go over each link
-		for ( let key in this.#linkDict ) {
-			const similarLinks = [];
-			let link = this.#linkDict[key];
-			// if the link has not been checked yet
-			if ( !link.added ) {
-				// get all links that are not the link itself
-				const linksToCheck = this.getOtherLinks( link );
-				linksToCheck.forEach( linkToCheck => {
-						// if link to check hasn't been added yet
-						if ( !linkToCheck.added ) {
-							// if both are connected to the same nodes
-							if ( this.haveSameNodes( link, linkToCheck ) ) {
-								this.saveDoubleLink( link, linkToCheck, similarLinks );
-							}
-						}
-					},
-				);
-				// if, after comparing with all other links, it hasn't been added yet, it is a normal link so add and mark it
-				if ( !link.added ) {
-					normalLinks.push( link );
-					link.added = true;
-				}
-				// if, however, there were links found that share both nodes, we need to save them
-				if ( similarLinks.length > 0 ) {
-					multipleConnectionsList.push( similarLinks );
-				}
-			}
-		}
-
-		const normalLinkData = normalLinks.map( link => {
-			const defaultData = this.getDefaultLinkData( link );
-			return {
-				...defaultData,
-			};
+	handleMultipleConnections() {
+		this.#nodes.forEach( node => {
+			this.#multipleConnIds = [];
+			// get all links connected to this node that have not been marked as found yet
+			const connections = this.#links.filter( link => (link.x.id === node.id || link.y.id === node.id) && !link.checked );
+			// check for each connection if any other connection has the same nodes
+			this.checkConnectedLinks( connections );
+			// for any multiple connections, set their properties
+			this.setMultipleLinksProps();
 		} );
 
-		const multipleLinkData = this.normalizeMultipleConnections( multipleConnectionsList );
+		// for any links that were not found as multiple connections, set their properties
+		this.#links.map( link => {
+			if ( !link.found ) {
+				link.from = link.x.id;
+				link.to = link.y.id;
+			}
+		} );
+	}
 
-		return multipleLinkData.concat( normalLinkData );
+	checkConnectedLinks( connections ) {
+		// check for each connection
+		connections.forEach( conn1 => {
+			const tempConns = connections.filter( conn => conn.id !== conn1.id );
+			// if any other connection
+			tempConns.forEach( conn2 => {
+				// has the same nodes
+				if ( this.haveSameNodes( conn1, conn2 ) ) {
+					// save the IDs
+					this.saveMultipleID( conn1 );
+					this.saveMultipleID( conn2 );
+					// and mark the links as checked and found as double link
+					this.#links.map( link => {
+						if ( link.id === conn2.id || link.id === conn1.id ) {
+							link.checked = true;
+							link.found = true;
+						}
+					} );
+				}
+			} );
+			// after comparing with all others, mark the initial link as checked
+			this.#links.map( link => {
+				if ( link.id === conn1.id ) {
+					link.checked = true;
+				}
+			} );
+		} );
+	}
+
+	saveMultipleID( link ) {
+		if ( !this.#multipleConnIds.includes( link.id ) ) {
+			this.#multipleConnIds.push( link.id );
+		}
+	}
+
+	setMultipleLinksProps() {
+		this.#links.map( link => {
+			if ( this.#multipleConnIds.includes( link.id ) ) {
+				const index = this.#multipleConnIds.indexOf( link.id );
+				link.from = link.x.id;
+				link.to = link.y.id;
+				link.smooth = {
+					enabled: index !== 0,
+					type: 'horizontal',
+					roundness: index / this.#multipleConnIds.length,
+				};
+			}
+		} );
 	}
 
 	snap() {
-		for ( let linkID in this.#linkDict ) {
-			let link = this.#linkDict[linkID];
+		this.#links.forEach( link => {
 			const x_node = this.#nodes.find( node => node.id === link.x.id );
 			const y_node = this.#nodes.find( node => node.id === link.y.id );
 			// snapping should only happen if one of them is still visible
 			if ( x_node && y_node && !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
 				// if x_node is hidden, it has a 'hiddenBy' ID where the link should now snap to
 				if ( this.isHidden( x_node ) ) {
-					this.#linkDict[linkID].x.id = x_node.hiddenBy;
+					link.x.id = x_node.hiddenBy;
 				}
 				else if ( this.isHidden( y_node ) ) {
-					this.#linkDict[linkID].y.id = y_node.hiddenBy;
+					link.y.id = y_node.hiddenBy;
 				}
 			}
-		}
+		} );
 	}
 
 	isHidden( node ) {
@@ -223,52 +222,10 @@ export default class GraphManager {
 		return this.isHidden( node1 ) && this.isHidden( node2 );
 	}
 
-	normalizeMultipleConnections = multipleConnectionsList => {
-		multipleConnectionsList = multipleConnectionsList.map( list => {
-			return list.map( ( link, index ) => {
-				const defaultData = this.getDefaultLinkData( link );
-				return {
-					...defaultData,
-					smooth: {
-						enabled: index !== 0,
-						type: 'horizontal',
-						roundness: index / list.length,
-					},
-				};
-			} );
-		} );
-
-		let multipleLinkDisplayData = [];
-		multipleConnectionsList.forEach( list => {
-			multipleLinkDisplayData.push( ...list );
-		} );
-		return multipleLinkDisplayData;
-	};
-
-	getDefaultLinkData = link => {
-		// x is from, y is to!
-		const { id, x: { id: from }, y: { id: to }, label, type, x_end, y_end, sequence } = link;
-		return { id, from, to, label, type, x_end, y_end, sequence };
-	};
-
 	haveSameNodes = ( link1, link2 ) => {
 		// eslint-disable-next-line
 		return link1.x.id === link2.x.id && link1.y.id === link2.y.id ||
 			// eslint-disable-next-line
 			link1.y.id === link2.x.id && link1.x.id === link2.y.id;
-	};
-
-	saveDoubleLink = ( link1, link2, similarLinks ) => {
-		// and the link itself has not been checked yet
-		if ( !link1.added ) {
-			// add both to the temporary array and mark them as checked
-			similarLinks.push( link1, link2 );
-			link1.added = true;
-		}
-		else {
-			// otherwise add just the not checked link to the temp array
-			similarLinks.push( link2 );
-		}
-		this.#linkDict[link2.id].added = true;
 	};
 }
