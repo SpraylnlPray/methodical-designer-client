@@ -82,6 +82,14 @@ export const EDITOR_NODE_DATA = gql`
       id
       label
       type
+      connectedTo {
+        id
+        type
+      }
+      Links {
+        id
+        type
+      }
       collapsed
       hidden
       hiddenBy

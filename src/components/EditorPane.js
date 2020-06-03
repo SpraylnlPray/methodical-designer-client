@@ -18,9 +18,15 @@ const EditorPane = ( { graphManager } ) => {
 	if ( nodeData && linkData ) {
 		graphManager.nodes = nodeData.Nodes;
 		graphManager.links = linkData.Links;
+		const testNode = {
+			x: 0,
+			y: 0,
+			label: 'testestestestest',
+		};
 
 		const graph = {
 			nodes: graphManager.nodeDisplayData,
+			// nodes: graphManager.nodeDisplayData.concat( testNode ),
 			edges: graphManager.linkDisplayData,
 		};
 		const options = graphManager.graphOptions;

@@ -9,6 +9,14 @@ export const GET_SERVER_NODES = gql`
       story
       synchronous
       unreliable
+      Links {
+        id
+        type
+      }
+      connectedTo {
+        id
+        type
+      }
     }
   }
 `;

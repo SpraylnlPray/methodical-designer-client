@@ -2,7 +2,7 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
-import { LINK_NODES, LINKS_WITH_TAGS, NODE_COLLAPSE_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import { LINKS_WITH_TAGS, NODE_COLLAPSE_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';

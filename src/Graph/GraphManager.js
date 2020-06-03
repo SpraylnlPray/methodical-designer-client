@@ -2,6 +2,7 @@ import { LinkColors, NodeColors } from './Colors';
 import { ArrowShapes, NodeShapes } from './Shapes';
 import { NodeImages } from './Images';
 import { deepCopy } from '../utils';
+import GraphField from './GraphField';
 
 export default class GraphManager {
 	#nodes = {};
@@ -44,6 +45,7 @@ export default class GraphManager {
 			enabled: true,
 		},
 	};
+	#dist = 30;
 
 	set nodes( nodes ) {
 		this.#nodes = deepCopy( nodes );
@@ -61,6 +63,7 @@ export default class GraphManager {
 
 	get nodeDisplayData() {
 		this.setNodeVisualizationProps();
+		this.setNodePositions();
 		return this.#nodes;
 	}
 
@@ -71,10 +74,57 @@ export default class GraphManager {
 		return this.#links;
 	}
 
+	setNodePositions() {
+		this.field = new GraphField( this.#nodes.length );
+
+		// get the nodes with the most connections
+		let maxConnNodeObject = this.getMaxConnNodeObject();
+		const nodeIDs = maxConnNodeObject.NodeData.map( data => data.id );
+		// and save them centered in the field
+		this.field.saveNodes( 1, nodeIDs );
+
+		// go through their connected nodes, and set their positions close to them
+		// if their child notes have other connected nodes, do it recursively
+		// now save the nodes connected to these around them
+		maxConnNodeObject.NodeData.forEach( data => {
+			this.field.saveAround( data.id, data.connectedNodeIDs );
+		} );
+
+
+		this.field.setCoords( this.#dist );
+		this.#nodes.forEach( node => {
+			const nodeInfo = this.field.getNodeInfo( node.id );
+			if ( nodeInfo ) {
+				node.x = nodeInfo.x;
+				node.y = nodeInfo.y;
+			}
+		} );
+	}
+
+	// todo: multiple connections between one node should only be counted as one
+	getMaxConnNodeObject() {
+		let maxConnCount = 0;
+		let maxConnNodeData = [];
+		this.#nodes.map( node => {
+			if ( node.connectedTo.length > maxConnCount ) {
+				const IDs = node.connectedTo.map(connTo => connTo.id);
+				maxConnCount = node.connectedTo.length;
+				maxConnNodeData = [ { id: node.id, connectedNodeIDs: IDs } ];
+			}
+			else if ( node.connectedTo.length === maxConnCount ) {
+				const IDs = node.connectedTo.map(connTo => connTo.id);
+				maxConnNodeData = [ ...maxConnNodeData, { id: node.id, connectedNodeIDs: IDs } ];
+			}
+			return node;
+		} );
+		return { maxConnCount, NodeData: maxConnNodeData };
+	}
+
 	setNodeVisualizationProps() {
-		for ( let node of this.#nodes ) {
+		this.#nodes.forEach( node => {
 			this.setNodeImage( node );
-		}
+			return node;
+		} );
 	}
 
 	setNodeImage( node ) {
@@ -130,11 +180,25 @@ export default class GraphManager {
 	handleMultipleConnections() {
 		this.#nodes.forEach( node => {
 			this.#multipleConnIds = [];
-			// get all links connected to this node that have not been marked as found yet
-			const connections = this.#links.filter( link => (link.x.id === node.id || link.y.id === node.id) && !link.checked );
-			// check for each connection if any other connection has the same nodes
-			this.checkConnectedLinks( connections );
-			// for any multiple connections, set their properties
+			const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
+			// get all duplicate node IDs in connectedToIDs
+			let duplicates = connectedToIDs.reduce( function( acc, el, i, arr ) {
+				if ( arr.indexOf( el ) !== i && acc.indexOf( el ) < 0 ) {
+					acc.push( el );
+				}
+				return acc;
+			}, [] );
+
+			// find the link for each of them and mark it as multiple
+			duplicates.forEach( nodeID => {
+				for ( let i = 0; i < this.#links.length; i++ ) {
+					if ( this.connectsNodes( node.id, nodeID, this.#links[i] ) && !this.#links[i].checked ) {
+						this.#links[i].checked = true;
+						this.#links[i].found = true;
+						this.#multipleConnIds.push(this.#links[i].id);
+					}
+				}
+			} );
 			this.setMultipleLinksProps();
 		} );
 
@@ -144,42 +208,8 @@ export default class GraphManager {
 				link.from = link.x.id;
 				link.to = link.y.id;
 			}
+			return link;
 		} );
-	}
-
-	checkConnectedLinks( connections ) {
-		// check for each connection
-		connections.forEach( conn1 => {
-			const tempConns = connections.filter( conn => conn.id !== conn1.id );
-			// if any other connection
-			tempConns.forEach( conn2 => {
-				// has the same nodes
-				if ( this.haveSameNodes( conn1, conn2 ) ) {
-					// save the IDs
-					this.saveMultipleID( conn1 );
-					this.saveMultipleID( conn2 );
-					// and mark the links as checked and found as double link
-					this.#links.map( link => {
-						if ( link.id === conn2.id || link.id === conn1.id ) {
-							link.checked = true;
-							link.found = true;
-						}
-					} );
-				}
-			} );
-			// after comparing with all others, mark the initial link as checked
-			this.#links.map( link => {
-				if ( link.id === conn1.id ) {
-					link.checked = true;
-				}
-			} );
-		} );
-	}
-
-	saveMultipleID( link ) {
-		if ( !this.#multipleConnIds.includes( link.id ) ) {
-			this.#multipleConnIds.push( link.id );
-		}
 	}
 
 	setMultipleLinksProps() {
@@ -194,6 +224,7 @@ export default class GraphManager {
 					roundness: index / this.#multipleConnIds.length,
 				};
 			}
+			return link;
 		} );
 	}
 
@@ -222,10 +253,10 @@ export default class GraphManager {
 		return this.isHidden( node1 ) && this.isHidden( node2 );
 	}
 
-	haveSameNodes = ( link1, link2 ) => {
+	connectsNodes( node1ID, node2ID, link ) {
 		// eslint-disable-next-line
-		return link1.x.id === link2.x.id && link1.y.id === link2.y.id ||
+		return link.x.id === node1ID && link.y.id === node2ID ||
 			// eslint-disable-next-line
-			link1.y.id === link2.x.id && link1.x.id === link2.y.id;
-	};
+			link.y.id === node1ID && link.x.id === node2ID;
+	}
 }
