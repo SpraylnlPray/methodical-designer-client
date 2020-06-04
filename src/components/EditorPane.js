@@ -4,7 +4,6 @@ import { addLogMessage, setActiveItem } from '../utils';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
 
-
 const EditorPane = ( { graphManager } ) => {
 	const client = useApolloClient();
 
@@ -18,15 +17,9 @@ const EditorPane = ( { graphManager } ) => {
 	if ( nodeData && linkData ) {
 		graphManager.nodes = nodeData.Nodes;
 		graphManager.links = linkData.Links;
-		const testNode = {
-			x: 0,
-			y: 0,
-			label: 'testestestestest',
-		};
 
 		const graph = {
 			nodes: graphManager.nodeDisplayData,
-			// nodes: graphManager.nodeDisplayData.concat( testNode ),
 			edges: graphManager.linkDisplayData,
 		};
 		const options = graphManager.graphOptions;

@@ -42,3 +42,15 @@ export const COLLAPSE_NODE = gql`
     collapseNode(id: $id) @client
   }
 `;
+
+export const SET_NODES = gql`
+  mutation SetNodes($nodes: [Node]!) {
+    setNodes(nodes: $nodes) @client
+  }
+`;
+
+export const SET_LINKS = gql`
+  mutation SetLinks($links: [Link]!) {
+    setLinks(links: $links) @client
+  }
+`;

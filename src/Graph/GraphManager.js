@@ -2,7 +2,6 @@ import { LinkColors, NodeColors } from './Colors';
 import { ArrowShapes, NodeShapes } from './Shapes';
 import { NodeImages } from './Images';
 import { deepCopy } from '../utils';
-import GraphField from './GraphField';
 
 export default class GraphManager {
 	#nodes = {};
@@ -45,7 +44,6 @@ export default class GraphManager {
 			enabled: true,
 		},
 	};
-	#dist = 30;
 
 	set nodes( nodes ) {
 		this.#nodes = deepCopy( nodes );
@@ -63,8 +61,8 @@ export default class GraphManager {
 
 	get nodeDisplayData() {
 		this.setNodeVisualizationProps();
-		this.setNodePositions();
-		return this.#nodes;
+		this.handleCoordinates();
+		return this.#nodes || [];
 	}
 
 	get linkDisplayData() {
@@ -74,50 +72,15 @@ export default class GraphManager {
 		return this.#links;
 	}
 
-	setNodePositions() {
-		this.field = new GraphField( this.#nodes.length );
-
-		// get the nodes with the most connections
-		let maxConnNodeObject = this.getMaxConnNodeObject();
-		const nodeIDs = maxConnNodeObject.NodeData.map( data => data.id );
-		// and save them centered in the field
-		this.field.saveNodes( 1, nodeIDs );
-
-		// go through their connected nodes, and set their positions close to them
-		// if their child notes have other connected nodes, do it recursively
-		// now save the nodes connected to these around them
-		maxConnNodeObject.NodeData.forEach( data => {
-			this.field.saveAround( data.id, data.connectedNodeIDs );
-		} );
-
-
-		this.field.setCoords( this.#dist );
-		this.#nodes.forEach( node => {
-			const nodeInfo = this.field.getNodeInfo( node.id );
-			if ( nodeInfo ) {
-				node.x = nodeInfo.x;
-				node.y = nodeInfo.y;
+	handleCoordinates() {
+		for ( let node of this.#nodes ) {
+			if ( node.x === '' ) {
+				node.x = undefined;
 			}
-		} );
-	}
-
-	// todo: multiple connections between one node should only be counted as one
-	getMaxConnNodeObject() {
-		let maxConnCount = 0;
-		let maxConnNodeData = [];
-		this.#nodes.map( node => {
-			if ( node.connectedTo.length > maxConnCount ) {
-				const IDs = node.connectedTo.map(connTo => connTo.id);
-				maxConnCount = node.connectedTo.length;
-				maxConnNodeData = [ { id: node.id, connectedNodeIDs: IDs } ];
+			if ( node.y === '' ) {
+				node.y = undefined;
 			}
-			else if ( node.connectedTo.length === maxConnCount ) {
-				const IDs = node.connectedTo.map(connTo => connTo.id);
-				maxConnNodeData = [ ...maxConnNodeData, { id: node.id, connectedNodeIDs: IDs } ];
-			}
-			return node;
-		} );
-		return { maxConnCount, NodeData: maxConnNodeData };
+		}
 	}
 
 	setNodeVisualizationProps() {
@@ -195,7 +158,7 @@ export default class GraphManager {
 					if ( this.connectsNodes( node.id, nodeID, this.#links[i] ) && !this.#links[i].checked ) {
 						this.#links[i].checked = true;
 						this.#links[i].found = true;
-						this.#multipleConnIds.push(this.#links[i].id);
+						this.#multipleConnIds.push( this.#links[i].id );
 					}
 				}
 			} );

@@ -45,7 +45,7 @@ export const deepCopy = obj => JSON.parse( JSON.stringify( obj ) );
 export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy ) => {
 	let nodesWithoutCollapsable = nodesCopy.filter( node => node.id !== collapsable.id );
 
-	// get all nodes connected to the collapsable
+	// get all nodes connected to the collapsable via a part-of link
 	const connectedNodeIDs = [];
 	for ( let link of links ) {
 		// if the x/parent node is the collapsable, save the y ID
@@ -54,7 +54,7 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 		}
 	}
 	// set their hidden property to the ones of the container/domain that initiated the expand/collapse action
-	nodesWithoutCollapsable.forEach( node => {
+	nodesCopy.forEach( node => {
 		if ( connectedNodeIDs.includes( node.id ) ) {
 			node.hidden = sourceNode.collapsed;
 			// if the node gets hidden, make sure to save which node is the source of the hide action
@@ -65,12 +65,18 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 			if ( isCollapsable( node ) ) {
 				handleConnectedNodes( node, collapsable, links, nodesCopy );
 			}
+
 		}
 	} );
-
 	return nodesWithoutCollapsable;
 };
 
-const isCollapsable = ( node ) => {
+export const isCollapsable = ( node ) => {
 	return node.type === 'Container' || node.type === 'Domain';
+};
+
+export const VecDist = ( p1, p2 ) => {
+	const deltaX = p1.x - p2.x;
+	const deltaY = p1.y - p2.y;
+	return Math.hypot( deltaX, deltaY );
 };

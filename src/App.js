@@ -4,13 +4,14 @@ import EditorPane from './components/EditorPane';
 import HeaderArea from './components/HeaderArea';
 import { Grid } from 'semantic-ui-react';
 import './App.css';
-import { useApolloClient, useQuery } from '@apollo/client';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import LogStream from './components/LogStream';
 import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import ServerStartupMessage from './components/ServerStartupMessage';
-import { LINKS, NODES } from './queries/LocalQueries';
 import GraphManager from './Graph/GraphManager';
+import { CollapsableRule } from './Graph/Rules';
+import { SET_LINKS, SET_NODES } from './queries/LocalMutations';
 
 function App() {
 	const client = useApolloClient();
@@ -20,11 +21,14 @@ function App() {
 		setActiveItem( client, 'app', 'app' );
 	};
 
+	const [ setNodes ] = useMutation( SET_NODES );
+	const [ setLinks ] = useMutation( SET_LINKS );
+
 	const { data: serverNodeData, startPolling: startNodePolling, stopPolling: stopNodePolling }
 					= useQuery( GET_SERVER_NODES, {
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
-			const localNodes = [];
+			const newLocalNodes = [];
 			for ( let node of data.Nodes ) {
 				const localNode = {
 					...node,
@@ -32,20 +36,20 @@ function App() {
 					created: false,
 					deleted: false,
 				};
-				localNodes.push( localNode );
+				newLocalNodes.push( localNode );
 			}
 
-			client.writeQuery( {
-				query: NODES,
-				data: { Nodes: localNodes },
-			} );
+			for ( let node of newLocalNodes ) {
+				CollapsableRule( node, newLocalNodes );
+			}
+			setNodes( { variables: { nodes: newLocalNodes } } );
 		},
 	} );
 	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling }
 					= useQuery( GET_SERVER_LINKS, {
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 		onCompleted: data => {
-			const localLinks = [];
+			const newLocalLinks = [];
 			for ( let link of data.Links ) {
 				const localLink = {
 					...link,
@@ -53,12 +57,10 @@ function App() {
 					created: false,
 					deleted: false,
 				};
-				localLinks.push( localLink );
+				newLocalLinks.push( localLink );
 			}
-			client.writeQuery( {
-				query: LINKS,
-				data: { Links: localLinks },
-			} );
+
+			setLinks( { variables: { links: newLocalLinks } } );
 		},
 	} );
 

@@ -1,17 +1,5 @@
 import { gql } from '@apollo/client';
 
-export const NODES = gql`
-  query {
-    Nodes @client
-  }
-`;
-
-export const LINKS = gql`
-  query {
-    Links @client
-  }
-`;
-
 export const LOG_MESSAGES = gql`
   query {
     logMessages @client
@@ -27,6 +15,16 @@ export const ACTIVE_ITEM = gql`
   }
 `;
 
+export const NODES_KOORDS = gql`
+  query {
+    Nodes @client {
+      id
+      x
+      y
+    }
+  }
+`;
+
 export const NODES_DATA = gql`
   query {
     Nodes @client {
@@ -36,42 +34,8 @@ export const NODES_DATA = gql`
       story
       synchronous
       unreliable
-    }
-  }
-`;
-
-export const NODE_TAGS = gql`
-  query {
-    Nodes @client {
-      id
-      deleted
-      edited
-      created
-    }
-  }
-`;
-
-export const NODE_COLLAPSE_TAGS = gql`
-  query {
-    Nodes @client {
-      id
-      collapsed
-      hidden
-      hiddenBy
-    }
-  }
-`;
-
-export const LINK_NODES = gql`
-  query { 
-    Links @client {
-      id
-      x {
-        id
-      }
-      y {
-        id
-      }
+      x
+      y
     }
   }
 `;
@@ -90,10 +54,23 @@ export const EDITOR_NODE_DATA = gql`
         id
         type
       }
+      x
+      y
       collapsed
       hidden
       hiddenBy
       deleted
+    }
+  }
+`;
+
+export const NODES_COLLAPSE = gql`
+  query {
+    Nodes @client {
+      id
+      collapsed
+      hidden
+      hiddenBy
     }
   }
 `;
@@ -107,6 +84,8 @@ export const NODES_WITH_TAGS = gql`
       story
       synchronous
       unreliable
+      x
+      y
       collapsed
       created
       hidden

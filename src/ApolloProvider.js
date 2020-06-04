@@ -2,8 +2,9 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
-import { LINKS_WITH_TAGS, NODE_COLLAPSE_TAGS, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
+import { CollapsableRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -29,6 +30,24 @@ const cache = new InMemoryCache( {
 				},
 				hiddenBy( existingData ) {
 					return existingData || false;
+				},
+				x( existingData ) {
+					if ( existingData === undefined ) {
+						return '';
+					}
+					return existingData;
+				},
+				y( existingData ) {
+					if ( existingData === undefined ) {
+						return '';
+					}
+					return existingData;
+				},
+				Links( existingData ) {
+					return existingData || [];
+				},
+				connectedTo( existingData ) {
+					return existingData || [];
 				},
 			},
 		},
@@ -57,20 +76,35 @@ const client = new ApolloClient( {
 	cache,
 	resolvers: {
 		Mutation: {
+			setNodes: ( _root, variables, { cache } ) => {
+				cache.writeQuery( {
+					query: NODES_WITH_TAGS,
+					data: { Nodes: variables.nodes },
+				} );
+			},
+			setLinks: ( _root, variables, { cache } ) => {
+				cache.writeQuery( {
+					query: LINKS_WITH_TAGS,
+					data: { Links: variables.links },
+				} );
+			},
+
 			addNode: ( _root, variables, { cache } ) => {
 				const { label, props, type } = variables;
 				const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 
 				const newId = generateLocalUUID();
-				const newNode = {
+				let newNode = {
 					id: newId,
 					label,
 					type,
 					...props,
 					created: true,
 					edited: false,
+					deleted: false,
 					__typename: 'Node',
 				};
+				// CollapsableRule( newNode, Nodes, 500 );
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
@@ -229,7 +263,7 @@ const client = new ApolloClient( {
 			},
 
 			collapseNode: ( _root, variables, { cache } ) => {
-				const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
+				const { Nodes } = cache.readQuery( { query: NODES_COLLAPSE } );
 				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
 				let nodesCopy = deepCopy( Nodes );
@@ -237,11 +271,10 @@ const client = new ApolloClient( {
 				// invert collapse property on node
 				collapsable.collapsed = !collapsable.collapsed;
 
-				let connectedNodes = handleConnectedNodes( collapsable, collapsable, Links, nodesCopy );
-
+				let nodes = handleConnectedNodes( collapsable, collapsable, Links, nodesCopy );
 				cache.writeQuery( {
-					query: NODE_COLLAPSE_TAGS,
-					data: { Nodes: connectedNodes.concat( collapsable ) },
+					query: NODES_COLLAPSE,
+					data: { Nodes: nodes.concat( collapsable ) },
 				} );
 			},
 		},
