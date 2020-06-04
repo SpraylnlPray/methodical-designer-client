@@ -104,7 +104,7 @@ const client = new ApolloClient( {
 					deleted: false,
 					__typename: 'Node',
 				};
-				// CollapsableRule( newNode, Nodes, 500 );
+				CollapsableRule( newNode, Nodes );
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
