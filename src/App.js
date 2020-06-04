@@ -10,7 +10,6 @@ import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import ServerStartupMessage from './components/ServerStartupMessage';
 import GraphManager from './Graph/GraphManager';
-import { CollapsableRule } from './Graph/Rules';
 import { SET_LINKS, SET_NODES } from './queries/LocalMutations';
 
 function App() {
@@ -28,39 +27,14 @@ function App() {
 					= useQuery( GET_SERVER_NODES, {
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
-			const newLocalNodes = [];
-			for ( let node of data.Nodes ) {
-				const localNode = {
-					...node,
-					edited: false,
-					created: false,
-					deleted: false,
-				};
-				newLocalNodes.push( localNode );
-			}
-
-			for ( let node of newLocalNodes ) {
-				CollapsableRule( node, newLocalNodes );
-			}
-			setNodes( { variables: { nodes: newLocalNodes } } );
+			setNodes( { variables: { nodes: data.Nodes } } );
 		},
 	} );
 	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling }
 					= useQuery( GET_SERVER_LINKS, {
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 		onCompleted: data => {
-			const newLocalLinks = [];
-			for ( let link of data.Links ) {
-				const localLink = {
-					...link,
-					edited: false,
-					created: false,
-					deleted: false,
-				};
-				newLocalLinks.push( localLink );
-			}
-
-			setLinks( { variables: { links: newLocalLinks } } );
+			setLinks( { variables: { links: data.Links } } );
 		},
 	} );
 
@@ -87,7 +61,8 @@ function App() {
 						<InteractionPane client={ client }/>
 					</Grid.Column>
 					<Grid.Column width={ 12 }>
-						{ EditorArea() }
+						{/*{ EditorArea() }*/ }
+						<EditorPane graphManager={ graphManager }/>
 					</Grid.Column>
 				</Grid.Row>
 			</Grid>

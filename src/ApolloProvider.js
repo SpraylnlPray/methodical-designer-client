@@ -77,15 +77,40 @@ const client = new ApolloClient( {
 	resolvers: {
 		Mutation: {
 			setNodes: ( _root, variables, { cache } ) => {
+				const nodesCopy = deepCopy( variables.nodes );
+				nodesCopy.forEach( node => {
+					return {
+						...node,
+						edited: false,
+						created: false,
+						deleted: false,
+					};
+				} );
+
+				nodesCopy.forEach( node => {
+					CollapsableRule( node, nodesCopy );
+				} );
+
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
-					data: { Nodes: variables.nodes },
+					data: { Nodes: nodesCopy },
 				} );
 			},
 			setLinks: ( _root, variables, { cache } ) => {
+				const newLocalLinks = [];
+				for ( let link of variables.links ) {
+					const localLink = {
+						...link,
+						edited: false,
+						created: false,
+						deleted: false,
+					};
+					newLocalLinks.push( localLink );
+				}
+
 				cache.writeQuery( {
 					query: LINKS_WITH_TAGS,
-					data: { Links: variables.links },
+					data: { Links: newLocalLinks },
 				} );
 			},
 

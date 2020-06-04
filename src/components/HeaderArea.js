@@ -4,7 +4,6 @@ import SavePane from './SavePane';
 import ProjectStatus from './ProjectStatus';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
-import { NODES_KOORDS } from '../queries/LocalQueries';
 import { addLogMessage } from '../utils';
 import { SET_LINKS, SET_NODES } from '../queries/LocalMutations';
 
@@ -17,40 +16,14 @@ const HeaderArea = ( { client } ) => {
 		fetchPolicy: 'network-only',
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
-			const currLocalNodes = client.readQuery( { query: NODES_KOORDS } );
-			const newLocalNodes = [];
-			for ( let node of data.Nodes ) {
-				const currLocalNode = currLocalNodes.Nodes.find( curr => node.id === curr.id );
-				const { x, y } = currLocalNode;
-				const newLocalNode = {
-					...node,
-					x,
-					y,
-					edited: false,
-					created: false,
-					deleted: false,
-				};
-				newLocalNodes.push( newLocalNode );
-			}
-
-			setNodes( { variables: { nodes: newLocalNodes } } );
+			setNodes( { variables: { nodes: data.Nodes } } );
 		},
 	} );
 	const [ getLinks ] = useLazyQuery( GET_SERVER_LINKS, {
 		fetchPolicy: 'network-only',
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 		onCompleted: data => {
-			const newLocalLinks = [];
-			for ( let link of data.Links ) {
-				const localLink = {
-					...link,
-					edited: false,
-					created: false,
-					deleted: false,
-				};
-				newLocalLinks.push( localLink );
-			}
-			setLinks( { variables: { links: newLocalLinks } } );
+			setLinks( { variables: { links: data.Links } } );
 		},
 	} );
 
