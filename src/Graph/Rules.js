@@ -2,7 +2,7 @@ import { isCollapsable } from '../utils';
 
 export const CollapsableRule = ( node, nodes, minDist = 500 ) => {
 	if ( isCollapsable( node ) ) {
-		const otherCollapsables = nodes.filter( candidate => candidate.id !== node.id && isCollapsable( candidate ) );
+		const otherCollapsables = nodes.filter( candidate => candidate.id !== node.id && isCollapsable( candidate ) && !candidate.deleted );
 		// get the coordinates of all other collapsables
 		const existingCoords = [];
 		otherCollapsables.forEach( collapsable => {
@@ -45,4 +45,26 @@ const CoordsExist = ( coord, coords ) => {
 		}
 	}
 	return false;
+};
+
+export const PartOfRule = ( node ) => {
+	if ( hasPartOfLinks( node ) && !isCollapsable( node ) ) {
+		// get container the node is connected to
+		// get its position
+		// place the node around the container
+		debugger
+	}
+};
+
+const getConnectedLinkTypes = ( links ) => {
+	const types = [];
+	links.forEach( link => {
+		types.push( link.type );
+	} );
+	return types;
+};
+
+const hasPartOfLinks = ( node ) => {
+	const types = getConnectedLinkTypes( node.Links );
+	return types.includes( 'PartOf' );
 };

@@ -36,6 +36,7 @@ export const NODES_DATA = gql`
       unreliable
       x
       y
+      deleted
     }
   }
 `;

@@ -4,7 +4,7 @@ import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apo
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule } from './Graph/Rules';
+import { CollapsableRule, PartOfRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -78,18 +78,13 @@ const client = new ApolloClient( {
 		Mutation: {
 			setNodes: ( _root, variables, { cache } ) => {
 				const nodesCopy = deepCopy( variables.nodes );
-				nodesCopy.forEach( node => {
-					return {
-						...node,
-						edited: false,
-						created: false,
-						deleted: false,
-					};
-				} );
-
-				nodesCopy.forEach( node => {
+				for ( let node of nodesCopy ) {
+					node.edited = false;
+					node.created = false;
+					node.deleted = false;
 					CollapsableRule( node, nodesCopy );
-				} );
+					PartOfRule( node );
+				}
 
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
@@ -97,20 +92,16 @@ const client = new ApolloClient( {
 				} );
 			},
 			setLinks: ( _root, variables, { cache } ) => {
-				const newLocalLinks = [];
-				for ( let link of variables.links ) {
-					const localLink = {
-						...link,
-						edited: false,
-						created: false,
-						deleted: false,
-					};
-					newLocalLinks.push( localLink );
+				const linksCopy = deepCopy( variables.links );
+				for ( let link of linksCopy ) {
+					link.edited = false;
+					link.created = false;
+					link.deleted = false;
 				}
 
 				cache.writeQuery( {
 					query: LINKS_WITH_TAGS,
-					data: { Links: newLocalLinks },
+					data: { Links: linksCopy },
 				} );
 			},
 
@@ -129,6 +120,7 @@ const client = new ApolloClient( {
 					deleted: false,
 					__typename: 'Node',
 				};
+				debugger
 				CollapsableRule( newNode, Nodes );
 				const newNodes = Nodes.concat( newNode );
 

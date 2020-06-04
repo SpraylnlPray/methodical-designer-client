@@ -61,6 +61,7 @@ const SavePane = ( {
 		 6. Delete links
 		 7. Delete Nodes
 		 */
+		debugger
 		addLogMessage( client, `saving created nodes` );
 		for ( let node of createdNodes ) {
 			const { id, label, story, synchronous, type, unreliable } = node;

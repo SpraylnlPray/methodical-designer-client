@@ -16,6 +16,7 @@ const HeaderArea = ( { client } ) => {
 		fetchPolicy: 'network-only',
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
+			debugger
 			setNodes( { variables: { nodes: data.Nodes } } );
 		},
 	} );
