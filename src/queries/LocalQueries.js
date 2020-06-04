@@ -68,6 +68,7 @@ export const NODES_COLLAPSE = gql`
   query {
     Nodes @client {
       id
+      type
       collapsed
       hidden
       hiddenBy
