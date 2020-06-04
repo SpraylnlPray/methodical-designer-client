@@ -22,7 +22,7 @@ export const CollapsableRule = ( node, nodes, minDist = 500 ) => {
 					for ( let x = 0, j = 0; j <= otherCollapsables.length / 2; j++, x += minDist ) {
 						newCoords = { x, y };
 						for ( let k = 0; k < existingCoords.length; k++ ) {
-							if ( !CoordsExist( newCoords, existingCoords ) ) {
+							if ( !coordsExist( newCoords, existingCoords ) ) {
 								node.x = newCoords.x;
 								node.y = newCoords.y;
 								break loop1;
@@ -38,7 +38,7 @@ export const CollapsableRule = ( node, nodes, minDist = 500 ) => {
 	}
 };
 
-const CoordsExist = ( coord, coords ) => {
+const coordsExist = ( coord, coords ) => {
 	for ( let coordsToCheck of coords ) {
 		if ( coord.x === coordsToCheck.x && coord.y === coordsToCheck.y ) {
 			return true;
@@ -47,12 +47,41 @@ const CoordsExist = ( coord, coords ) => {
 	return false;
 };
 
-export const PartOfRule = ( node ) => {
+export const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEachOther = 50 ) => {
 	if ( hasPartOfLinks( node ) && !isCollapsable( node ) ) {
-		// get container the node is connected to
+		// get container ID the node is connected to
+		const containerID = node.connectedTo.find( connNode => isCollapsable( connNode ) ).id;
+		// get the coordinates of the container
+		const container = nodes.find( aNode => aNode.id === containerID );
 		// get its position
+		const { x: containerX, y: containerY } = container;
+		// and the count of its connected nodes
+		const partOfCount = container.connectedTo.length;
+		// get all other existing coordinates
+		const existingCoords = [];
+		nodes.forEach( nodeToCheck => {
+			const { x, y } = nodeToCheck;
+			if ( x !== undefined && y !== undefined ) {
+				existingCoords.push( { x, y } );
+			}
+		} );
 		// place the node around the container
-		debugger
+		let newCoords = {};
+		if (node.label.startsWith('test4')) debugger
+		loop1:
+		for ( let y = 0, i = 0; i < partOfCount; y += minDistToEachOther, i++ ) {
+			// max 3 nodes next to each other
+			for ( let x = 0, j = 0; j < 3; x += minDistToEachOther, j++ ) {
+				for ( let k = -1; k <= 1; k++ ) {
+					newCoords = { x: containerX + k * minDistToContainer, y: containerY + minDistToContainer + y };
+					if ( !coordsExist( newCoords, existingCoords ) ) {
+						node.x = newCoords.x;
+						node.y = newCoords.y;
+						break loop1;
+					}
+				}
+			}
+		}
 	}
 };
 

@@ -82,10 +82,16 @@ const client = new ApolloClient( {
 					node.edited = false;
 					node.created = false;
 					node.deleted = false;
-					CollapsableRule( node, nodesCopy );
-					PartOfRule( node );
 				}
 
+				for (let node of nodesCopy) {
+					CollapsableRule( node, nodesCopy );
+				}
+				// debugger
+				for (let node of nodesCopy) {
+					PartOfRule( node, nodesCopy );
+				}
+				// debugger
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
 					data: { Nodes: nodesCopy },
