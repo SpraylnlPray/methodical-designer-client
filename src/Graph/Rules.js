@@ -67,21 +67,20 @@ export const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEach
 		} );
 		// place the node around the container
 		let newCoords = {};
-		if (node.label.startsWith('test4')) debugger
 		loop1:
-		for ( let y = 0, i = 0; i < partOfCount; y += minDistToEachOther, i++ ) {
-			// max 3 nodes next to each other
-			for ( let x = 0, j = 0; j < 3; x += minDistToEachOther, j++ ) {
-				for ( let k = -1; k <= 1; k++ ) {
-					newCoords = { x: containerX + k * minDistToContainer, y: containerY + minDistToContainer + y };
-					if ( !coordsExist( newCoords, existingCoords ) ) {
-						node.x = newCoords.x;
-						node.y = newCoords.y;
-						break loop1;
+			for ( let y = 0, i = 0; i < partOfCount; y += minDistToEachOther, i++ ) {
+				// max 3 nodes next to each other
+				for ( let x = 0, j = 0; j < 3; x += minDistToEachOther, j++ ) {
+					for ( let k = -1; k <= 1; k++ ) {
+						newCoords = { x: containerX + k * minDistToContainer, y: containerY + minDistToContainer + y };
+						if ( !coordsExist( newCoords, existingCoords ) ) {
+							node.x = newCoords.x;
+							node.y = newCoords.y;
+							break loop1;
+						}
 					}
 				}
 			}
-		}
 	}
 };
 
@@ -96,4 +95,39 @@ const getConnectedLinkTypes = ( links ) => {
 const hasPartOfLinks = ( node ) => {
 	const types = getConnectedLinkTypes( node.Links );
 	return types.includes( 'PartOf' );
+};
+
+export const NoConnectionNodeRule = ( node, nodes, minDistToEachOther = 150 ) => {
+	// check if node has no links connected to it
+	if ( node.connectedTo.length === 0 && !hasCoordinates( node ) ) {
+		debugger
+		// get all other nodes with no connections
+		const otherSingleNodes = nodes.filter( checkNode => checkNode.connectedTo.length === 0 && checkNode.id !== node.id && !isCollapsable( checkNode ) );
+		const existingCoords = [];
+		otherSingleNodes.forEach( nodeToCheck => {
+			const { x, y } = nodeToCheck;
+			if ( x !== undefined && y !== undefined ) {
+				existingCoords.push( { x, y } );
+			}
+		} );
+
+		let newCoords = {};
+		// place above all other nodes that have connections? --> y = -400
+		loop1:
+			for ( let y = -400, i = 0; i <= otherSingleNodes.length; y -= minDistToEachOther, i++ ) {
+				for ( let x = 0, j = 0; j <= otherSingleNodes.length; x += minDistToEachOther, j++ ) {
+					newCoords = { x, y };
+					if ( !coordsExist( newCoords, existingCoords ) ) {
+						node.x = newCoords.x;
+						node.y = newCoords.y;
+						break loop1;
+					}
+				}
+			}
+	}
+};
+
+const hasCoordinates = node => {
+	const { x, y } = node;
+	return x !== undefined && y !== undefined;
 };

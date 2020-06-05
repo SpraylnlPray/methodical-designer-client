@@ -4,7 +4,7 @@ import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apo
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule, PartOfRule } from './Graph/Rules';
+import { CollapsableRule, NoConnectionNodeRule, PartOfRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -84,14 +84,18 @@ const client = new ApolloClient( {
 					node.deleted = false;
 				}
 
-				for (let node of nodesCopy) {
+				for ( let node of nodesCopy ) {
 					CollapsableRule( node, nodesCopy );
 				}
-				// debugger
-				for (let node of nodesCopy) {
+
+				for ( let node of nodesCopy ) {
 					PartOfRule( node, nodesCopy );
 				}
-				// debugger
+
+				for ( let node of nodesCopy ) {
+					NoConnectionNodeRule( node, nodesCopy );
+				}
+				
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
 					data: { Nodes: nodesCopy },
@@ -120,14 +124,17 @@ const client = new ApolloClient( {
 					id: newId,
 					label,
 					type,
+					connectedTo: [],
+					Links: [],
 					...props,
 					created: true,
 					edited: false,
 					deleted: false,
 					__typename: 'Node',
 				};
-				debugger
+
 				CollapsableRule( newNode, Nodes );
+				NoConnectionNodeRule( newNode, Nodes );
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {

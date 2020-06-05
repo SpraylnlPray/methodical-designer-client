@@ -37,6 +37,10 @@ export const NODES_DATA = gql`
       x
       y
       deleted
+      connectedTo {
+        id
+        type
+      }
     }
   }
 `;
