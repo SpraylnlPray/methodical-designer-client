@@ -159,15 +159,49 @@ export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDis
 						}
 					}
 				}
-			return;
 		}
-		// otherwise, check if there are multiple connections to another node
-		// const distinctIDs = Array.from( new Set( connectedToIDs ) );
-		// // these should not be placed on one x and y coordinate
-		// if ( distinctIDs.length === 1 ) {
-		// 	debugger
-		// 	return;
-		// }
+	}
+};
+
+export const LooseChildRule = ( nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
+	// get all nodes that already have a position
+	const nodesWithCoords = nodes.filter( node => node.x !== undefined && node.y !== undefined );
+	// and those without position
+	const nodesWithoutCoords = nodes.filter( node => node.x === undefined && node.y === undefined );
+	const nodesWithoutCoordsIDs = nodesWithoutCoords.map( aNode => aNode.id );
+	// go through their connected nodes and if they do not have a position yet, assign one
+	for ( let parentNode of nodesWithCoords ) {
+		const childIDs = parentNode.connectedTo.map( aNode => aNode.id );
+		for ( let subNodeID of childIDs ) {
+			if ( nodesWithoutCoordsIDs.includes( subNodeID ) ) {
+				const childNode = nodes.find( aNode => aNode.id === subNodeID );
+				// get the parent node coordinates
+				const { x: parentX, y: parentY } = parentNode;
+				// and find its children
+				const otherChildIDs = parentNode.connectedTo.map( aNode => aNode.id );
+				const otherChilds = nodes.filter( aNode => otherChildIDs.includes( aNode.id ) );
+				const existingCoords = [];
+				otherChilds.forEach( nodeToCheck => {
+					const { x, y } = nodeToCheck;
+					if ( x !== undefined && y !== undefined ) {
+						existingCoords.push( { x, y } );
+					}
+				} );
+
+				let newCoords = {};
+				loop1:
+					for ( let i = 0, y = minDistToParent; i < 3; i++, y += minDistToEachOther ) {
+						for ( let j = 0, x = -minDistToParent; j < 3; j++, x += minDistToEachOther ) {
+							newCoords = { x: parentX + x, y: parentY + y };
+							if ( !coordsExist( newCoords, existingCoords ) ) {
+								childNode.x = newCoords.x;
+								childNode.y = newCoords.y;
+								break loop1;
+							}
+						}
+					}
+			}
+		}
 	}
 };
 
