@@ -21,12 +21,10 @@ export const CollapsableRule = ( node, nodes, minDist = 500 ) => {
 				for ( let y = 0, i = 0; i <= otherCollapsables.length / 2; i++, y += minDist ) {
 					for ( let x = 0, j = 0; j <= otherCollapsables.length / 2; j++, x += minDist ) {
 						newCoords = { x, y };
-						for ( let k = 0; k < existingCoords.length; k++ ) {
-							if ( !coordsExist( newCoords, existingCoords ) ) {
-								node.x = newCoords.x;
-								node.y = newCoords.y;
-								break loop1;
-							}
+						if ( !coordsExist( newCoords, existingCoords ) ) {
+							node.x = newCoords.x;
+							node.y = newCoords.y;
+							break loop1;
 						}
 					}
 				}
@@ -97,10 +95,9 @@ const hasPartOfLinks = ( node ) => {
 	return types.includes( 'PartOf' );
 };
 
-export const NoConnectionNodeRule = ( node, nodes, minDistToEachOther = 150 ) => {
+export const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, minDistToEachOther = 150 ) => {
 	// check if node has no links connected to it
-	if ( node.connectedTo.length === 0 && !hasCoordinates( node ) ) {
-		debugger
+	if ( !isCollapsable( node ) && node.connectedTo.length === 0 && !hasCoordinates( node ) ) {
 		// get all other nodes with no connections
 		const otherSingleNodes = nodes.filter( checkNode => checkNode.connectedTo.length === 0 && checkNode.id !== node.id && !isCollapsable( checkNode ) );
 		const existingCoords = [];
@@ -114,7 +111,7 @@ export const NoConnectionNodeRule = ( node, nodes, minDistToEachOther = 150 ) =>
 		let newCoords = {};
 		// place above all other nodes that have connections? --> y = -400
 		loop1:
-			for ( let y = -400, i = 0; i <= otherSingleNodes.length; y -= minDistToEachOther, i++ ) {
+			for ( let y = -minDistToContainer, i = 0; i <= otherSingleNodes.length; y -= minDistToEachOther, i++ ) {
 				for ( let x = 0, j = 0; j <= otherSingleNodes.length; x += minDistToEachOther, j++ ) {
 					newCoords = { x, y };
 					if ( !coordsExist( newCoords, existingCoords ) ) {
@@ -124,6 +121,53 @@ export const NoConnectionNodeRule = ( node, nodes, minDistToEachOther = 150 ) =>
 					}
 				}
 			}
+	}
+};
+
+// maybe it'd be better to do this from the parent node?
+export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
+	// todo: what if parent doesn't have coordinates yet?
+	if ( !isCollapsable( node ) ) {
+		const connectedToIDs = node.connectedTo.map( aNode => aNode.id );
+		const distinctIDs = Array.from( new Set( connectedToIDs ) );
+		// if the node has just one connection
+		if ( connectedToIDs.length === 1 || distinctIDs.length === 1 ) {
+			// get the parent node
+			const parentNode = nodes.find( aNode => aNode.id === connectedToIDs[0] );
+			const { x: parentX, y: parentY } = parentNode;
+			// and find its children
+			const otherChildIDs = parentNode.connectedTo.map( aNode => aNode.id );
+			const otherChilds = nodes.filter( aNode => otherChildIDs.includes( aNode.id ) );
+			// get their coordinates
+			const existingCoords = [];
+			otherChilds.forEach( nodeToCheck => {
+				const { x, y } = nodeToCheck;
+				if ( x !== undefined && y !== undefined ) {
+					existingCoords.push( { x, y } );
+				}
+			} );
+			// place them from left to right below the parent node
+			let newCoords = {};
+			loop1:
+				for ( let i = 0, y = minDistToParent; i < 3; i++, y += minDistToEachOther ) {
+					for ( let j = 0, x = -minDistToParent; j < 3; j++, x += minDistToEachOther ) {
+						newCoords = { x: parentX + x, y: parentY + y };
+						if ( !coordsExist( newCoords, existingCoords ) ) {
+							node.x = newCoords.x;
+							node.y = newCoords.y;
+							break loop1;
+						}
+					}
+				}
+			return;
+		}
+		// otherwise, check if there are multiple connections to another node
+		// const distinctIDs = Array.from( new Set( connectedToIDs ) );
+		// // these should not be placed on one x and y coordinate
+		// if ( distinctIDs.length === 1 ) {
+		// 	debugger
+		// 	return;
+		// }
 	}
 };
 

@@ -4,7 +4,7 @@ import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apo
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule, NoConnectionNodeRule, PartOfRule } from './Graph/Rules';
+import { CollapsableRule, NoConnectionNodeRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -93,9 +93,13 @@ const client = new ApolloClient( {
 				}
 
 				for ( let node of nodesCopy ) {
+					SingleConnectionRule( node, nodesCopy );
+				}
+
+				for ( let node of nodesCopy ) {
 					NoConnectionNodeRule( node, nodesCopy );
 				}
-				
+
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
 					data: { Nodes: nodesCopy },
@@ -203,6 +207,7 @@ const client = new ApolloClient( {
 
 				const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 				const newLinks = Links.filter( link => link.id !== id );
+				// todo: use Links.find instead
 				let linkToEdit = Links.filter( link => link.id === id )[0];
 				linkToEdit = deepCopy( linkToEdit );
 
