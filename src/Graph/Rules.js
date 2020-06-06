@@ -200,7 +200,7 @@ export const NonDomainRule = ( nodes, minDistToEachOther = 500 ) => {
 	// get nodes without coordinates
 	const nodesWithoutCoords = nodes.filter( aNode => aNode.x === undefined && aNode.y === undefined );
 	if ( nodesWithoutCoords.length > 0 ) {
-		handleNodesWithoutCoords( nodesWithoutCoords, nodes );
+		handleNodesWithoutCoords( nodesWithoutCoords, nodes, minDistToEachOther );
 	}
 };
 
@@ -223,6 +223,7 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, minDistToEachOther
 					const node = nodes.find( aNode => aNode.id === nodeWithMostLinks.id );
 					node.x = newCoords.x;
 					node.y = newCoords.y;
+					// handle all nodes connected to this one
 					handleConnectedNodes( node, nodes, -150, -100 );
 					break loop1;
 				}

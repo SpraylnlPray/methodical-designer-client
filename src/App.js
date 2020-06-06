@@ -68,7 +68,7 @@ function App() {
 			</Grid>
 			<LogStream/>
 			<div className='version'>
-				v2
+				v2.1
 			</div>
 		</div>
 	);
