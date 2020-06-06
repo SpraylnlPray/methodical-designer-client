@@ -4,7 +4,7 @@ import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apo
 import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule, LooseChildRule, NoConnectionNodeRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
+import { CollapsableRule, LooseChildRule, NoConnectionNodeRule, NonDomainRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -101,6 +101,8 @@ const client = new ApolloClient( {
 				for ( let node of nodesCopy ) {
 					NoConnectionNodeRule( node, nodesCopy );
 				}
+
+				NonDomainRule( nodesCopy );
 
 
 				cache.writeQuery( {
