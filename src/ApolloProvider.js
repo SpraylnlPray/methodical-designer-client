@@ -92,17 +92,16 @@ const client = new ApolloClient( {
 					PartOfRule( node, nodesCopy );
 				}
 
-				for ( let node of nodesCopy ) {
-					SingleConnectionRule( node, nodesCopy );
-				}
+				LooseChildRule( nodesCopy );
+
+				// for ( let node of nodesCopy ) {
+				// 	SingleConnectionRule( node, nodesCopy );
+				// }
 
 				for ( let node of nodesCopy ) {
 					NoConnectionNodeRule( node, nodesCopy );
 				}
 
-				for ( let node of nodesCopy ) {
-					LooseChildRule( nodesCopy );
-				}
 
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,

@@ -4,13 +4,7 @@ export const CollapsableRule = ( node, nodes, minDist = 500 ) => {
 	if ( isCollapsable( node ) ) {
 		const otherCollapsables = nodes.filter( candidate => candidate.id !== node.id && isCollapsable( candidate ) && !candidate.deleted );
 		// get the coordinates of all other collapsables
-		const existingCoords = [];
-		otherCollapsables.forEach( collapsable => {
-			const { x, y } = collapsable;
-			if ( x !== undefined && y !== undefined ) {
-				existingCoords.push( { x, y } );
-			}
-		} );
+		const existingCoords = getExistingCoordinatesFor( otherCollapsables );
 
 		let newCoords = {};
 		// if there have already been other coords set
@@ -56,13 +50,8 @@ export const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEach
 		// and the count of its connected nodes
 		const partOfCount = container.connectedTo.length;
 		// get all other existing coordinates
-		const existingCoords = [];
-		nodes.forEach( nodeToCheck => {
-			const { x, y } = nodeToCheck;
-			if ( x !== undefined && y !== undefined ) {
-				existingCoords.push( { x, y } );
-			}
-		} );
+		// todo: maybe I can find a more performant way than searching through all nodes?
+		const existingCoords = getExistingCoordinatesFor( nodes );
 		// place the node around the container
 		let newCoords = {};
 		loop1:
@@ -100,13 +89,7 @@ export const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, min
 	if ( !isCollapsable( node ) && node.connectedTo.length === 0 && !hasCoordinates( node ) ) {
 		// get all other nodes with no connections
 		const otherSingleNodes = nodes.filter( checkNode => checkNode.connectedTo.length === 0 && checkNode.id !== node.id && !isCollapsable( checkNode ) );
-		const existingCoords = [];
-		otherSingleNodes.forEach( nodeToCheck => {
-			const { x, y } = nodeToCheck;
-			if ( x !== undefined && y !== undefined ) {
-				existingCoords.push( { x, y } );
-			}
-		} );
+		const existingCoords = getExistingCoordinatesFor( otherSingleNodes );
 
 		let newCoords = {};
 		// place above all other nodes that have connections? --> y = -400
@@ -130,7 +113,7 @@ export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDis
 	if ( !isCollapsable( node ) ) {
 		const connectedToIDs = node.connectedTo.map( aNode => aNode.id );
 		const distinctIDs = Array.from( new Set( connectedToIDs ) );
-		// if the node has just one connection
+		// if the node has just one connected node
 		if ( connectedToIDs.length === 1 || distinctIDs.length === 1 ) {
 			// get the parent node
 			const parentNode = nodes.find( aNode => aNode.id === connectedToIDs[0] );
@@ -139,13 +122,7 @@ export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDis
 			const otherChildIDs = parentNode.connectedTo.map( aNode => aNode.id );
 			const otherChilds = nodes.filter( aNode => otherChildIDs.includes( aNode.id ) );
 			// get their coordinates
-			const existingCoords = [];
-			otherChilds.forEach( nodeToCheck => {
-				const { x, y } = nodeToCheck;
-				if ( x !== undefined && y !== undefined ) {
-					existingCoords.push( { x, y } );
-				}
-			} );
+			const existingCoords = getExistingCoordinatesFor( otherChilds );
 			// place them from left to right below the parent node
 			let newCoords = {};
 			loop1:
@@ -166,41 +143,38 @@ export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDis
 export const LooseChildRule = ( nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
 	// get all nodes that already have a position
 	const nodesWithCoords = nodes.filter( node => node.x !== undefined && node.y !== undefined );
-	// and those without position
-	const nodesWithoutCoords = nodes.filter( node => node.x === undefined && node.y === undefined );
-	const nodesWithoutCoordsIDs = nodesWithoutCoords.map( aNode => aNode.id );
-	// go through their connected nodes and if they do not have a position yet, assign one
-	for ( let parentNode of nodesWithCoords ) {
-		const childIDs = parentNode.connectedTo.map( aNode => aNode.id );
-		for ( let subNodeID of childIDs ) {
-			if ( nodesWithoutCoordsIDs.includes( subNodeID ) ) {
-				const childNode = nodes.find( aNode => aNode.id === subNodeID );
-				// get the parent node coordinates
-				const { x: parentX, y: parentY } = parentNode;
-				// and find its children
-				const otherChildIDs = parentNode.connectedTo.map( aNode => aNode.id );
-				const otherChilds = nodes.filter( aNode => otherChildIDs.includes( aNode.id ) );
-				const existingCoords = [];
-				otherChilds.forEach( nodeToCheck => {
-					const { x, y } = nodeToCheck;
-					if ( x !== undefined && y !== undefined ) {
-						existingCoords.push( { x, y } );
-					}
-				} );
+	// go through their connected nodes without position and assign one
+	for ( let nodeWithCoord of nodesWithCoords ) {
+		// handle the connected nodes
+		handleConnectedNodes( nodeWithCoord, nodes );
+	}
+};
 
-				let newCoords = {};
-				loop1:
-					for ( let i = 0, y = minDistToParent; i < 3; i++, y += minDistToEachOther ) {
-						for ( let j = 0, x = -minDistToParent; j < 3; j++, x += minDistToEachOther ) {
-							newCoords = { x: parentX + x, y: parentY + y };
-							if ( !coordsExist( newCoords, existingCoords ) ) {
-								childNode.x = newCoords.x;
-								childNode.y = newCoords.y;
-								break loop1;
-							}
+const handleConnectedNodes = ( nodeWithCoord, nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
+	// get the child nodes
+	const childIDs = nodeWithCoord.connectedTo.map( aNode => aNode.id );
+	const childNodes = nodes.filter( aNode => childIDs.includes( aNode.id ) );
+	// get the childs without coordinates
+	const childNodesWithoutCoords = childNodes.filter( aNode => aNode.x === undefined && aNode.y === undefined );
+	if ( childNodesWithoutCoords.length > 0 ) {
+		for ( let child of childNodesWithoutCoords ) {
+			const childNode = childNodes.find( aNode => aNode.id === child.id );
+			const { x: parentX, y: parentY } = nodeWithCoord;
+			const existingCoords = getExistingCoordinatesFor( childNodesWithoutCoords );
+
+			let newCoords = {};
+			loop1:
+				for ( let i = 0, y = minDistToParent; i < 3; i++, y += minDistToEachOther ) {
+					for ( let j = 0, x = -minDistToParent; j < 3; j++, x += minDistToEachOther ) {
+						newCoords = { x: parentX + x, y: parentY + y };
+						if ( !coordsExist( newCoords, existingCoords ) ) {
+							childNode.x = newCoords.x;
+							childNode.y = newCoords.y;
+							break loop1;
 						}
 					}
-			}
+				}
+			handleConnectedNodes( childNode, nodes );
 		}
 	}
 };
@@ -208,4 +182,15 @@ export const LooseChildRule = ( nodes, minDistToParent = 150, minDistToEachOther
 const hasCoordinates = node => {
 	const { x, y } = node;
 	return x !== undefined && y !== undefined;
+};
+
+const getExistingCoordinatesFor = nodesToConsider => {
+	const existingCoords = [];
+	nodesToConsider.forEach( nodeToCheck => {
+		const { x, y } = nodeToCheck;
+		if ( x !== undefined && y !== undefined ) {
+			existingCoords.push( { x, y } );
+		}
+	} );
+	return existingCoords;
 };
