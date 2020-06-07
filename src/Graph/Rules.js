@@ -216,8 +216,8 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, minDistToEachOther
 	let newCoords = {};
 	const existingCoords = getExistingCoordinatesFor( nodes );
 	loop1:
-		for ( let y = -500, i = 0; i < nodesWithoutCoords.length / 2; y -= minDistToEachOther, i++ ) {
-			for ( let x = -500, j = 0; j < nodesWithoutCoords.length / 2; x -= minDistToEachOther, j++ ) {
+		for ( let y = -500, i = 0; i <= nodesWithoutCoords.length / 2; y -= minDistToEachOther, i++ ) {
+			for ( let x = -500, j = 0; j <= nodesWithoutCoords.length / 2; x -= minDistToEachOther, j++ ) {
 				newCoords = { x, y };
 				if ( !coordsExist( newCoords, existingCoords ) ) {
 					const node = nodes.find( aNode => aNode.id === nodeWithMostLinks.id );

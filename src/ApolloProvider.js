@@ -90,7 +90,7 @@ const client = new ApolloClient( {
 					}
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying collapse rule' + e.message );
+					addLogMessage( client, 'Error when applying collapse rule: ' + e.message );
 				}
 
 				try {
@@ -99,14 +99,14 @@ const client = new ApolloClient( {
 					}
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying partof rule' + e.message );
+					addLogMessage( client, 'Error when applying partof rule: ' + e.message );
 				}
 
 				try {
 					LooseChildRule( nodesCopy );
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying loosechild rule' + e.message );
+					addLogMessage( client, 'Error when applying loosechild rule: ' + e.message );
 				}
 				// for ( let node of nodesCopy ) {
 				// 	SingleConnectionRule( node, nodesCopy );
@@ -118,14 +118,14 @@ const client = new ApolloClient( {
 					}
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying noconnection rule' + e.message );
+					addLogMessage( client, 'Error when applying noconnection rule: ' + e.message );
 				}
 
 				try {
 					NonDomainRule( nodesCopy );
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying nondomain rule' + e.message );
+					addLogMessage( client, 'Error when applying nondomain rule: ' + e.message );
 				}
 
 				cache.writeQuery( {
@@ -165,8 +165,18 @@ const client = new ApolloClient( {
 					__typename: 'Node',
 				};
 
-				CollapsableRule( newNode, Nodes );
-				NoConnectionNodeRule( newNode, Nodes );
+				try {
+					CollapsableRule( newNode, Nodes );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying collapse rule: ' + e.message );
+				}
+				try {
+					NoConnectionNodeRule( newNode, Nodes );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying noconnection rule: ' + e.message );
+				}
 				const newNodes = Nodes.concat( newNode );
 
 				cache.writeQuery( {
