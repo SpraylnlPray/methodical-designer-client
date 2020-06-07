@@ -27,14 +27,16 @@ function App() {
 					= useQuery( GET_SERVER_NODES, {
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
-			setNodes( { variables: { nodes: data.Nodes } } );
+			setNodes( { variables: { nodes: data.Nodes } } )
+				.catch(error => addLogMessage( client, 'Error when setting local nodes: ' + error ));
 		},
 	} );
 	const { data: serverLinkData, startPolling: startLinkPolling, stopPolling: stopLinkPolling }
 					= useQuery( GET_SERVER_LINKS, {
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 		onCompleted: data => {
-			setLinks( { variables: { links: data.Links } } );
+			setLinks( { variables: { links: data.Links } } )
+				.catch(error => addLogMessage( client, 'Error when setting local links: ' + error ));
 		},
 	} );
 
