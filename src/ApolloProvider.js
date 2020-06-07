@@ -1,7 +1,7 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
+import { addLogMessage, deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import { CollapsableRule, LooseChildRule, NoConnectionNodeRule, NonDomainRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
@@ -76,7 +76,7 @@ const client = new ApolloClient( {
 	cache,
 	resolvers: {
 		Mutation: {
-			setNodes: ( _root, variables, { cache } ) => {
+			setNodes: ( _root, variables, { cache, client } ) => {
 				const nodesCopy = deepCopy( variables.nodes );
 				for ( let node of nodesCopy ) {
 					node.edited = false;
@@ -84,26 +84,49 @@ const client = new ApolloClient( {
 					node.deleted = false;
 				}
 
-				for ( let node of nodesCopy ) {
-					CollapsableRule( node, nodesCopy );
+				try {
+					for ( let node of nodesCopy ) {
+						CollapsableRule( node, nodesCopy );
+					}
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying collapse rule', e.message() );
 				}
 
-				for ( let node of nodesCopy ) {
-					PartOfRule( node, nodesCopy );
+				try {
+					for ( let node of nodesCopy ) {
+						PartOfRule( node, nodesCopy );
+					}
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying partof rule', e.message() );
 				}
 
-				LooseChildRule( nodesCopy );
-
+				try {
+					LooseChildRule( nodesCopy );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying loosechild rule', e.message() );
+				}
 				// for ( let node of nodesCopy ) {
 				// 	SingleConnectionRule( node, nodesCopy );
 				// }
 
-				for ( let node of nodesCopy ) {
-					NoConnectionNodeRule( node, nodesCopy );
+				try {
+					for ( let node of nodesCopy ) {
+						NoConnectionNodeRule( node, nodesCopy );
+					}
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying noconnection rule', e.message() );
 				}
 
-				NonDomainRule( nodesCopy );
-
+				try {
+					NonDomainRule( nodesCopy );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying noconnection rule', e.message() );
+				}
 
 				cache.writeQuery( {
 					query: NODES_WITH_TAGS,
