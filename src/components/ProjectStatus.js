@@ -20,6 +20,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 				data: { hasEditRights: !FreeEditRights.success },
 			} );
 		},
+		onError: err => addLogMessage( client, 'Error when freeing rights: ' + err.message ),
 	} );
 
 	const [ runRequestRights ] = useMutation( REQUEST_EDITING_RIGHTS, {
@@ -37,6 +38,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 				data: { hasEditRights: RequestEditRights.success },
 			} );
 		},
+		onError: err => addLogMessage( client, 'Error when requesting rights: ' + err.message ),
 	} );
 
 	const handleFreeRights = ( e ) => {
@@ -62,7 +64,6 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 			.then( res => runRequestRights()
 				.catch( err => addLogMessage( client, `Failed when requesting rights: ${ err }` ) ) )
 			.catch( err => addLogMessage( client, `Failed when freeing rights: ${ err }` ) );
-
 	};
 
 	if ( editingData ) {

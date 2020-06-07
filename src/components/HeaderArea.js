@@ -16,14 +16,16 @@ const HeaderArea = ( { client } ) => {
 		fetchPolicy: 'network-only',
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
 		onCompleted: data => {
-			setNodes( { variables: { nodes: data.Nodes } } );
+			setNodes( { variables: { nodes: data.Nodes } } )
+				.catch( err => addLogMessage( client, 'error when setting local nodes from header area: ' + err.message ) );
 		},
 	} );
 	const [ getLinks ] = useLazyQuery( GET_SERVER_LINKS, {
 		fetchPolicy: 'network-only',
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
 		onCompleted: data => {
-			setLinks( { variables: { links: data.Links } } );
+			setLinks( { variables: { links: data.Links } } )
+				.catch( err => addLogMessage( client, 'error when setting local links from header area: ' + err.message ) );
 		},
 	} );
 

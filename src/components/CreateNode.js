@@ -40,7 +40,7 @@ function CreateNode( { client } ) {
 					props: store.props,
 				},
 			} )
-				.catch( e => addLogMessage( client, `Failed when creating node: ${ e }` ) );
+				.catch( e => addLogMessage( client, 'Failed when creating node: ' + e.message ) );
 		}
 		else {
 			alert( 'Must provide required inputs!' );

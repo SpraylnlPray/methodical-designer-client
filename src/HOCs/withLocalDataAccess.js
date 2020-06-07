@@ -1,12 +1,20 @@
 import React from 'react';
-import { useQuery } from '@apollo/client';
+import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LINKS_WITH_TAGS, NODES_WITH_TAGS } from '../queries/LocalQueries';
+import { addLogMessage } from '../utils';
 
 const withLocalDataAccess = ( Component ) => {
 	return function( props ) {
-		const { data: localNodeData } = useQuery( NODES_WITH_TAGS );
-		const { data: localLinkData } = useQuery( LINKS_WITH_TAGS );
-		const { data: editingData } = useQuery( EDITING_RIGHTS );
+		const client = useApolloClient();
+		const { data: localNodeData } = useQuery( NODES_WITH_TAGS, {
+			onError: err => addLogMessage( client, 'Error when getting local nodes: ' + err.message ),
+		} );
+		const { data: localLinkData } = useQuery( LINKS_WITH_TAGS, {
+			onError: err => addLogMessage( client, 'Error when getting local links: ' + err.message ),
+		} );
+		const { data: editingData } = useQuery( EDITING_RIGHTS, {
+			onError: err => addLogMessage( client, 'Error when getting editing rights: ' + err.message ),
+		} );
 
 		const getCreatedNodes = () => {
 			const { Nodes } = localNodeData;

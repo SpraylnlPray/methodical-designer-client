@@ -65,7 +65,8 @@ const EditNode = ( { activeItem, client } ) => {
 
 	const handleCollapse = ( e ) => {
 		e.stopPropagation();
-		runCollapse( { variables: { id: activeItem.itemId } } );
+		runCollapse( { variables: { id: activeItem.itemId } } )
+			.catch( err => addLogMessage( client, 'Error when collapsing node: ' + err.message ) );
 	};
 
 	const isCollapsable = () => store.required['type'] === 'Container' || store.required['type'] === 'Domain';

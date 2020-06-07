@@ -61,7 +61,7 @@ function CreateLink( { client } ) {
 			const { required, props, x_end, y_end, seq } = store;
 			const variables = { ...required, props, x_end, y_end, seq };
 			runCreateLink( { variables } )
-				.catch( e => console.log( e ) );
+				.catch( e => addLogMessage( client, 'error when creating link ' + e.message ) );
 		}
 		else {
 			alert( 'Must provide required inputs!' );
