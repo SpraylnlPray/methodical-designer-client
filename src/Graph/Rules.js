@@ -207,7 +207,7 @@ export const NonDomainRule = ( nodes, minDistToEachOther = 500 ) => {
 const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, minDistToEachOther = 500 ) => {
 	// get node with most links
 	let nodeWithMostLinks = nodesWithoutCoords.reduce( ( acc, next ) => {
-		if ( next.connectedTo.length > acc.connectedTo.length ) {
+		if ( next.connectedTo.length >= acc.connectedTo.length ) {
 			return next;
 		}
 		return acc;
