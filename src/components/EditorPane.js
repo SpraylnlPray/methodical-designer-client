@@ -31,7 +31,9 @@ const EditorPane = ( { graphManager } ) => {
 		},
 		dragStart: function( event ) {
 			const { nodes } = event;
-			setActiveItem( client, nodes[0], 'node' );
+			if (nodes.length > 0) {
+				setActiveItem( client, nodes[0], 'node' );
+			}
 		},
 		click: function( event ) {
 			const { nodes, edges } = event;
