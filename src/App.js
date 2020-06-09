@@ -35,10 +35,10 @@ function App() {
 					= useQuery( GET_SERVER_LINKS, {
 		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error.message ),
 		onCompleted: data => {
-			setTimeout( () => {
-				setLinks( { variables: { links: data.Links } } )
-					.catch( error => addLogMessage( client, 'Error when setting local links: ' + error.message ) );
-			}, 500 );
+			// setTimeout( () => {
+			setLinks( { variables: { links: data.Links } } )
+				.catch( error => addLogMessage( client, 'Error when setting local links: ' + error.message ) );
+			// }, 500 );
 		},
 	} );
 

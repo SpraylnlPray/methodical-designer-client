@@ -151,7 +151,9 @@ const client = new ApolloClient( {
 			},
 			setLinks: ( _root, variables, { cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					// todo: maybe I can read from the cache after looping and it'll be late enough? to get rid of timeout in app
+					// or do it completely without reading nodes? I could get more data from Neo4j for the links
+					// const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
@@ -160,23 +162,42 @@ const client = new ApolloClient( {
 						link.deleted = false;
 					}
 
-					Nodes.forEach( node => {
-						const multipleConnIDs = [];
-						const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
-						// get all duplicate node IDs in connectedToIDs
-						let duplicates = getDuplicates( connectedToIDs );
-						// find the link for each of them and mark it as multiple
-						duplicates.forEach( nodeID => {
-							for ( let i = 0; i < linksCopy.length; i++ ) {
-								if ( connectsNodes( node.id, nodeID, linksCopy[i] ) && !linksCopy[i].checked ) {
-									linksCopy[i].checked = true;
-									linksCopy[i].found = true;
-									multipleConnIDs.push( linksCopy[i].id );
-								}
+					for ( let link of linksCopy ) {
+						const multipleLinksIDs = [ link.id ];
+						// get the x and y node id of the link
+						const x_id = link.x.id;
+						const y_id = link.y.id;
+						// get all other links
+						const otherLinks = linksCopy.filter( aLink => aLink.id !== link.id && !aLink.checked );
+						// check if any of the other links connects the same nodes
+						for ( let checkLink of otherLinks ) {
+							// if it connects the same nodes
+							if ( connectsNodes( x_id, y_id, checkLink ) ) {
+								// save it to the list
+								multipleLinksIDs.push( checkLink.id );
 							}
-						} );
-						setMultipleLinksProps( linksCopy, multipleConnIDs );
-					} );
+						}
+						setMultipleLinksProps( linksCopy, multipleLinksIDs );
+					}
+
+					// debugger
+					// Nodes.forEach( node => {
+					// 	const multipleConnIDs = [];
+					// 	const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
+					// 	// get all duplicate node IDs in connectedToIDs
+					// 	let duplicates = getDuplicates( connectedToIDs );
+					// 	// find the link for each of them and mark it as multiple
+					// 	duplicates.forEach( nodeID => {
+					// 		for ( let i = 0; i < linksCopy.length; i++ ) {
+					// 			if ( connectsNodes( node.id, nodeID, linksCopy[i] ) && !linksCopy[i].checked ) {
+					// 				linksCopy[i].checked = true;
+					// 				linksCopy[i].found = true;
+					// 				multipleConnIDs.push( linksCopy[i].id );
+					// 			}
+					// 		}
+					// 	} );
+					// 	setMultipleLinksProps( linksCopy, multipleConnIDs );
+					// } );
 
 					// for any links that were not found as multiple connections, set their properties
 					linksCopy.map( link => {

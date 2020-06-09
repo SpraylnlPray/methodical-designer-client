@@ -15,16 +15,6 @@ export const ACTIVE_ITEM = gql`
   }
 `;
 
-export const NODES_KOORDS = gql`
-  query {
-    Nodes @client {
-      id
-      x
-      y
-    }
-  }
-`;
-
 export const NODES_DATA = gql`
   query {
     Nodes @client {

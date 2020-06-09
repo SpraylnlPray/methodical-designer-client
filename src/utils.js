@@ -85,6 +85,8 @@ export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
 	links.map( link => {
 		if ( multipleConnIDs.includes( link.id ) ) {
 			const index = multipleConnIDs.indexOf( link.id );
+			link.found = true;
+			link.checked = true;
 			link.from = link.x.id;
 			link.to = link.y.id;
 			link.smooth = {
