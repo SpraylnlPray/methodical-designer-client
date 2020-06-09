@@ -65,7 +65,6 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 			if ( isCollapsable( node ) ) {
 				handleConnectedNodes( node, collapsable, links, nodesCopy );
 			}
-
 		}
 	} );
 	return nodesWithoutCollapsable;

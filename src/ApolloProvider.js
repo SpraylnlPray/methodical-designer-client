@@ -2,9 +2,10 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import {
-	addLogMessage, connectsNodes, deepCopy, generateLocalUUID, getDuplicates, handleConnectedNodes, setMultipleLinksProps,
+	addLogMessage, areBothHidden, connectsNodes, deepCopy, generateLocalUUID, getDuplicates, handleConnectedNodes, isHidden,
+	setMultipleLinksProps,
 } from './utils';
-import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import { CollapsableRule, LooseChildRule, NoConnectionNodeRule, NonDomainRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
 
@@ -267,12 +268,14 @@ const client = new ApolloClient( {
 			},
 			addLink: ( _root, variables, { cache } ) => {
 				try {
+					const { Nodes } = cache.readQuery( { query: EDITOR_NODE_DATA } );
+					let nodesCopy = deepCopy( Nodes );
 					const { label, type, x_id, y_id, props, seq, x_end, y_end } = variables;
 					const { optional, story } = props;
 					const x = { id: x_id };
 					const y = { id: y_id };
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
-
+					let linksCopy = deepCopy( Links );
 					const newId = generateLocalUUID();
 					const newLink = {
 						id: newId,
@@ -289,11 +292,39 @@ const client = new ApolloClient( {
 						edited: false,
 						__typename: 'Link',
 					};
-					const newLinks = Links.concat( newLink );
+					linksCopy = linksCopy.concat( newLink );
+
+					// get the x and y node of the link
+					const xNode = nodesCopy.find( node => node.id === newLink.x.id );
+					const yNode = nodesCopy.find( node => node.id === newLink.y.id );
+
+					for ( let node of nodesCopy ) {
+						// for the two nodes, save the new link in the Links list and the other node in their connectedTo list
+						if ( node.id === newLink.x.id ) {
+							node.Links.push( { __typename: 'Link', id: newLink.id, type: newLink.type } );
+							node.connectedTo.push( { __typename: 'Node', id: yNode.id, type: yNode.type } );
+						}
+						else if ( node.id === newLink.y.id ) {
+							node.Links.push( { __typename: 'Link', id: newLink.id, type: newLink.type } );
+							node.connectedTo.push( { __typename: 'Node', id: xNode.id, type: xNode.type } );
+						}
+					}
+
+					// get their connected links
+					const connectedLinkIDs = [];
+					xNode.Links.map( link => connectedLinkIDs.push( link.id ) );
+					yNode.Links.map( link => connectedLinkIDs.push( link.id ) );
+					// get link IDs that are in the array multiple times
+					let multipleLinkIDs = getDuplicates( connectedLinkIDs );
+					setMultipleLinksProps( linksCopy, multipleLinkIDs );
 
 					cache.writeQuery( {
+						query: EDITOR_NODE_DATA,
+						data: { Nodes: nodesCopy },
+					} );
+					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
-						data: { Links: newLinks },
+						data: { Links: linksCopy },
 					} );
 				}
 				catch ( e ) {
