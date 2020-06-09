@@ -106,6 +106,7 @@
 .save-button {
     height: 2.5em;
     width: 4em;
+    min-width: 4em;
     padding: 0 !important;
     margin-right: 10px !important;
 }
@@ -113,6 +114,7 @@
 .discard-button {
     height: 2.5em;
     width: 7em;
+    min-width: 7em;
     padding: 0 !important;
     margin-right: 10px !important;
 }

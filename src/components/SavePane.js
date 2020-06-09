@@ -3,11 +3,11 @@ import { Button } from 'semantic-ui-react';
 import { useMutation } from '@apollo/client';
 import {
 	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
-	UPDATE_LINK, UPDATE_NODE, FREE_EDITING_RIGHTS
+	UPDATE_LINK, UPDATE_NODE, FREE_EDITING_RIGHTS,
 } from '../queries/ServerMutations';
 import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../TransactionUtils';
 import LoadingMessage from './LoadingMessage';
-import { addLogMessage } from '../utils';
+import { addLogMessage, setActiveItem } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
 const SavePane = ( {
@@ -37,6 +37,7 @@ const SavePane = ( {
 
 	const handleDiscard = e => {
 		e.stopPropagation();
+		setActiveItem( client, 'app', 'app' );
 		getNodes();
 		getLinks();
 	};
