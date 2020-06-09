@@ -56,6 +56,7 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 	// set their hidden property to the ones of the container/domain that initiated the expand/collapse action
 	nodesWithoutCollapsable.forEach( node => {
 		if ( connectedNodeIDs.includes( node.id ) ) {
+			node.changedVisibility = true;
 			node.hidden = sourceNode.collapsed;
 			// if the node gets hidden, make sure to save which node is the source of the hide action
 			if ( node.hidden ) {

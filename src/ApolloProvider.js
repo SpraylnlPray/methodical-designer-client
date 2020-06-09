@@ -152,10 +152,6 @@ const client = new ApolloClient( {
 			},
 			setLinks: ( _root, variables, { cache } ) => {
 				try {
-					// todo: maybe I can read from the cache after looping and it'll be late enough? to get rid of timeout in app
-					// or do it completely without reading nodes? I could get more data from Neo4j for the links
-					// const { Nodes } = cache.readQuery( { query: NODES_DATA } );
-
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
 						link.edited = false;
@@ -180,25 +176,6 @@ const client = new ApolloClient( {
 						}
 						setMultipleLinksProps( linksCopy, multipleLinksIDs );
 					}
-
-					// debugger
-					// Nodes.forEach( node => {
-					// 	const multipleConnIDs = [];
-					// 	const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
-					// 	// get all duplicate node IDs in connectedToIDs
-					// 	let duplicates = getDuplicates( connectedToIDs );
-					// 	// find the link for each of them and mark it as multiple
-					// 	duplicates.forEach( nodeID => {
-					// 		for ( let i = 0; i < linksCopy.length; i++ ) {
-					// 			if ( connectsNodes( node.id, nodeID, linksCopy[i] ) && !linksCopy[i].checked ) {
-					// 				linksCopy[i].checked = true;
-					// 				linksCopy[i].found = true;
-					// 				multipleConnIDs.push( linksCopy[i].id );
-					// 			}
-					// 		}
-					// 	} );
-					// 	setMultipleLinksProps( linksCopy, multipleConnIDs );
-					// } );
 
 					// for any links that were not found as multiple connections, set their properties
 					linksCopy.map( link => {
@@ -478,14 +455,45 @@ const client = new ApolloClient( {
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
 					let nodesCopy = deepCopy( Nodes );
+					let linksCopy = deepCopy( Links );
 					let collapsable = nodesCopy.find( node => node.id === variables.id );
 					// invert collapse property on node
 					collapsable.collapsed = !collapsable.collapsed;
+					nodesCopy = handleConnectedNodes( collapsable, collapsable, Links, nodesCopy );
 
-					let nodes = handleConnectedNodes( collapsable, collapsable, Links, nodesCopy );
+					// update the links to snap to the right node
+					for ( let link of linksCopy ) {
+						const x_node = nodesCopy.find( node => node.id === link.x.id );
+						const y_node = nodesCopy.find( node => node.id === link.y.id );
+						// snapping should only happen if one of them is still visible
+						if ( x_node && y_node && !areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
+							if ( x_node.changedVisibility ) {
+								// if the node is hidden, set the links property to the hiddenBy value from the node
+								if ( isHidden( x_node ) ) {
+									link.from = x_node.hiddenBy;
+								}
+								else {
+									link.from = link.x.id;
+								}
+							}
+							if ( y_node.changedVisibility ) {
+								if ( isHidden( y_node ) ) {
+									link.to = y_node.hiddenBy;
+								}
+								else {
+									link.to = link.y.id;
+								}
+							}
+						}
+					}
+
+					cache.writeQuery( {
+						query: LINKS_WITH_TAGS,
+						data: { Links: linksCopy },
+					} );
 					cache.writeQuery( {
 						query: NODES_COLLAPSE,
-						data: { Nodes: nodes.concat( collapsable ) },
+						data: { Nodes: nodesCopy.concat( collapsable ) },
 					} );
 				}
 				catch ( e ) {
