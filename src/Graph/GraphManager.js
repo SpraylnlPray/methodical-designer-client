@@ -6,7 +6,6 @@ import { deepCopy } from '../utils';
 export default class GraphManager {
 	#nodes = {};
 	#links = {};
-	#multipleConnIds = [];
 	#options = {
 		layout: {
 			improvedLayout: true,
@@ -66,8 +65,6 @@ export default class GraphManager {
 	}
 
 	get linkDisplayData() {
-		// this.snap();
-		// this.handleMultipleConnections();
 		this.setLinkVisualizationProps();
 		return this.#links;
 	}
@@ -138,88 +135,5 @@ export default class GraphManager {
 				type: ArrowShapes[y_end.arrow],
 			};
 		}
-	}
-
-	handleMultipleConnections() {
-		this.#nodes.forEach( node => {
-			this.#multipleConnIds = [];
-			const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
-			// get all duplicate node IDs in connectedToIDs
-			let duplicates = connectedToIDs.reduce( function( acc, el, i, arr ) {
-				if ( arr.indexOf( el ) !== i && acc.indexOf( el ) < 0 ) {
-					acc.push( el );
-				}
-				return acc;
-			}, [] );
-
-			// find the link for each of them and mark it as multiple
-			duplicates.forEach( nodeID => {
-				for ( let i = 0; i < this.#links.length; i++ ) {
-					if ( this.connectsNodes( node.id, nodeID, this.#links[i] ) && !this.#links[i].checked ) {
-						this.#links[i].checked = true;
-						this.#links[i].found = true;
-						this.#multipleConnIds.push( this.#links[i].id );
-					}
-				}
-			} );
-			this.setMultipleLinksProps();
-		} );
-
-		// for any links that were not found as multiple connections, set their properties
-		this.#links.map( link => {
-			if ( !link.found ) {
-				link.from = link.x.id;
-				link.to = link.y.id;
-			}
-			return link;
-		} );
-	}
-
-	setMultipleLinksProps() {
-		this.#links.map( link => {
-			if ( this.#multipleConnIds.includes( link.id ) ) {
-				const index = this.#multipleConnIds.indexOf( link.id );
-				link.from = link.x.id;
-				link.to = link.y.id;
-				link.smooth = {
-					enabled: index !== 0,
-					type: 'horizontal',
-					roundness: index / this.#multipleConnIds.length,
-				};
-			}
-			return link;
-		} );
-	}
-
-	snap() {
-		this.#links.forEach( link => {
-			const x_node = this.#nodes.find( node => node.id === link.x.id );
-			const y_node = this.#nodes.find( node => node.id === link.y.id );
-			// snapping should only happen if one of them is still visible
-			if ( x_node && y_node && !this.areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
-				// if x_node is hidden, it has a 'hiddenBy' ID where the link should now snap to
-				if ( this.isHidden( x_node ) ) {
-					link.x.id = x_node.hiddenBy;
-				}
-				else if ( this.isHidden( y_node ) ) {
-					link.y.id = y_node.hiddenBy;
-				}
-			}
-		} );
-	}
-
-	isHidden( node ) {
-		return node.hidden;
-	}
-
-	areBothHidden( node1, node2 ) {
-		return this.isHidden( node1 ) && this.isHidden( node2 );
-	}
-
-	connectsNodes( node1ID, node2ID, link ) {
-		// eslint-disable-next-line
-		return link.x.id === node1ID && link.y.id === node2ID ||
-			// eslint-disable-next-line
-			link.y.id === node1ID && link.x.id === node2ID;
 	}
 }
