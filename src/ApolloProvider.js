@@ -151,7 +151,7 @@ const client = new ApolloClient( {
 			},
 			setLinks: ( _root, variables, { cache } ) => {
 				try {
-					// const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
