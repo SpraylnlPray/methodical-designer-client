@@ -42,6 +42,7 @@ const EditNode = ( { activeItem, client } ) => {
 	};
 
 	const handleSubmit = ( e ) => {
+		e.preventDefault();
 		e.stopPropagation();
 		if ( enteredRequired( store.required ) ) {
 			// in this query all entries are optional as they can be edited or not
@@ -49,7 +50,7 @@ const EditNode = ( { activeItem, client } ) => {
 			let props = { ...store.props, ...store.required };
 			let variables = { id: activeItem.itemId, props };
 			runUpdate( { variables } )
-				.catch( e => addLogMessage( client, `Failed when editing node: ${ e }` ) );
+				.catch( e => addLogMessage( client, `Failed when editing node: ` + e.message ) );
 		}
 		else {
 			alert( 'Must provide required inputs!' );
@@ -57,13 +58,15 @@ const EditNode = ( { activeItem, client } ) => {
 	};
 
 	const handleDelete = ( e ) => {
+		e.preventDefault();
 		e.stopPropagation();
 		runDelete( { variables: { id: activeItem.itemId } } )
-			.catch( e => addLogMessage( client, `Failed when deleting node: ${ e }` ) );
+			.catch( e => addLogMessage( client, `Failed when deleting node: ` + e.message ) );
 		setActiveItem( client, 'app', 'app' );
 	};
 
 	const handleCollapse = ( e ) => {
+		e.preventDefault();
 		e.stopPropagation();
 		runCollapse( { variables: { id: activeItem.itemId } } )
 			.catch( err => addLogMessage( client, 'Error when collapsing node: ' + err.message ) );

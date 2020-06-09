@@ -64,12 +64,13 @@ const EditLink = ( { activeItem, client } ) => {
 	};
 
 	const handleSubmit = ( e ) => {
+		e.preventDefault();
 		e.stopPropagation();
 		if ( enteredRequired( store.required ) ) {
 			const { required, x_end, y_end, seq } = store;
 			const props = { ...store.props, ...required };
 			runUpdate( { variables: { id: activeItem.itemId, props, x_end, y_end, seq } } )
-				.catch( e => addLogMessage( client, `Failed when editing link: ${ e }` ) );
+				.catch( e => addLogMessage( client, `Failed when editing link: ` + e.message ) );
 		}
 		else {
 			console.log( 'Must provide required inputs!' );
@@ -81,7 +82,7 @@ const EditLink = ( { activeItem, client } ) => {
 		e.preventDefault();
 		e.stopPropagation();
 		runDelete( { variables: { id: activeItem.itemId } } )
-			.catch(e => addLogMessage( client, `Failed when deleting link: ${ e }` ))
+			.catch( e => addLogMessage( client, `Failed when deleting link: ` + e.message ) );
 		setActiveItem( client, 'app', 'app' );
 	};
 

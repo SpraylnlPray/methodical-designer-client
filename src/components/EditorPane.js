@@ -8,10 +8,10 @@ const EditorPane = ( { graphManager } ) => {
 	const client = useApolloClient();
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
-		onError: error => addLogMessage( client, `Failed when getting local nodes: ${ error }` ),
+		onError: error => addLogMessage( client, `Failed when getting local nodes: ` + error.message ),
 	} );
 	const { data: linkData } = useQuery( EDITOR_LINK_DATA, {
-		onError: error => addLogMessage( client, `Failed when getting local links: ${ error }` ),
+		onError: error => addLogMessage( client, `Failed when getting local links: ` + error.message ),
 	} );
 
 	let graph = {
@@ -31,7 +31,7 @@ const EditorPane = ( { graphManager } ) => {
 		},
 		dragStart: function( event ) {
 			const { nodes } = event;
-			if (nodes.length > 0) {
+			if ( nodes.length > 0 ) {
 				setActiveItem( client, nodes[0], 'node' );
 			}
 		},

@@ -48,22 +48,22 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 		}
 		else {
 			runFreeRights()
-				.catch( err => addLogMessage( client, `Failed when freeing rights: ${ err }` ) );
+				.catch( err => addLogMessage( client, `Failed when freeing rights: ` + err.message ) );
 		}
 	};
 
 	const handleRequestEditRights = ( e ) => {
 		e.stopPropagation();
 		runRequestRights()
-			.catch( err => addLogMessage( client, `Failed when requesting rights: ${ err }` ) );
+			.catch( err => addLogMessage( client, `Failed when requesting rights: ` + err.message ) );
 	};
 
 	const handleForceRights = ( e ) => {
 		e.stopPropagation();
 		runFreeRights()
 			.then( res => runRequestRights()
-				.catch( err => addLogMessage( client, `Failed when requesting rights: ${ err }` ) ) )
-			.catch( err => addLogMessage( client, `Failed when freeing rights: ${ err }` ) );
+				.catch( err => addLogMessage( client, `Failed when requesting rights: ` + err.message ) ) )
+			.catch( err => addLogMessage( client, `Failed when freeing rights: ` + err.message ) );
 	};
 
 	if ( editingData ) {

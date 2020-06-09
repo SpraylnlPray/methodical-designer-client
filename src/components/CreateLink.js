@@ -57,7 +57,7 @@ function CreateLink( { client } ) {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		if ( enteredRequired( store.required ) ) {
-			addLogMessage( client, `creating node` );
+			addLogMessage( client, `creating link` );
 			const { required, props, x_end, y_end, seq } = store;
 			const variables = { ...required, props, x_end, y_end, seq };
 			runCreateLink( { variables } )

@@ -14,7 +14,7 @@ const HeaderArea = ( { client } ) => {
 
 	const [ getNodes ] = useLazyQuery( GET_SERVER_NODES, {
 		fetchPolicy: 'network-only',
-		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error ),
+		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error.message ),
 		onCompleted: data => {
 			setNodes( { variables: { nodes: data.Nodes } } )
 				.catch( err => addLogMessage( client, 'error when setting local nodes from header area: ' + err.message ) );
@@ -22,7 +22,7 @@ const HeaderArea = ( { client } ) => {
 	} );
 	const [ getLinks ] = useLazyQuery( GET_SERVER_LINKS, {
 		fetchPolicy: 'network-only',
-		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error ),
+		onError: error => addLogMessage( client, 'Error when pulling server links: ' + error.message ),
 		onCompleted: data => {
 			setLinks( { variables: { links: data.Links } } )
 				.catch( err => addLogMessage( client, 'error when setting local links from header area: ' + err.message ) );
