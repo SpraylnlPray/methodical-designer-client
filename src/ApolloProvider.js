@@ -1,7 +1,9 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { addLogMessage, deepCopy, generateLocalUUID, handleConnectedNodes } from './utils';
+import {
+	addLogMessage, connectsNodes, deepCopy, generateLocalUUID, getDuplicates, handleConnectedNodes, setMultipleLinksProps,
+} from './utils';
 import { LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import { CollapsableRule, LooseChildRule, NoConnectionNodeRule, NonDomainRule, PartOfRule, SingleConnectionRule } from './Graph/Rules';
@@ -61,6 +63,15 @@ const cache = new InMemoryCache( {
 				},
 				deleted( existingData ) {
 					return existingData || false;
+				},
+				from( existingData ) {
+					return existingData || '';
+				},
+				to( existingData ) {
+					return existingData || '';
+				},
+				smooth( existingData ) {
+					return existingData || { enabled: false, type: '', roundness: '' };
 				},
 			},
 		},
@@ -140,12 +151,41 @@ const client = new ApolloClient( {
 			},
 			setLinks: ( _root, variables, { cache } ) => {
 				try {
+					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
 						link.edited = false;
 						link.created = false;
 						link.deleted = false;
 					}
+
+					Nodes.forEach( node => {
+						const multipleConnIDs = [];
+						const connectedToIDs = node.connectedTo.map( connTo => connTo.id );
+						// get all duplicate node IDs in connectedToIDs
+						let duplicates = getDuplicates( connectedToIDs );
+						// find the link for each of them and mark it as multiple
+						duplicates.forEach( nodeID => {
+							for ( let i = 0; i < linksCopy.length; i++ ) {
+								if ( connectsNodes( node.id, nodeID, linksCopy[i] ) && !linksCopy[i].checked ) {
+									linksCopy[i].checked = true;
+									linksCopy[i].found = true;
+									multipleConnIDs.push( linksCopy[i].id );
+								}
+							}
+						} );
+						setMultipleLinksProps( linksCopy, multipleConnIDs );
+					} );
+
+					// for any links that were not found as multiple connections, set their properties
+					linksCopy.map( link => {
+						if ( !link.found ) {
+							link.from = link.x.id;
+							link.to = link.y.id;
+						}
+						return link;
+					} );
 
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,

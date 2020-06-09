@@ -156,6 +156,13 @@ export const EDITOR_LINK_DATA = gql`
         group
         seq
       }
+      from
+      to
+      smooth {
+        enabled
+        type
+        roundness
+      }
       deleted
     }
   }
@@ -186,6 +193,13 @@ export const LINKS_WITH_TAGS = gql`
       sequence {
         group
         seq
+      }
+      from
+      to
+      smooth {
+        enabled
+        type
+        roundness
       }
       created
       edited

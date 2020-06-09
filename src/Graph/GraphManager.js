@@ -67,7 +67,7 @@ export default class GraphManager {
 
 	get linkDisplayData() {
 		this.snap();
-		this.handleMultipleConnections();
+		// this.handleMultipleConnections();
 		this.setLinkVisualizationProps();
 		return this.#links;
 	}

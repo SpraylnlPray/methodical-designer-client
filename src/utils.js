@@ -80,3 +80,44 @@ export const VecDist = ( p1, p2 ) => {
 	const deltaY = p1.y - p2.y;
 	return Math.hypot( deltaX, deltaY );
 };
+
+export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
+	links.map( link => {
+		if ( multipleConnIDs.includes( link.id ) ) {
+			const index = multipleConnIDs.indexOf( link.id );
+			link.from = link.x.id;
+			link.to = link.y.id;
+			link.smooth = {
+				enabled: index !== 0,
+				type: 'horizontal',
+				roundness: index / multipleConnIDs.length,
+			};
+		}
+		return link;
+	} );
+};
+
+export const connectsNodes = ( node1ID, node2ID, link ) => {
+	// eslint-disable-next-line
+	return link.x.id === node1ID && link.y.id === node2ID ||
+		// eslint-disable-next-line
+		link.y.id === node1ID && link.x.id === node2ID;
+};
+
+export const getDuplicates = ( list ) => {
+	let newList = list.reduce( function( acc, el, i, arr ) {
+		if ( arr.indexOf( el ) !== i && acc.indexOf( el ) < 0 ) {
+			acc.push( el );
+		}
+		return acc;
+	}, [] );
+	return newList;
+};
+
+export const areBothHidden = ( node1, node2 ) => {
+	return isHidden( node1 ) && isHidden( node2 );
+};
+
+export const isHidden = ( node ) => {
+	return node.hidden;
+};
