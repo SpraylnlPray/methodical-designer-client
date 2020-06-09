@@ -187,15 +187,15 @@ const client = new ApolloClient( {
 						return link;
 					} );
 
-					// try {
-					// 	cache.writeQuery( {
-					// 		query: LINKS_WITH_TAGS,
-					// 		data: { Links: linksCopy },
-					// 	} );
-					// }
-					// catch ( e ) {
-					// 	addLogMessage( client, 'Error when writing links to cache: ' + e.message );
-					// }
+					try {
+						cache.writeQuery( {
+							query: LINKS_WITH_TAGS,
+							data: { Links: linksCopy },
+						} );
+					}
+					catch ( e ) {
+						addLogMessage( client, 'Error when writing links to cache: ' + e.message );
+					}
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in setLinks: ' + e.message );
