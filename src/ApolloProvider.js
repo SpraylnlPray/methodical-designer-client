@@ -177,20 +177,25 @@ const client = new ApolloClient( {
 						} );
 						setMultipleLinksProps( linksCopy, multipleConnIDs );
 					} );
-					//
-					// // for any links that were not found as multiple connections, set their properties
-					// linksCopy.map( link => {
-					// 	if ( !link.found ) {
-					// 		link.from = link.x.id;
-					// 		link.to = link.y.id;
-					// 	}
-					// 	return link;
-					// } );
 
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: linksCopy },
+					// for any links that were not found as multiple connections, set their properties
+					linksCopy.map( link => {
+						if ( !link.found ) {
+							link.from = link.x.id;
+							link.to = link.y.id;
+						}
+						return link;
 					} );
+
+					// try {
+					// 	cache.writeQuery( {
+					// 		query: LINKS_WITH_TAGS,
+					// 		data: { Links: linksCopy },
+					// 	} );
+					// }
+					// catch ( e ) {
+					// 	addLogMessage( client, 'Error when writing links to cache: ' + e.message );
+					// }
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in setLinks: ' + e.message );
