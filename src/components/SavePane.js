@@ -3,7 +3,7 @@ import { Button } from 'semantic-ui-react';
 import { useMutation } from '@apollo/client';
 import {
 	CREATE_LINK, CREATE_NODE, DELETE_LINK, DELETE_LINK_END, DELETE_NODE, DELETE_SEQUENCE, MERGE_LINK_END, MERGE_SEQUENCE,
-	UPDATE_LINK, UPDATE_NODE,
+	UPDATE_LINK, UPDATE_NODE, FREE_EDITING_RIGHTS
 } from '../queries/ServerMutations';
 import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../TransactionUtils';
 import LoadingMessage from './LoadingMessage';
@@ -26,6 +26,14 @@ const SavePane = ( {
 	const [ runDeleteSeq, { loading: deleteSeqLoading } ] = useMutation( DELETE_SEQUENCE );
 	const [ runMergeLinkEnd, { loading: mergeLinkEndLoading } ] = useMutation( MERGE_LINK_END );
 	const [ runDeleteLinkEnd, { loading: deleteLinkEndLoading } ] = useMutation( DELETE_LINK_END );
+
+	const [ freeEditingRights ] = useMutation( FREE_EDITING_RIGHTS );
+	window.addEventListener( 'beforeunload', function( e ) {
+		if ( editingData.hasEditRights ) {
+			freeEditingRights()
+				.catch( err => addLogMessage( client, 'Error when freeing editing rights after leaving page: ' + err.message ) );
+		}
+	} );
 
 	const handleDiscard = e => {
 		e.stopPropagation();
