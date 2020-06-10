@@ -3,8 +3,9 @@ import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
+import options from '../Graph/GraphManager';
 
-const EditorPane = ( { graphManager } ) => {
+const EditorPane = () => {
 	const client = useApolloClient();
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
@@ -18,7 +19,6 @@ const EditorPane = ( { graphManager } ) => {
 		nodes: [],
 		edges: [],
 	};
-	const options = graphManager.graphOptions;
 	const events = {
 		select: function( event ) {
 			const { nodes, edges } = event;
@@ -44,12 +44,12 @@ const EditorPane = ( { graphManager } ) => {
 	};
 
 	if ( nodeData && linkData ) {
-		graphManager.nodes = nodeData.Nodes;
-		graphManager.links = linkData.Links;
+		const graphNodes = nodeData.Nodes.filter(aNode => !aNode.deleted);
+		const graphLinks = linkData.Links.filter(aLink => !aLink.deleted);
 
 		graph = {
-			nodes: graphManager.nodeDisplayData,
-			edges: graphManager.linkDisplayData,
+			nodes: graphNodes,
+			edges: graphLinks,
 		};
 	}
 

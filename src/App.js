@@ -14,7 +14,7 @@ import { SET_LINKS, SET_NODES } from './queries/LocalMutations';
 
 function App() {
 	const client = useApolloClient();
-	const graphManager = new GraphManager();
+	// const graphManager = new GraphManager();
 
 	const handleClick = () => {
 		setActiveItem( client, 'app', 'app' );
@@ -46,7 +46,7 @@ function App() {
 		if ( serverNodeData && serverLinkData ) {
 			stopNodePolling();
 			stopLinkPolling();
-			return (<EditorPane graphManager={ graphManager }/>);
+			return (<EditorPane/>);
 		}
 		else {
 			startNodePolling( 5000 );
@@ -66,7 +66,7 @@ function App() {
 					</Grid.Column>
 					<Grid.Column width={ 12 }>
 						{/*{ EditorArea() }*/ }
-						<EditorPane graphManager={ graphManager }/>
+						<EditorPane/>
 					</Grid.Column>
 				</Grid.Row>
 			</Grid>
