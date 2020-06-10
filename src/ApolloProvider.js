@@ -99,6 +99,9 @@ const cache = new InMemoryCache( {
 					}
 					return { from: defaultFrom, to: defaultTo };
 				},
+				name( existingData ) {
+					return existingData || '';
+				},
 			},
 		},
 	},
@@ -148,6 +151,7 @@ const client = new ApolloClient( {
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
 						const { x_end, y_end } = link;
+						link.name = link.label;
 						setLinkDisplayProps( link, x_end, y_end );
 						link.edited = false;
 						link.created = false;
@@ -239,6 +243,7 @@ const client = new ApolloClient( {
 						type,
 						x,
 						y,
+						name: label,
 						from: x,
 						to: y,
 						optional,
@@ -328,11 +333,14 @@ const client = new ApolloClient( {
 					const newLinks = Links.filter( link => link.id !== id );
 					let linkToEdit = Links.find( link => link.id === id );
 					linkToEdit = deepCopy( linkToEdit );
-					setLinkDisplayProps( linkToEdit, x_end, y_end );
-
+					// first save the name (--> permanent label) on the link
+					linkToEdit.name = label;
+					// then update all props (including sequence)
 					for ( let prop in props ) {
 						linkToEdit[prop] = props[prop];
 					}
+					// if there's a sequence property, set the label in here
+					setLinkDisplayProps( linkToEdit, x_end, y_end );
 					linkToEdit.edited = true;
 
 					cache.writeQuery( {

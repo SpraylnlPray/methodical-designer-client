@@ -104,6 +104,7 @@ export const LINKS_DATA = gql`
     Links @client {
       id
       label
+			name
       type
       story
       optional
@@ -172,6 +173,7 @@ export const LINKS_WITH_TAGS = gql`
     Links @client {
       id
       label
+			name
       type
       story
       optional

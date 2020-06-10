@@ -87,7 +87,7 @@ const SavePane = ( {
 			.then( () => {
 				addLogMessage( client, `finished creating and updating nodes, will now handle created links` );
 				for ( let link of createdLinks ) {
-					const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+					const { id, name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 					const variables = { id, label, type, x_id, y_id, props: { story, optional } };
 					createLinkPromises.push( runCreateLink( { variables } ) );
 				}
@@ -103,7 +103,7 @@ const SavePane = ( {
 							.then( () => {
 								addLogMessage( client, `finished sequences and link ends, will now handle edited links` );
 								for ( let link of editedLinks ) {
-									const { id, label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+									const { id, name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 									const variables = { id, props: { story, optional, label, type, x_id, y_id } };
 									editedLinkPromises.push( runUpdateLink( { variables } ) );
 								}

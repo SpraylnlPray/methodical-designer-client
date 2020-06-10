@@ -149,12 +149,12 @@ export const setLinkDisplayProps = ( link, x_end, y_end ) => {
 		link.color = LinkColors.Default;
 	}
 
-	// if ( link?.sequence ) {
-	// 	const { group, seq } = link.sequence;
-	// 	if ( group?.length > 0 || seq?.length > 0 ) {
-	// 		link.label = `${ group } - ${ seq }`;
-	// 	}
-	// }
+	if ( link?.sequence ) {
+		const { group, seq } = link.sequence;
+		if ( group?.length > 0 || seq?.length > 0 ) {
+			link.label = `${ group } - ${ seq }`;
+		}
+	}
 
 	link.arrows = {};
 	if ( x_end?.arrow?.length > 0 ) {

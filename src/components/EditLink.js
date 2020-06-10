@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LINKS_DATA, NODES_DATA } from '../queries/LocalQueries';
 import { Container, Form } from 'semantic-ui-react';
 import Status from './Status';
-import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
+import { addLogMessage, deepCopy, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
 import { DELETE_LOCAL_LINK, UPDATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { arrowOptions, typeOptions } from '../linkOptions';
@@ -11,8 +11,9 @@ import { arrowOptions, typeOptions } from '../linkOptions';
 const EditLink = ( { activeItem, client } ) => {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const { data: { Links } } = useQuery( LINKS_DATA );
-	const linkToEdit = Links.find( aLink => aLink.id === activeItem.itemId );
-	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = linkToEdit;
+	let linkToEdit = Links.find( aLink => aLink.id === activeItem.itemId );
+	linkToEdit = deepCopy( linkToEdit );
+	const { name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = linkToEdit;
 
 	const inputs = {
 		required: { label, type, x_id, y_id },
