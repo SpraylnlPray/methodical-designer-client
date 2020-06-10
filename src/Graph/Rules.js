@@ -1,6 +1,6 @@
 import { isCollapsable } from '../utils';
 
-export const CollapsableRule = ( node, nodes, minDist = 800 ) => {
+const CollapsableRule = ( node, nodes, minDist = 800 ) => {
 	if ( isCollapsable( node ) ) {
 		const otherCollapsables = nodes.filter( candidate => candidate.id !== node.id && isCollapsable( candidate ) && !candidate.deleted );
 		// get the coordinates of all other collapsables
@@ -39,7 +39,7 @@ const coordsExist = ( coord, coords ) => {
 	return false;
 };
 
-export const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEachOther = 50 ) => {
+const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEachOther = 50 ) => {
 	if ( hasPartOfLinks( node ) && !isCollapsable( node ) ) {
 		// get container ID the node is connected to
 		const containerID = node.connectedTo.find( connNode => isCollapsable( connNode ) ).id;
@@ -84,7 +84,7 @@ const hasPartOfLinks = ( node ) => {
 	return types.includes( 'PartOf' );
 };
 
-export const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, minDistToEachOther = 150 ) => {
+const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, minDistToEachOther = 150 ) => {
 	// check if node has no links connected to it
 	if ( !isCollapsable( node ) && node.connectedTo.length === 0 && !hasCoordinates( node ) ) {
 		// get all other nodes with no connections
@@ -108,7 +108,7 @@ export const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, min
 };
 
 // maybe it'd be better to do this from the parent node?
-export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
+const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
 	// todo: what if parent doesn't have coordinates yet?
 	if ( !isCollapsable( node ) ) {
 		const connectedToIDs = node.connectedTo.map( aNode => aNode.id );
@@ -140,7 +140,7 @@ export const SingleConnectionRule = ( node, nodes, minDistToParent = 150, minDis
 	}
 };
 
-export const LooseChildRule = ( nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
+const LooseChildRule = ( _, nodes, minDistToParent = 150, minDistToEachOther = 100 ) => {
 	// get all nodes that already have a position
 	const nodesWithCoords = nodes.filter( node => node.x !== undefined && node.y !== undefined );
 	// go through their connected nodes without position and assign one
@@ -196,7 +196,7 @@ const getExistingCoordinatesFor = nodesToConsider => {
 	return existingCoords;
 };
 
-export const NonDomainRule = ( nodes, minDistToEachOther = 500 ) => {
+const NonDomainRule = ( _, nodes, minDistToEachOther = 500 ) => {
 	// get nodes without coordinates
 	const nodesWithoutCoords = nodes.filter( aNode => aNode.x === undefined && aNode.y === undefined );
 	if ( nodesWithoutCoords.length > 0 ) {
@@ -229,9 +229,13 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, minDistToEachOther
 				}
 			}
 		}
-		// if there's still nodes without position, repeat the procedure
+	// if there's still nodes without position, repeat the procedure
 	nodesWithoutCoords = nodes.filter( aNode => aNode.x === undefined && aNode.y === undefined );
 	if ( nodesWithoutCoords.length > 0 ) {
 		handleNodesWithoutCoords( nodesWithoutCoords, nodes );
 	}
 };
+
+const rules = [ CollapsableRule, PartOfRule, NoConnectionNodeRule, LooseChildRule, NonDomainRule ];
+
+export default rules;

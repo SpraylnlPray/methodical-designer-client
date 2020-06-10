@@ -168,4 +168,22 @@ export const setLinkDisplayProps = ( link, x_end, y_end ) => {
 			type: ArrowShapes[y_end.arrow],
 		};
 	}
-}
+};
+
+export const findAndHandleMultipleLinks = ( link, linksCopy ) => {
+	const multipleLinksIDs = [ link.id ];
+	// get the x and y node id of the link
+	const x_id = link.x.id;
+	const y_id = link.y.id;
+	// get all other links
+	const otherLinks = linksCopy.filter( aLink => aLink.id !== link.id && !aLink.checked );
+	// check if any of the other links connects the same nodes
+	for ( let checkLink of otherLinks ) {
+		// if it connects the same nodes
+		if ( connectsNodes( x_id, y_id, checkLink ) ) {
+			// save it to the list
+			multipleLinksIDs.push( checkLink.id );
+		}
+	}
+	setMultipleLinksProps( linksCopy, multipleLinksIDs );
+};

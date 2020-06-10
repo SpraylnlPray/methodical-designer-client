@@ -9,12 +9,10 @@ import LogStream from './components/LogStream';
 import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import ServerStartupMessage from './components/ServerStartupMessage';
-import GraphManager from './Graph/GraphOptions';
 import { SET_LINKS, SET_NODES } from './queries/LocalMutations';
 
 function App() {
 	const client = useApolloClient();
-	// const graphManager = new GraphManager();
 
 	const handleClick = () => {
 		setActiveItem( client, 'app', 'app' );
