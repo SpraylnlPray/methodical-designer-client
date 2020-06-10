@@ -75,19 +75,19 @@ export default class GraphManager {
 
 	setLinkProps( link, x_end, y_end ) {
 		// x is from, y is to!
-		if ( LinkColors[link.type] ) {
-			link.color = LinkColors[link.type];
-		}
-		else {
-			link.color = LinkColors.Default;
-		}
-
-		if ( link?.sequence ) {
-			const { group, seq } = link.sequence;
-			if ( group?.length > 0 || seq?.length > 0 ) {
-				link.label = `${ group } - ${ seq }`;
-			}
-		}
+		// if ( LinkColors[link.type] ) {
+		// 	link.color = LinkColors[link.type];
+		// }
+		// else {
+		// 	link.color = LinkColors.Default;
+		// }
+		//
+		// if ( link?.sequence ) {
+		// 	const { group, seq } = link.sequence;
+		// 	if ( group?.length > 0 || seq?.length > 0 ) {
+		// 		link.label = `${ group } - ${ seq }`;
+		// 	}
+		// }
 
 		link.arrows = {};
 		if ( x_end?.arrow?.length > 0 ) {
