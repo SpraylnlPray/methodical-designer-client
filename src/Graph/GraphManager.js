@@ -89,19 +89,19 @@ export default class GraphManager {
 		// 	}
 		// }
 
-		link.arrows = {};
-		if ( x_end?.arrow?.length > 0 ) {
-			link.arrows.from = {
-				enabled: true,
-				type: ArrowShapes[x_end.arrow],
-			};
-		}
-		if ( y_end?.arrow?.length > 0 ) {
-			link.arrows.to = {
-				enabled: true,
-				scaleFactor: 1,
-				type: ArrowShapes[y_end.arrow],
-			};
-		}
+		// link.arrows = {};
+		// if ( x_end?.arrow?.length > 0 ) {
+		// 	link.arrows.from = {
+		// 		enabled: true,
+		// 		type: ArrowShapes[x_end.arrow],
+		// 	};
+		// }
+		// if ( y_end?.arrow?.length > 0 ) {
+		// 	link.arrows.to = {
+		// 		enabled: true,
+		// 		scaleFactor: 1,
+		// 		type: ArrowShapes[y_end.arrow],
+		// 	};
+		// }
 	}
 }

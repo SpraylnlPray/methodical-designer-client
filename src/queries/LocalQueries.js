@@ -158,7 +158,7 @@ export const EDITOR_LINK_DATA = gql`
         roundness
       }
       color
-#      arrows {
+      arrows 
 #        from {
 #          enabled
 #          type
@@ -208,17 +208,17 @@ export const LINKS_WITH_TAGS = gql`
         roundness
       }
       color
-#      arrows {
-#        from {
-#          enabled
-#          type
-#        }
-#        to {
-#          enabled
-#          scaleFactor
-#          type
-#        }
-#      }
+      arrows {
+        from {
+          enabled
+          type
+        }
+        to {
+          enabled
+          scaleFactor
+          type
+        }
+      }
       created
       edited
       deleted
