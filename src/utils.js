@@ -1,4 +1,7 @@
 import { ACTIVE_ITEM, LOG_MESSAGES } from './queries/LocalQueries';
+import { NodeImages } from './Graph/Images';
+import { NodeShapes } from './Graph/Shapes';
+import { NodeColors } from './Graph/Colors';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
@@ -122,4 +125,15 @@ export const areBothHidden = ( node1, node2 ) => {
 
 export const isHidden = ( node ) => {
 	return node.hidden;
+};
+
+export const setNodeImage = ( node ) => {
+	if ( NodeImages[node.type] ) {
+		node.image = NodeImages[node.type];
+		node.shape = 'image';
+	}
+	else {
+		node.shape = NodeShapes[node.type];
+		node.color = NodeColors[node.type];
+	}
 };

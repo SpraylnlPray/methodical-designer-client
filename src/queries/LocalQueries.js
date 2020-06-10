@@ -49,6 +49,8 @@ export const EDITOR_NODE_DATA = gql`
         id
         type
       }
+      image
+      shape
       x
       y
       collapsed
@@ -88,6 +90,8 @@ export const NODES_WITH_TAGS = gql`
       hiddenBy
       edited
       deleted
+      image
+      shape
     }
   }
 `;

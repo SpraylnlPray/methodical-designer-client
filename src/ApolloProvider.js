@@ -3,7 +3,7 @@ import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import {
 	addLogMessage, areBothHidden, connectsNodes, deepCopy, generateLocalUUID, getDuplicates, handleConnectedNodes, isHidden,
-	setMultipleLinksProps,
+	setMultipleLinksProps, setNodeImage,
 } from './utils';
 import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
@@ -52,6 +52,12 @@ const cache = new InMemoryCache( {
 				connectedTo( existingData ) {
 					return existingData || [];
 				},
+				image( existingData ) {
+					return existingData || '';
+				},
+				shape( existingData ) {
+					return existingData || '';
+				},
 			},
 		},
 		Link: {
@@ -66,10 +72,10 @@ const cache = new InMemoryCache( {
 					return existingData || false;
 				},
 				from( existingData ) {
-					return existingData || '';
+					return existingData || null;
 				},
 				to( existingData ) {
-					return existingData || '';
+					return existingData || null;
 				},
 				smooth( existingData ) {
 					return existingData || { enabled: false, type: '', roundness: '' };
@@ -95,6 +101,7 @@ const client = new ApolloClient( {
 						node.edited = false;
 						node.created = false;
 						node.deleted = false;
+						setNodeImage( node );
 					}
 
 					try {
@@ -219,6 +226,7 @@ const client = new ApolloClient( {
 						deleted: false,
 						__typename: 'Node',
 					};
+					setNodeImage( newNode );
 
 					try {
 						CollapsableRule( newNode, Nodes );
@@ -325,7 +333,7 @@ const client = new ApolloClient( {
 							nodeToEdit[prop] = props[prop];
 						}
 					}
-
+					setNodeImage( nodeToEdit );
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
 						data: { Nodes: newNodes.concat( nodeToEdit ) },

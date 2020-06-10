@@ -28,7 +28,7 @@ export const deleteLinkEnd = ( client, link, promises, end, fnc ) => {
 };
 
 export const handleSequence = ( client, link, promises, saveFnc, deleteFnc ) => {
-	if ( existsSequence( client, link ) ) {
+	if ( existsSequence( link ) ) {
 		saveSequence( client, link, promises, saveFnc );
 	}
 	else {

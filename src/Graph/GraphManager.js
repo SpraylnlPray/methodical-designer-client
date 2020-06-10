@@ -1,6 +1,5 @@
-import { LinkColors, NodeColors } from './Colors';
-import { ArrowShapes, NodeShapes } from './Shapes';
-import { NodeImages } from './Images';
+import { LinkColors } from './Colors';
+import { ArrowShapes } from './Shapes';
 import { deepCopy } from '../utils';
 
 export default class GraphManager {
@@ -59,43 +58,12 @@ export default class GraphManager {
 	}
 
 	get nodeDisplayData() {
-		this.setNodeVisualizationProps();
-		this.handleCoordinates();
-		return this.#nodes || [];
+		return this.#nodes;
 	}
 
 	get linkDisplayData() {
 		this.setLinkVisualizationProps();
 		return this.#links;
-	}
-
-	handleCoordinates() {
-		for ( let node of this.#nodes ) {
-			if ( node.x === '' ) {
-				node.x = undefined;
-			}
-			if ( node.y === '' ) {
-				node.y = undefined;
-			}
-		}
-	}
-
-	setNodeVisualizationProps() {
-		this.#nodes.forEach( node => {
-			this.setNodeImage( node );
-			return node;
-		} );
-	}
-
-	setNodeImage( node ) {
-		if ( NodeImages[node.type] ) {
-			node.image = NodeImages[node.type];
-			node.shape = 'image';
-		}
-		else {
-			node.shape = NodeShapes[node.type];
-			node.color = NodeColors[node.type];
-		}
 	}
 
 	setLinkVisualizationProps() {
