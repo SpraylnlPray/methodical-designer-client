@@ -429,16 +429,8 @@ const client = new ApolloClient( {
 						return link;
 					} );
 
-
-					// if the node to delete exists in the DB, add it to the ones to be deleted
-					if ( !nodeToDelete.created ) {
-						nodeToDelete = deepCopy( nodeToDelete );
-						nodeToDelete.deleted = true;
-					}
-					// otherwise remove it from the cache
-					else {
-						cache.evict( nodeToDelete.id );
-					}
+					nodeToDelete = deepCopy( nodeToDelete );
+					nodeToDelete.deleted = true;
 
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
