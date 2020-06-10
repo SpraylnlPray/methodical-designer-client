@@ -239,6 +239,8 @@ const client = new ApolloClient( {
 						type,
 						x,
 						y,
+						from: x,
+						to: y,
 						optional,
 						story,
 						x_end,
@@ -322,7 +324,6 @@ const client = new ApolloClient( {
 					const x = { id: x_id };
 					const y = { id: y_id };
 					props = { label, type, optional, story, x, y, sequence, x_end, y_end };
-
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 					const newLinks = Links.filter( link => link.id !== id );
 					let linkToEdit = Links.find( link => link.id === id );

@@ -11,8 +11,8 @@ import { arrowOptions, typeOptions } from '../linkOptions';
 const EditLink = ( { activeItem, client } ) => {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const { data: { Links } } = useQuery( LINKS_DATA );
-	const LinksCopy = JSON.parse( JSON.stringify( Links ) );
-	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = LinksCopy.find( link => link.id === activeItem.itemId );
+	const linkToEdit = Links.find( aLink => aLink.id === activeItem.itemId );
+	const { label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = linkToEdit;
 
 	const inputs = {
 		required: { label, type, x_id, y_id },
