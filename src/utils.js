@@ -1,7 +1,7 @@
 import { ACTIVE_ITEM, LOG_MESSAGES } from './queries/LocalQueries';
 import { NodeImages } from './Graph/Images';
-import { NodeShapes } from './Graph/Shapes';
-import { NodeColors } from './Graph/Colors';
+import { ArrowShapes, NodeShapes } from './Graph/Shapes';
+import { LinkColors, NodeColors } from './Graph/Colors';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
@@ -137,3 +137,35 @@ export const setNodeImage = ( node ) => {
 		node.color = NodeColors[node.type];
 	}
 };
+
+export const setLinkDisplayProps = ( link, x_end, y_end ) => {
+	// x is from, y is to!
+	if ( LinkColors[link.type] ) {
+		link.color = LinkColors[link.type];
+	}
+	else {
+		link.color = LinkColors.Default;
+	}
+
+	if ( link?.sequence ) {
+		const { group, seq } = link.sequence;
+		if ( group?.length > 0 || seq?.length > 0 ) {
+			link.label = `${ group } - ${ seq }`;
+		}
+	}
+
+	link.arrows = {};
+	if ( x_end?.arrow?.length > 0 ) {
+		link.arrows.from = {
+			enabled: true,
+			type: ArrowShapes[x_end.arrow],
+		};
+	}
+	if ( y_end?.arrow?.length > 0 ) {
+		link.arrows.to = {
+			enabled: true,
+			scaleFactor: 1,
+			type: ArrowShapes[y_end.arrow],
+		};
+	}
+}

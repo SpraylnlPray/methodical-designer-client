@@ -3,7 +3,7 @@ import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import {
 	addLogMessage, areBothHidden, connectsNodes, deepCopy, generateLocalUUID, getDuplicates, handleConnectedNodes, isHidden,
-	setMultipleLinksProps, setNodeImage,
+	setLinkDisplayProps, setMultipleLinksProps, setNodeImage,
 } from './utils';
 import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
@@ -79,6 +79,24 @@ const cache = new InMemoryCache( {
 				},
 				smooth( existingData ) {
 					return existingData || { enabled: false, type: '', roundness: '' };
+				},
+				color( existingData ) {
+					return existingData || '#000000';
+				},
+				arrows( existingData ) {
+					const defaultFrom = { enabled: false, type: '' };
+					const defaultTo = { enabled: false, type: '', scaleFactor: 1 };
+					if ( existingData ) {
+						let ret = { ...existingData };
+						if ( !ret.from ) {
+							ret.from = defaultFrom;
+						}
+						if ( !ret.to ) {
+							ret.to = defaultTo;
+						}
+						return ret;
+					}
+					return { from: defaultFrom, to: defaultTo };
 				},
 			},
 		},
@@ -161,6 +179,8 @@ const client = new ApolloClient( {
 				try {
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
+						const { x_end, y_end } = link;
+						setLinkDisplayProps( link, x_end, y_end );
 						link.edited = false;
 						link.created = false;
 						link.deleted = false;
@@ -277,6 +297,7 @@ const client = new ApolloClient( {
 						edited: false,
 						__typename: 'Link',
 					};
+					setLinkDisplayProps( newLink, x_end, y_end );
 					linksCopy = linksCopy.concat( newLink );
 
 					// get the x and y node of the link
@@ -353,9 +374,9 @@ const client = new ApolloClient( {
 
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 					const newLinks = Links.filter( link => link.id !== id );
-					// todo: use Links.find instead
-					let linkToEdit = Links.filter( link => link.id === id )[0];
+					let linkToEdit = Links.find( link => link.id === id );
 					linkToEdit = deepCopy( linkToEdit );
+					setLinkDisplayProps( linkToEdit, x_end, y_end );
 
 					for ( let prop in props ) {
 						linkToEdit[prop] = props[prop];
