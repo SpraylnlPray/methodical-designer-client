@@ -46,6 +46,7 @@ const EditorPane = ( { graphManager } ) => {
 	if ( nodeData && linkData ) {
 		graphManager.nodes = nodeData.Nodes;
 		graphManager.links = linkData.Links;
+
 		graph = {
 			nodes: graphManager.nodeDisplayData,
 			edges: graphManager.linkDisplayData,
