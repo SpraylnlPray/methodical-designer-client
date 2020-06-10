@@ -85,21 +85,23 @@ export const VecDist = ( p1, p2 ) => {
 };
 
 export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
-	links.map( link => {
-		if ( multipleConnIDs.includes( link.id ) ) {
-			const index = multipleConnIDs.indexOf( link.id );
-			link.found = true;
-			link.checked = true;
-			link.from = link.x.id;
-			link.to = link.y.id;
-			link.smooth = {
-				enabled: index !== 0,
-				type: 'horizontal',
-				roundness: index / multipleConnIDs.length,
-			};
-		}
-		return link;
-	} );
+	if ( multipleConnIDs.length > 1 ) {
+		links.map( link => {
+			if ( multipleConnIDs.includes( link.id ) ) {
+				const index = multipleConnIDs.indexOf( link.id );
+				link.found = true;
+				link.checked = true;
+				link.from = link.x.id;
+				link.to = link.y.id;
+				link.smooth = {
+					enabled: index !== 0,
+					type: 'horizontal',
+					roundness: index / multipleConnIDs.length,
+				};
+			}
+			return link;
+		} );
+	}
 };
 
 export const connectsNodes = ( node1ID, node2ID, link ) => {
@@ -186,4 +188,57 @@ export const findAndHandleMultipleLinks = ( link, linksCopy ) => {
 		}
 	}
 	setMultipleLinksProps( linksCopy, multipleLinksIDs );
+};
+
+export const setXConnection = ( node, link ) => {
+	if ( node.changedVisibility ) {
+		// if the node is hidden, set the links property to the hiddenBy value from the node
+		if ( isHidden( node ) ) {
+			link.from = node.hiddenBy;
+		}
+		else {
+			link.from = link.x.id;
+		}
+	}
+};
+
+export const setYConnection = ( node, link ) => {
+	if ( node.changedVisibility ) {
+		// if the node is hidden, set the links property to the hiddenBy value from the node
+		if ( isHidden( node ) ) {
+			link.to = node.hiddenBy;
+		}
+		else {
+			link.to = link.y.id;
+		}
+	}
+};
+
+export const snap = ( link, nodesCopy ) => {
+	const x_node = nodesCopy.find( node => node.id === link.x.id );
+	const y_node = nodesCopy.find( node => node.id === link.y.id );
+	// snapping should only happen if one of them is still visible
+	if ( x_node && y_node && !areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
+		setXConnection( x_node, link );
+		setYConnection( y_node, link );
+	}
+};
+
+export const modifyConnectedLink = ( link, nodeID ) => {
+	const isCircle = link.x.id === link.y.id;
+	// if the link is a circle on the node, delete it
+	if ( isCircle ) {
+		link.deleted = true;
+	}
+	// if the x node has been deleted, set the x id equal to the y id
+	else if ( link.x.id === nodeID ) {
+		link.x.id = link.y.id;
+		// for displaying
+		link.from = link.y.id;
+	}
+	// and vice versa
+	else if ( link.y.id === nodeID ) {
+		link.y.id = link.x.id;
+		link.to = link.x.id;
+	}
 };

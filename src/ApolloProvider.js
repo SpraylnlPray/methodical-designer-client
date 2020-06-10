@@ -2,8 +2,9 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import {
-	addLogMessage, areBothHidden, connectsNodes, deepCopy, findAndHandleMultipleLinks, generateLocalUUID, getDuplicates,
-	handleConnectedNodes, isHidden, setLinkDisplayProps, setMultipleLinksProps, setNodeImage,
+	addLogMessage, deepCopy, findAndHandleMultipleLinks, generateLocalUUID, getDuplicates,
+	handleConnectedNodes, modifyConnectedLink, setLinkDisplayProps, setMultipleLinksProps, setNodeImage,
+	snap,
 } from './utils';
 import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
@@ -293,7 +294,7 @@ const client = new ApolloClient( {
 					const { id, props } = variables;
 					const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
 					const newNodes = Nodes.filter( node => node.id !== id );
-					let nodeToEdit = Nodes.filter( node => node.id === id )[0];
+					let nodeToEdit = Nodes.find( node => node.id === id );
 					nodeToEdit = deepCopy( nodeToEdit );
 
 					for ( let prop in props ) {
@@ -345,46 +346,34 @@ const client = new ApolloClient( {
 
 			deleteNode: ( _root, variables, { cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
+					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 
-					let nodeToDelete = Nodes.find( node => node.id === variables.id );
-					let newNodes = Nodes.filter( node => node.id !== variables.id );
 					let linksCopy = deepCopy( Links );
-
-					// handle links connected to the deleted node
-					linksCopy = linksCopy.map( link => {
-						let sameNodes = link.x.id === link.y.id;
-						let isNodeToDelete = link.x.id === nodeToDelete.id;
-						// if both link ends are connected to the same node and this node is the one to be deleted
-						if ( sameNodes && isNodeToDelete ) {
-							// AND the link exists in the DB mark the link as deleted
-							if ( !link.created ) {
-								link.deleted = true;
+					const nodesCopy = deepCopy( Nodes );
+					const connectedLinkIDs = [];
+					for ( let node of nodesCopy ) {
+						if ( node.id === variables.id ) {
+							// mark the node as deleted
+							node.deleted = true;
+							// and save all connected link IDs
+							for ( let link of node.Links ) {
+								connectedLinkIDs.push( link.id );
 							}
-							// otherwise remove it from the cache
-							else {
-								cache.evict( link.id );
-							}
+							break;
 						}
-						// otherwise, assign the link end whose node will be deleted the same node as the other link end
-						else if ( link.x.id === nodeToDelete.id ) {
-							link.x.id = link.y.id;
-							link.edited = true;
-						}
-						else if ( link.y.id === nodeToDelete.id ) {
-							link.y.id = link.x.id;
-							link.edited = true;
-						}
-						return link;
-					} );
+					}
 
-					nodeToDelete = deepCopy( nodeToDelete );
-					nodeToDelete.deleted = true;
+					for ( let link of linksCopy ) {
+						// if the link id is in the list of connected links
+						if ( connectedLinkIDs.includes( link.id ) ) {
+							modifyConnectedLink( link, variables.id );
+						}
+					}
 
 					cache.writeQuery( {
-						query: NODES_WITH_TAGS,
-						data: { Nodes: newNodes.concat( nodeToDelete ) },
+						query: NODES_DATA,
+						data: { Nodes: nodesCopy },
 					} );
 
 					cache.writeQuery( {
@@ -403,17 +392,12 @@ const client = new ApolloClient( {
 					const newLinks = Links.filter( link => link.id !== variables.id );
 					let linkToDelete = Links.filter( link => link.id === variables.id )[0];
 
-					if ( !linkToDelete.created ) {
-						linkToDelete = deepCopy( linkToDelete );
-						linkToDelete.deleted = true;
-						cache.writeQuery( {
-							query: LINKS_WITH_TAGS,
-							data: { Links: newLinks.concat( linkToDelete ) },
-						} );
-					}
-					else {
-						cache.evict( linkToDelete.id );
-					}
+					linkToDelete = deepCopy( linkToDelete );
+					linkToDelete.deleted = true;
+					cache.writeQuery( {
+						query: LINKS_WITH_TAGS,
+						data: { Links: newLinks.concat( linkToDelete ) },
+					} );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in deleteLink: ' + e.message );
@@ -434,28 +418,7 @@ const client = new ApolloClient( {
 
 					// update the links to snap to the right node
 					for ( let link of linksCopy ) {
-						const x_node = nodesCopy.find( node => node.id === link.x.id );
-						const y_node = nodesCopy.find( node => node.id === link.y.id );
-						// snapping should only happen if one of them is still visible
-						if ( x_node && y_node && !areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
-							if ( x_node.changedVisibility ) {
-								// if the node is hidden, set the links property to the hiddenBy value from the node
-								if ( isHidden( x_node ) ) {
-									link.from = x_node.hiddenBy;
-								}
-								else {
-									link.from = link.x.id;
-								}
-							}
-							if ( y_node.changedVisibility ) {
-								if ( isHidden( y_node ) ) {
-									link.to = y_node.hiddenBy;
-								}
-								else {
-									link.to = link.y.id;
-								}
-							}
-						}
+						snap( link, nodesCopy );
 					}
 
 					cache.writeQuery( {

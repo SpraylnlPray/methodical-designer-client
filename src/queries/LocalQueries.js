@@ -31,6 +31,9 @@ export const NODES_DATA = gql`
         id
         type
       }
+      Links {
+        id
+      }
     }
   }
 `;
@@ -198,7 +201,7 @@ export const LINKS_WITH_TAGS = gql`
         roundness
       }
       color
-      # this works because in type policies I implicitely return all needed data!
+      # this works because in type policies I implicitly return all needed data!
       arrows
       created
       edited
