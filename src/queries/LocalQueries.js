@@ -158,17 +158,7 @@ export const EDITOR_LINK_DATA = gql`
         roundness
       }
       color
-      arrows 
-#        from {
-#          enabled
-#          type
-#        }
-#        to {
-#          enabled
-#          type
-#          scaleFactor
-#        }
-#      }
+      arrows
       deleted
     }
   }
@@ -208,17 +198,8 @@ export const LINKS_WITH_TAGS = gql`
         roundness
       }
       color
-      arrows {
-        from {
-          enabled
-          type
-        }
-        to {
-          enabled
-          scaleFactor
-          type
-        }
-      }
+      # this works because in type policies I implicitely return all needed data!
+      arrows
       created
       edited
       deleted

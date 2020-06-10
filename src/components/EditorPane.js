@@ -3,7 +3,7 @@ import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
-import options from '../Graph/GraphManager';
+import options from '../Graph/GraphOptions';
 
 const EditorPane = () => {
 	const client = useApolloClient();
