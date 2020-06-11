@@ -455,6 +455,13 @@ cache.writeQuery( {
         itemId
         itemType
       }
+			lastEditorAction {
+				type
+				position {
+					x
+					y
+				}
+			}
     }
 	`,
 	data: {
@@ -465,6 +472,14 @@ cache.writeQuery( {
 			itemType: 'app',
 			__typename: 'ActiveItem',
 		},
+		lastEditorAction: {
+			type: 'none',
+			position: {
+				x: '',
+				y: '',
+			},
+			__typename: 'LastEditorAction'
+		}
 	},
 } );
 

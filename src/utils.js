@@ -1,4 +1,4 @@
-import { ACTIVE_ITEM, LOG_MESSAGES } from './queries/LocalQueries';
+import { ACTIVE_ITEM, LAST_EDITOR_ACTION, LOG_MESSAGES } from './queries/LocalQueries';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
@@ -8,6 +8,22 @@ export const setActiveItem = ( client, itemId, itemType ) => {
 				itemId,
 				itemType,
 				__typename: 'ActiveItem',
+			},
+		},
+	} );
+};
+
+export const setLastEditorAction = ( client, type, x, y ) => {
+	client.writeQuery( {
+		query: LAST_EDITOR_ACTION,
+		data: {
+			lastEditorAction: {
+				type,
+				position: {
+					x,
+					y,
+				},
+				__typename: 'LastEditorAction',
 			},
 		},
 	} );

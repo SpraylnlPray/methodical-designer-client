@@ -1,6 +1,6 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
-import { addLogMessage, setActiveItem } from '../utils';
+import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
@@ -20,7 +20,7 @@ const EditorPane = () => {
 		edges: [],
 	};
 	const events = {
-		select: function( event ) {
+		select: function handleEditorSelect( event ) {
 			const { nodes, edges } = event;
 			if ( nodes.length > 0 ) {
 				setActiveItem( client, nodes[0], 'node' );
@@ -29,23 +29,34 @@ const EditorPane = () => {
 				setActiveItem( client, edges[0], 'link' );
 			}
 		},
-		dragStart: function( event ) {
+		zoom: function handleZoom( event ) {
+			const { pointer } = event;
+			setLastEditorAction( client, 'zoom', pointer.x, pointer.y );
+		},
+		dragStart: function handleDragStart( event ) {
 			const { nodes } = event;
 			if ( nodes.length > 0 ) {
 				setActiveItem( client, nodes[0], 'node' );
 			}
 		},
-		click: function( event ) {
-			const { nodes, edges } = event;
+		dragEnd: function handleDragEnd( event ) {
+			const { nodes, pointer } = event;
+			if ( nodes.length === 0 ) {
+				setLastEditorAction( client, 'drag', pointer.canvas.x, pointer.canvas.y );
+			}
+		},
+		click: function handleEditorClick( event ) {
+			const { nodes, edges, pointer } = event;
 			if ( nodes.length === 0 && edges.length === 0 ) {
 				setActiveItem( client, 'app', 'app' );
+				setLastEditorAction( client, 'click', pointer.canvas.x, pointer.canvas.y );
 			}
 		},
 	};
 
 	if ( nodeData && linkData ) {
-		const graphNodes = nodeData.Nodes.filter(aNode => !aNode.deleted);
-		const graphLinks = linkData.Links.filter(aLink => !aLink.deleted);
+		const graphNodes = nodeData.Nodes.filter( aNode => !aNode.deleted );
+		const graphLinks = linkData.Links.filter( aLink => !aLink.deleted );
 
 		graph = {
 			nodes: graphNodes,

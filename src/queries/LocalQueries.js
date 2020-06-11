@@ -15,6 +15,18 @@ export const ACTIVE_ITEM = gql`
   }
 `;
 
+export const LAST_EDITOR_ACTION = gql`
+  query {
+    lastEditorAction @client {
+      type
+      position {
+        x
+        y
+      }
+    }
+  }
+`;
+
 export const NODES_DATA = gql`
   query {
     Nodes @client {
