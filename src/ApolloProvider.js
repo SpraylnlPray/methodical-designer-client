@@ -9,7 +9,9 @@ import {
 	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo, assembleNewNode,
 	updateNode,
 } from './Graph/NodeUtils';
-import { CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import {
+	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
+} from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import rules from './Graph/Rules';
 
@@ -191,20 +193,26 @@ const client = new ApolloClient( {
 			addNode: ( _root, variables, { cache } ) => {
 				try {
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const { lastEditorAction } = cache.readQuery( { query: LAST_EDITOR_ACTION } );
 					const newNode = assembleNewNode( variables );
 					setNodeImage( newNode );
 
-					try {
-						for ( let rule of rules ) {
-							rule( newNode, Nodes );
-						}
+					if ( lastEditorAction.type ) {
+						newNode.x = lastEditorAction.position.x;
+						newNode.y = lastEditorAction.position.y;
 					}
-					catch ( e ) {
-						addLogMessage( client, 'Error when applying rules in addNode: ' + e.message );
+					else {
+						try {
+							for ( let rule of rules ) {
+								rule( newNode, Nodes );
+							}
+						}
+						catch ( e ) {
+							addLogMessage( client, 'Error when applying rules in addNode: ' + e.message );
+						}
 					}
 
 					const newNodes = Nodes.concat( newNode );
-
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
 						data: { Nodes: newNodes },
@@ -455,13 +463,13 @@ cache.writeQuery( {
         itemId
         itemType
       }
-			lastEditorAction {
-				type
-				position {
-					x
-					y
-				}
-			}
+      lastEditorAction {
+        type
+        position {
+          x
+          y
+        }
+      }
     }
 	`,
 	data: {
@@ -473,13 +481,13 @@ cache.writeQuery( {
 			__typename: 'ActiveItem',
 		},
 		lastEditorAction: {
-			type: 'none',
+			type: null,
 			position: {
 				x: '',
 				y: '',
 			},
-			__typename: 'LastEditorAction'
-		}
+			__typename: 'LastEditorAction',
+		},
 	},
 } );
 
