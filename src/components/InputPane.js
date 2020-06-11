@@ -3,6 +3,7 @@ import CreateLink from './CreateLink';
 import CreateNode from './CreateNode';
 import EditNode from './EditNode';
 import EditLink from './EditLink';
+import GraphSettingsPane from './GraphSettingsPane';
 
 const InputPane = ( { activeItem, client } ) => {
 
@@ -26,6 +27,8 @@ const InputPane = ( { activeItem, client } ) => {
 				client={ client }
 				activeItem={ activeItem }
 			/> }
+			{ activeItem.itemType === 'app' &&
+			<GraphSettingsPane/> }
 		</div>
 	);
 };

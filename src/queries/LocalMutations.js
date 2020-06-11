@@ -54,3 +54,9 @@ export const SET_LINKS = gql`
     setLinks(links: $links) @client
   }
 `;
+
+export const RECALCULATE_GRAPH = gql`
+  mutation RecalculateGraph {
+    recalculateGraph @client
+  }
+`;

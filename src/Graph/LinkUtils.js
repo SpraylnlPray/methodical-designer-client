@@ -1,6 +1,7 @@
 import { areBothHidden, isHidden } from './NodeUtils';
 import { LinkColors } from './Colors';
 import { ArrowShapes } from './Shapes';
+import { deepCopy } from '../utils';
 
 export const modifyConnectedLink = ( link, nodeID ) => {
 	const isCircle = link.x.id === link.y.id;
@@ -130,4 +131,28 @@ export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
 			return link;
 		} );
 	}
+};
+
+export const updateLink = ( variables, linkToEdit ) => {
+	let { id, props, seq: sequence, x_end, y_end } = variables;
+	const { label, type, x_id, y_id, optional, story } = props;
+	const x = { id: x_id };
+	const y = { id: y_id };
+	props = { label, type, optional, story, x, y, sequence, x_end, y_end };
+
+	// let linkToEdit = Links.find( link => link.id === id );
+	linkToEdit = deepCopy( linkToEdit );
+	// first save the name (--> permanent label) on the link
+	linkToEdit.name = label;
+	// then update all props (including sequence)
+	for ( let prop in props ) {
+		linkToEdit[prop] = props[prop];
+	}
+	// if there's a sequence property, set the label in here
+	setLinkDisplayProps( linkToEdit, x_end, y_end );
+	linkToEdit.edited = true;
+	linkToEdit.from = x_id;
+	linkToEdit.to = y_id;
+	linkToEdit.__typename = 'Link';
+	return linkToEdit;
 };

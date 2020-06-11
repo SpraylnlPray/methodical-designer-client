@@ -33,6 +33,7 @@ export const NODES_DATA = gql`
       }
       Links {
         id
+        type
       }
     }
   }
@@ -208,6 +209,28 @@ export const LINKS_WITH_TAGS = gql`
       created
       edited
       deleted
+    }
+  }
+`;
+
+export const CALC_NODE_POSITION = gql`
+  query {
+    Nodes @client {
+      id
+      type
+      x
+      y
+      connectedTo {
+        id
+      }
+      Links {
+        id
+        type
+      }
+      connectedTo {
+        id
+        type
+      }
     }
   }
 `;

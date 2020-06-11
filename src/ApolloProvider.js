@@ -2,11 +2,14 @@ import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
 import { addLogMessage, deepCopy, generateLocalUUID, getDuplicates } from './utils';
-import { snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink } from './Graph/LinkUtils';
+import {
+	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink,
+} from './Graph/LinkUtils';
 import { setNodeImage, handleConnectedNodes } from './Graph/NodeUtils';
-import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
+import { CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import rules from './Graph/Rules';
+import { assertNonNullType } from 'graphql';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -127,7 +130,7 @@ const client = new ApolloClient( {
 					try {
 						for ( let rule of rules ) {
 							for ( let node of nodesCopy ) {
-								rule( node, nodesCopy );
+								rule( node, nodesCopy, client );
 							}
 						}
 					}
@@ -242,8 +245,8 @@ const client = new ApolloClient( {
 						x,
 						y,
 						name: label,
-						from: x,
-						to: y,
+						from: x.id,
+						to: y.id,
 						optional,
 						story,
 						x_end,
@@ -255,11 +258,9 @@ const client = new ApolloClient( {
 					};
 					setLinkDisplayProps( newLink, x_end, y_end );
 					linksCopy = linksCopy.concat( newLink );
-
 					// get the x and y node of the link
 					const xNode = nodesCopy.find( node => node.id === newLink.x.id );
 					const yNode = nodesCopy.find( node => node.id === newLink.y.id );
-
 					for ( let node of nodesCopy ) {
 						// for the two nodes, save the new link in the Links list and the other node in their connectedTo list
 						if ( node.id === newLink.x.id ) {
@@ -271,7 +272,6 @@ const client = new ApolloClient( {
 							node.connectedTo.push( { __typename: 'Node', id: xNode.id, type: xNode.type } );
 						}
 					}
-
 					// get their connected links
 					const connectedLinkIDs = [];
 					xNode.Links.map( link => connectedLinkIDs.push( link.id ) );
@@ -279,7 +279,6 @@ const client = new ApolloClient( {
 					// get link IDs that are in the array multiple times
 					let multipleLinkIDs = getDuplicates( connectedLinkIDs );
 					setMultipleLinksProps( linksCopy, multipleLinkIDs );
-
 					cache.writeQuery( {
 						query: EDITOR_NODE_DATA,
 						data: { Nodes: nodesCopy },
@@ -322,28 +321,68 @@ const client = new ApolloClient( {
 			},
 			updateLink: ( _root, variables, { cache } ) => {
 				try {
-					let { id, props, seq: sequence, x_end, y_end } = variables;
-					const { label, type, x_id, y_id, optional, story } = props;
-					const x = { id: x_id };
-					const y = { id: y_id };
-					props = { label, type, optional, story, x, y, sequence, x_end, y_end };
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
-					const newLinks = Links.filter( link => link.id !== id );
-					let linkToEdit = Links.find( link => link.id === id );
-					linkToEdit = deepCopy( linkToEdit );
-					// first save the name (--> permanent label) on the link
-					linkToEdit.name = label;
-					// then update all props (including sequence)
-					for ( let prop in props ) {
-						linkToEdit[prop] = props[prop];
+					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const nodesCopy = deepCopy( Nodes );
+					// get old nodeIDs
+					let linkToEdit = Links.find( link => link.id === variables.id );
+					const oldXID = linkToEdit.x.id;
+					const oldYID = linkToEdit.y.id;
+					// update link
+					linkToEdit = updateLink( variables, linkToEdit );
+					// get new nodeIDs
+					const newXID = linkToEdit.x.id;
+					const newYID = linkToEdit.y.id;
+					// go through all nodes
+					for ( let node of nodesCopy ) {
+						// from the old X node
+						if ( node.id === oldXID ) {
+							// remove the link from Links
+							const linkIDs = node.Links.map( aLink => aLink.id );
+							const indexLink = linkIDs.indexOf( linkToEdit.id );
+							node.Links.splice( indexLink, 1 );
+							// remove the old Y from connectedTo
+							const connToIDs = node.connectedTo.map( aNode => aNode.id );
+							const indexNode = connToIDs.indexOf( oldYID );
+							node.connectedTo.splice( indexNode, 1 );
+						}
+						// from the old Y node
+						if ( node.id === oldYID ) {
+							// remove the link from Links
+							const linkIDs = node.Links.map( aLink => aLink.id );
+							const indexLink = linkIDs.indexOf( linkToEdit.id );
+							node.Links.splice( indexLink, 1 );
+							// remove the old X from connectedTo
+							const connToIDs = node.connectedTo.map( aNode => aNode.id );
+							const indexNode = connToIDs.indexOf( oldXID );
+							node.connectedTo.splice( indexNode, 1 );
+						}
+						// in the new X node
+						if ( node.id === newXID ) {
+							// add the link to Links
+							node.Links.push( { __typename: 'Link', id: linkToEdit.id, type: linkToEdit.type } );
+							// add the new Y to connectedTo
+							const newYNode = Nodes.find( aNode => aNode.id === newYID );
+							node.connectedTo.push( { __typename: 'Node', id: newYNode.id, type: newYNode.type } );
+						}
+						// in the new Y node, add the link to Links and add the new X to connectedTo
+						if ( node.id === newYID ) {
+							// add the link to Links
+							node.Links.push( { __typename: 'Link', id: linkToEdit.id, type: linkToEdit.type } );
+							// add the new Y to connectedTo
+							const newXNode = Nodes.find( aNode => aNode.id === newXID );
+							node.connectedTo.push( { __typename: 'Node', id: newXNode.id, type: newXNode.type } );
+						}
 					}
-					// if there's a sequence property, set the label in here
-					setLinkDisplayProps( linkToEdit, x_end, y_end );
-					linkToEdit.edited = true;
 
+					const newLinks = Links.filter( link => link.id !== linkToEdit.id );
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: newLinks.concat( linkToEdit ) },
+					} );
+					cache.writeQuery( {
+						query: NODES_DATA,
+						data: { Nodes: nodesCopy },
 					} );
 				}
 				catch ( e ) {
@@ -395,9 +434,31 @@ const client = new ApolloClient( {
 			deleteLink: ( _root, variables, { cache } ) => {
 				try {
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
-
+					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 					const newLinks = Links.filter( link => link.id !== variables.id );
-					let linkToDelete = Links.filter( link => link.id === variables.id )[0];
+					let linkToDelete = Links.find( link => link.id === variables.id );
+
+					const x_id = linkToDelete.x.id;
+					const y_id = linkToDelete.y.id;
+
+					let xNode = deepCopy( Nodes.find( aNode => aNode.id === x_id ));
+					let yNode = deepCopy( Nodes.find( aNode => aNode.id === y_id ));
+
+					let linkIDs = xNode.Links.map( aLink => aLink.id );
+					let indexLink = linkIDs.indexOf( linkToDelete.id );
+					xNode.Links.splice( indexLink, 1 );
+					let connToIDs = xNode.connectedTo.map( aNode => aNode.id );
+					let indexNode = connToIDs.indexOf( yNode.id );
+					xNode.connectedTo.splice( indexNode, 1 );
+
+					linkIDs = yNode.Links.map( aLink => aLink.id );
+					indexLink = linkIDs.indexOf( linkToDelete.id );
+					yNode.Links.splice( indexLink, 1 );
+					connToIDs = yNode.connectedTo.map( aNode => aNode.id );
+					indexNode = connToIDs.indexOf( xNode.id );
+					yNode.connectedTo.splice( indexNode, 1 );
+
+					const newNodes = Nodes.filter( aNode => aNode.id !== x_id && aNode.id !== y_id );
 
 					linkToDelete = deepCopy( linkToDelete );
 					linkToDelete.deleted = true;
@@ -405,13 +466,18 @@ const client = new ApolloClient( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: newLinks.concat( linkToDelete ) },
 					} );
+
+					cache.writeQuery( {
+						query: NODES_DATA,
+						data: { Nodes: newNodes.concat( xNode, yNode ) },
+					} );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in deleteLink: ' + e.message );
 				}
 			},
 
-			collapseNode: ( _root, variables, { cache } ) => {
+			collapseNode: ( _root, variables, { cache, client } ) => {
 				try {
 					const { Nodes } = cache.readQuery( { query: NODES_COLLAPSE } );
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
@@ -440,6 +506,28 @@ const client = new ApolloClient( {
 				catch ( e ) {
 					addLogMessage( client, 'Error in collapseNode: ' + e.message );
 				}
+			},
+			recalculateGraph: ( _root, variables, { cache } ) => {
+				const { Nodes } = cache.readQuery( { query: CALC_NODE_POSITION } );
+				let nodesCopy = deepCopy( Nodes );
+				for ( let node of nodesCopy ) {
+					node.x = undefined;
+					node.y = undefined;
+				}
+				try {
+					for ( let rule of rules ) {
+						for ( let node of nodesCopy ) {
+							rule( node, nodesCopy, client );
+						}
+					}
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when applying rules in recalculateGraph: ' + e.message );
+				}
+				cache.writeQuery( {
+					query: CALC_NODE_POSITION,
+					data: { Nodes: nodesCopy },
+				} );
 			},
 		},
 	},

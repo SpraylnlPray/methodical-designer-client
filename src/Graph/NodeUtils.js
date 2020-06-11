@@ -88,3 +88,12 @@ export const hasPartOfLinks = ( node ) => {
 	const types = getConnectedLinkTypes( node.Links );
 	return types.includes( 'PartOf' );
 };
+
+export const coordsExist = ( coord, coords ) => {
+	for ( let coordsToCheck of coords ) {
+		if ( coord.x === coordsToCheck.x && coord.y === coordsToCheck.y ) {
+			return true;
+		}
+	}
+	return false;
+};
