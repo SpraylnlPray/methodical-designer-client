@@ -1,11 +1,9 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import {
-	addLogMessage, deepCopy, findAndHandleMultipleLinks, generateLocalUUID, getDuplicates,
-	handleConnectedNodes, modifyConnectedLink, setLinkDisplayProps, setMultipleLinksProps, setNodeImage,
-	snap,
-} from './utils';
+import { addLogMessage, deepCopy, generateLocalUUID, getDuplicates } from './utils';
+import { snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink } from './Graph/LinkUtils';
+import { setNodeImage, handleConnectedNodes } from './Graph/NodeUtils';
 import { EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import rules from './Graph/Rules';

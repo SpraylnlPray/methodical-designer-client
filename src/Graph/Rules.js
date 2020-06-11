@@ -1,4 +1,4 @@
-import { isCollapsable } from '../utils';
+import { hasCoordinates, getExistingCoordinatesFor, hasPartOfLinks, isCollapsable } from './NodeUtils';
 
 const CollapsableRule = ( node, nodes, minDist = 800 ) => {
 	if ( isCollapsable( node ) ) {
@@ -7,26 +7,19 @@ const CollapsableRule = ( node, nodes, minDist = 800 ) => {
 		const existingCoords = getExistingCoordinatesFor( otherCollapsables );
 
 		let newCoords = {};
-		// if there have already been other coords set
-		if ( existingCoords.length > 0 ) {
-			// go from 0/0 and check if the coordinates are already taken by another node
-			// if so, go in steps of minDist and check again
-			loop1:
-				for ( let y = 0, i = 0; i <= otherCollapsables.length / 2; i++, y += minDist ) {
-					for ( let x = 0, j = 0; j <= otherCollapsables.length / 2; j++, x += minDist ) {
-						newCoords = { x, y };
-						if ( !coordsExist( newCoords, existingCoords ) ) {
-							node.x = newCoords.x;
-							node.y = newCoords.y;
-							break loop1;
-						}
+		// go from 0/0 and check if the coordinates are already taken by another node
+		// if so, go in steps of minDist and check again
+		loop1:
+			for ( let y = 0, i = 0; i <= otherCollapsables.length / 2; i++, y += minDist ) {
+				for ( let x = 0, j = 0; j <= otherCollapsables.length / 2; j++, x += minDist ) {
+					newCoords = { x, y };
+					if ( !coordsExist( newCoords, existingCoords ) ) {
+						node.x = newCoords.x;
+						node.y = newCoords.y;
+						break loop1;
 					}
 				}
-		}
-		else {
-			node.x = 0;
-			node.y = 0;
-		}
+			}
 	}
 };
 
@@ -69,19 +62,6 @@ const PartOfRule = ( node, nodes, minDistToContainer = 150, minDistToEachOther =
 				}
 			}
 	}
-};
-
-const getConnectedLinkTypes = ( links ) => {
-	const types = [];
-	links.forEach( link => {
-		types.push( link.type );
-	} );
-	return types;
-};
-
-const hasPartOfLinks = ( node ) => {
-	const types = getConnectedLinkTypes( node.Links );
-	return types.includes( 'PartOf' );
 };
 
 const NoConnectionNodeRule = ( node, nodes, minDistToContainer = 400, minDistToEachOther = 150 ) => {
@@ -178,22 +158,6 @@ const handleConnectedNodes = ( nodeWithCoord, nodes, minDistToParent = 150, minD
 			handleConnectedNodes( childNode, nodes, minDistToParent, minDistToEachOther );
 		}
 	}
-};
-
-const hasCoordinates = node => {
-	const { x, y } = node;
-	return x !== undefined && y !== undefined;
-};
-
-const getExistingCoordinatesFor = nodesToConsider => {
-	const existingCoords = [];
-	nodesToConsider.forEach( nodeToCheck => {
-		const { x, y } = nodeToCheck;
-		if ( x !== undefined && y !== undefined ) {
-			existingCoords.push( { x, y } );
-		}
-	} );
-	return existingCoords;
 };
 
 const NonDomainRule = ( _, nodes, minDistToEachOther = 500 ) => {
