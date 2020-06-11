@@ -1,17 +1,17 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { addLogMessage, deepCopy, generateLocalUUID, getDuplicates } from './utils';
+import { addLogMessage, deepCopy, getDuplicates } from './utils';
 import {
-	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink,
+	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink, assembleNewLink,
 } from './Graph/LinkUtils';
 import {
-	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo,
+	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo, assembleNewNode,
+	updateNode,
 } from './Graph/NodeUtils';
 import { CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import rules from './Graph/Rules';
-import { assertNonNullType } from 'graphql';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -166,13 +166,12 @@ const client = new ApolloClient( {
 					}
 
 					// for any links that were not found as multiple connections, set their properties
-					linksCopy.map( link => {
+					for ( let link of linksCopy ) {
 						if ( !link.found ) {
 							link.from = link.x.id;
 							link.to = link.y.id;
 						}
-						return link;
-					} );
+					}
 
 					try {
 						cache.writeQuery( {
@@ -191,22 +190,8 @@ const client = new ApolloClient( {
 
 			addNode: ( _root, variables, { cache } ) => {
 				try {
-					const { label, props, type } = variables;
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
-
-					const newId = generateLocalUUID();
-					let newNode = {
-						id: newId,
-						label,
-						type,
-						connectedTo: [],
-						Links: [],
-						...props,
-						created: true,
-						edited: false,
-						deleted: false,
-						__typename: 'Node',
-					};
+					const newNode = assembleNewNode( variables );
 					setNodeImage( newNode );
 
 					try {
@@ -232,34 +217,12 @@ const client = new ApolloClient( {
 			addLink: ( _root, variables, { cache } ) => {
 				try {
 					const { Nodes } = cache.readQuery( { query: EDITOR_NODE_DATA } );
-					let nodesCopy = deepCopy( Nodes );
-					const { label, type, x_id, y_id, props, seq, x_end, y_end } = variables;
-					const { optional, story } = props;
-					const x = { id: x_id };
-					const y = { id: y_id };
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
+					let nodesCopy = deepCopy( Nodes );
 					let linksCopy = deepCopy( Links );
-					const newId = generateLocalUUID();
-					const newLink = {
-						id: newId,
-						label,
-						type,
-						x,
-						y,
-						name: label,
-						from: x.id,
-						to: y.id,
-						optional,
-						story,
-						x_end,
-						y_end,
-						sequence: seq,
-						created: true,
-						edited: false,
-						__typename: 'Link',
-					};
-					setLinkDisplayProps( newLink, x_end, y_end );
+					const newLink = assembleNewLink( variables );
 					linksCopy = linksCopy.concat( newLink );
+
 					// get the x and y node of the link
 					const xNode = nodesCopy.find( node => node.id === newLink.x.id );
 					const yNode = nodesCopy.find( node => node.id === newLink.y.id );
@@ -291,21 +254,12 @@ const client = new ApolloClient( {
 
 			updateNode: ( _root, variables, { cache } ) => {
 				try {
-					const { id, props } = variables;
 					const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
-					const newNodes = Nodes.filter( node => node.id !== id );
-					let nodeToEdit = Nodes.find( node => node.id === id );
-					nodeToEdit = deepCopy( nodeToEdit );
+					const newNodes = Nodes.filter( node => node.id !== variables.id );
 
-					for ( let prop in props ) {
-						if ( nodeToEdit[prop] !== props[prop] ) {
-							if ( prop !== 'collapse' ) {
-								nodeToEdit.edited = true;
-							}
-							nodeToEdit[prop] = props[prop];
-						}
-					}
-					setNodeImage( nodeToEdit );
+					let nodeToEdit = Nodes.find( node => node.id === variables.id );
+					nodeToEdit = updateNode( nodeToEdit, variables );
+
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
 						data: { Nodes: newNodes.concat( nodeToEdit ) },
@@ -331,16 +285,20 @@ const client = new ApolloClient( {
 					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const newYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 
-					// on the old nodes, remove the link from links and remove the respective other node form connectedTo
-					removeLinkFromLinks( oldXNode, linkToEdit );
-					removeNodeFromConnTo( oldXNode, oldYNode );
-					removeLinkFromLinks( oldYNode, linkToEdit );
-					removeNodeFromConnTo( oldYNode, oldXNode );
-					// on the new nodes, add the link to links and add the respective other node to connectedTo
-					addLinkToLinks( newXNode, linkToEdit );
-					addNodeToConnTo( newXNode, newYNode );
-					addLinkToLinks( newYNode, linkToEdit );
-					addNodeToConnTo( newYNode, newXNode );
+					if ( newXNode.id !== oldXNode.id ) {
+						// on the old nodes, remove the link from links and remove the respective other node form connectedTo
+						removeLinkFromLinks( oldXNode, linkToEdit );
+						removeNodeFromConnTo( oldXNode, oldYNode );
+						// on the new nodes, add the link to links and add the respective other node to connectedTo
+						addLinkToLinks( newXNode, linkToEdit );
+						addNodeToConnTo( newXNode, newYNode );
+					}
+					if ( newYNode.id !== oldYNode.id ) {
+						removeLinkFromLinks( oldYNode, linkToEdit );
+						removeNodeFromConnTo( oldYNode, oldXNode );
+						addLinkToLinks( newYNode, linkToEdit );
+						addNodeToConnTo( newYNode, newXNode );
+					}
 
 					const newLinks = linksCopy.filter( link => link.id !== linkToEdit.id );
 					cache.writeQuery( {
@@ -405,18 +363,15 @@ const client = new ApolloClient( {
 					const newLinks = Links.filter( link => link.id !== variables.id );
 					let linkToDelete = Links.find( link => link.id === variables.id );
 
-					const x_id = linkToDelete.x.id;
-					const y_id = linkToDelete.y.id;
-
-					let xNode = deepCopy( Nodes.find( aNode => aNode.id === x_id ) );
-					let yNode = deepCopy( Nodes.find( aNode => aNode.id === y_id ) );
+					let xNode = deepCopy( Nodes.find( aNode => aNode.id === linkToDelete.x.id ) );
+					let yNode = deepCopy( Nodes.find( aNode => aNode.id === linkToDelete.y.id ) );
 
 					removeLinkFromLinks( xNode, linkToDelete );
 					removeNodeFromConnTo( xNode, yNode );
 					removeLinkFromLinks( yNode, linkToDelete );
 					removeNodeFromConnTo( yNode, xNode );
 
-					const newNodes = Nodes.filter( aNode => aNode.id !== x_id && aNode.id !== y_id );
+					const newNodes = Nodes.filter( aNode => aNode.id !== xNode.id && aNode.id !== yNode.id );
 
 					linkToDelete = deepCopy( linkToDelete );
 					linkToDelete.deleted = true;

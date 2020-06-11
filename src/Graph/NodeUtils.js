@@ -1,6 +1,7 @@
 import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
+import { deepCopy, generateLocalUUID } from '../utils';
 
 export const areBothHidden = ( node1, node2 ) => {
 	return isHidden( node1 ) && isHidden( node2 );
@@ -116,4 +117,39 @@ export const addLinkToLinks = ( node, link ) => {
 
 export const addNodeToConnTo = ( node, nodeToAdd ) => {
 	node.connectedTo.push( { __typename: 'Node', id: nodeToAdd.id, type: nodeToAdd.type } );
+};
+
+export const assembleNewNode = ( variables ) => {
+	const { label, props, type } = variables;
+
+	const newId = generateLocalUUID();
+	let newNode = {
+		id: newId,
+		label,
+		type,
+		connectedTo: [],
+		Links: [],
+		...props,
+		created: true,
+		edited: false,
+		deleted: false,
+		__typename: 'Node',
+	};
+	setNodeImage( newNode );
+	return newNode;
+};
+
+export const updateNode = ( node, variables ) => {
+	const { props } = variables;
+	node = deepCopy( node );
+
+	for ( let prop in props ) {
+		if ( prop !== 'collapse' ) {
+			// collapse shouldn't count as a change that needs to be saved
+			node.edited = true;
+		}
+		node[prop] = props[prop];
+	}
+	setNodeImage( node );
+	return node;
 };

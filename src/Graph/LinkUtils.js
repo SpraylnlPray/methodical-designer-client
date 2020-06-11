@@ -1,7 +1,7 @@
 import { areBothHidden, isHidden } from './NodeUtils';
 import { LinkColors } from './Colors';
 import { ArrowShapes } from './Shapes';
-import { deepCopy } from '../utils';
+import { deepCopy, generateLocalUUID } from '../utils';
 
 export const modifyConnectedLink = ( link, nodeID ) => {
 	const isCircle = link.x.id === link.y.id;
@@ -134,7 +134,7 @@ export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
 };
 
 export const updateLink = ( variables, linkToEdit ) => {
-	let { id, props, seq: sequence, x_end, y_end } = variables;
+	let { props, seq: sequence, x_end, y_end } = variables;
 	const { label, type, x_id, y_id, optional, story } = props;
 	const x = { id: x_id };
 	const y = { id: y_id };
@@ -155,4 +155,32 @@ export const updateLink = ( variables, linkToEdit ) => {
 	linkToEdit.to = y_id;
 	linkToEdit.__typename = 'Link';
 	return linkToEdit;
+};
+
+export const assembleNewLink = ( variables ) => {
+	const { label, type, x_id, y_id, props, seq, x_end, y_end } = variables;
+	const { optional, story } = props;
+	const x = { id: x_id };
+	const y = { id: y_id };
+	const newId = generateLocalUUID();
+	let newLink = {
+		id: newId,
+		label,
+		type,
+		x,
+		y,
+		name: label,
+		from: x.id,
+		to: y.id,
+		optional,
+		story,
+		x_end,
+		y_end,
+		sequence: seq,
+		created: true,
+		edited: false,
+		__typename: 'Link',
+	};
+	setLinkDisplayProps( newLink, x_end, y_end );
+	return newLink;
 };
