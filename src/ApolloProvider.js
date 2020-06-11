@@ -5,7 +5,9 @@ import { addLogMessage, deepCopy, generateLocalUUID, getDuplicates } from './uti
 import {
 	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink,
 } from './Graph/LinkUtils';
-import { setNodeImage, handleConnectedNodes } from './Graph/NodeUtils';
+import {
+	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo,
+} from './Graph/NodeUtils';
 import { CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import rules from './Graph/Rules';
@@ -261,17 +263,11 @@ const client = new ApolloClient( {
 					// get the x and y node of the link
 					const xNode = nodesCopy.find( node => node.id === newLink.x.id );
 					const yNode = nodesCopy.find( node => node.id === newLink.y.id );
-					for ( let node of nodesCopy ) {
-						// for the two nodes, save the new link in the Links list and the other node in their connectedTo list
-						if ( node.id === newLink.x.id ) {
-							node.Links.push( { __typename: 'Link', id: newLink.id, type: newLink.type } );
-							node.connectedTo.push( { __typename: 'Node', id: yNode.id, type: yNode.type } );
-						}
-						else if ( node.id === newLink.y.id ) {
-							node.Links.push( { __typename: 'Link', id: newLink.id, type: newLink.type } );
-							node.connectedTo.push( { __typename: 'Node', id: xNode.id, type: xNode.type } );
-						}
-					}
+					// for the two nodes, save the new link in the Links list and the other node in their connectedTo list
+					addLinkToLinks( xNode, newLink );
+					addNodeToConnTo( xNode, yNode );
+					addLinkToLinks( yNode, newLink );
+					addNodeToConnTo( yNode, xNode );
 					// get their connected links
 					const connectedLinkIDs = [];
 					xNode.Links.map( link => connectedLinkIDs.push( link.id ) );
@@ -324,58 +320,29 @@ const client = new ApolloClient( {
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 					const nodesCopy = deepCopy( Nodes );
+					const linksCopy = deepCopy( Links );
 					// get old nodeIDs
-					let linkToEdit = Links.find( link => link.id === variables.id );
-					const oldXID = linkToEdit.x.id;
-					const oldYID = linkToEdit.y.id;
+					let linkToEdit = linksCopy.find( link => link.id === variables.id );
+					const oldXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
+					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 					// update link
 					linkToEdit = updateLink( variables, linkToEdit );
 					// get new nodeIDs
-					const newXID = linkToEdit.x.id;
-					const newYID = linkToEdit.y.id;
-					// go through all nodes
-					for ( let node of nodesCopy ) {
-						// from the old X node
-						if ( node.id === oldXID ) {
-							// remove the link from Links
-							const linkIDs = node.Links.map( aLink => aLink.id );
-							const indexLink = linkIDs.indexOf( linkToEdit.id );
-							node.Links.splice( indexLink, 1 );
-							// remove the old Y from connectedTo
-							const connToIDs = node.connectedTo.map( aNode => aNode.id );
-							const indexNode = connToIDs.indexOf( oldYID );
-							node.connectedTo.splice( indexNode, 1 );
-						}
-						// from the old Y node
-						if ( node.id === oldYID ) {
-							// remove the link from Links
-							const linkIDs = node.Links.map( aLink => aLink.id );
-							const indexLink = linkIDs.indexOf( linkToEdit.id );
-							node.Links.splice( indexLink, 1 );
-							// remove the old X from connectedTo
-							const connToIDs = node.connectedTo.map( aNode => aNode.id );
-							const indexNode = connToIDs.indexOf( oldXID );
-							node.connectedTo.splice( indexNode, 1 );
-						}
-						// in the new X node
-						if ( node.id === newXID ) {
-							// add the link to Links
-							node.Links.push( { __typename: 'Link', id: linkToEdit.id, type: linkToEdit.type } );
-							// add the new Y to connectedTo
-							const newYNode = Nodes.find( aNode => aNode.id === newYID );
-							node.connectedTo.push( { __typename: 'Node', id: newYNode.id, type: newYNode.type } );
-						}
-						// in the new Y node, add the link to Links and add the new X to connectedTo
-						if ( node.id === newYID ) {
-							// add the link to Links
-							node.Links.push( { __typename: 'Link', id: linkToEdit.id, type: linkToEdit.type } );
-							// add the new Y to connectedTo
-							const newXNode = Nodes.find( aNode => aNode.id === newXID );
-							node.connectedTo.push( { __typename: 'Node', id: newXNode.id, type: newXNode.type } );
-						}
-					}
+					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
+					const newYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 
-					const newLinks = Links.filter( link => link.id !== linkToEdit.id );
+					// on the old nodes, remove the link from links and remove the respective other node form connectedTo
+					removeLinkFromLinks( oldXNode, linkToEdit );
+					removeNodeFromConnTo( oldXNode, oldYNode );
+					removeLinkFromLinks( oldYNode, linkToEdit );
+					removeNodeFromConnTo( oldYNode, oldXNode );
+					// on the new nodes, add the link to links and add the respective other node to connectedTo
+					addLinkToLinks( newXNode, linkToEdit );
+					addNodeToConnTo( newXNode, newYNode );
+					addLinkToLinks( newYNode, linkToEdit );
+					addNodeToConnTo( newYNode, newXNode );
+
+					const newLinks = linksCopy.filter( link => link.id !== linkToEdit.id );
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: newLinks.concat( linkToEdit ) },
@@ -441,22 +408,13 @@ const client = new ApolloClient( {
 					const x_id = linkToDelete.x.id;
 					const y_id = linkToDelete.y.id;
 
-					let xNode = deepCopy( Nodes.find( aNode => aNode.id === x_id ));
-					let yNode = deepCopy( Nodes.find( aNode => aNode.id === y_id ));
+					let xNode = deepCopy( Nodes.find( aNode => aNode.id === x_id ) );
+					let yNode = deepCopy( Nodes.find( aNode => aNode.id === y_id ) );
 
-					let linkIDs = xNode.Links.map( aLink => aLink.id );
-					let indexLink = linkIDs.indexOf( linkToDelete.id );
-					xNode.Links.splice( indexLink, 1 );
-					let connToIDs = xNode.connectedTo.map( aNode => aNode.id );
-					let indexNode = connToIDs.indexOf( yNode.id );
-					xNode.connectedTo.splice( indexNode, 1 );
-
-					linkIDs = yNode.Links.map( aLink => aLink.id );
-					indexLink = linkIDs.indexOf( linkToDelete.id );
-					yNode.Links.splice( indexLink, 1 );
-					connToIDs = yNode.connectedTo.map( aNode => aNode.id );
-					indexNode = connToIDs.indexOf( xNode.id );
-					yNode.connectedTo.splice( indexNode, 1 );
+					removeLinkFromLinks( xNode, linkToDelete );
+					removeNodeFromConnTo( xNode, yNode );
+					removeLinkFromLinks( yNode, linkToDelete );
+					removeNodeFromConnTo( yNode, xNode );
 
 					const newNodes = Nodes.filter( aNode => aNode.id !== x_id && aNode.id !== y_id );
 

@@ -97,3 +97,23 @@ export const coordsExist = ( coord, coords ) => {
 	}
 	return false;
 };
+
+export const removeLinkFromLinks = ( node, link ) => {
+	let linkIDs = node.Links.map( aLink => aLink.id );
+	let indexLink = linkIDs.indexOf( link.id );
+	node.Links.splice( indexLink, 1 );
+};
+
+export const removeNodeFromConnTo = ( node, nodeToRemove ) => {
+	let connToIDs = node.connectedTo.map( aNode => aNode.id );
+	let indexNode = connToIDs.indexOf( nodeToRemove.id );
+	node.connectedTo.splice( indexNode, 1 );
+};
+
+export const addLinkToLinks = ( node, link ) => {
+	node.Links.push( { __typename: 'Link', id: link.id, type: link.type } );
+};
+
+export const addNodeToConnTo = ( node, nodeToAdd ) => {
+	node.connectedTo.push( { __typename: 'Node', id: nodeToAdd.id, type: nodeToAdd.type } );
+};
