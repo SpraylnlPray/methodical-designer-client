@@ -7,13 +7,13 @@ import {
 } from './Graph/LinkUtils';
 import {
 	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo, assembleNewNode,
-	updateNode,
+	updateNode, isCollapsable, hasCoordinates, insertConnected,
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import rules from './Graph/Rules';
+import rules, { CollapsableRule, FlowerRule, FlowerRule2 } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -130,11 +130,56 @@ const client = new ApolloClient( {
 						node.deleted = false;
 						setNodeImage( node );
 					}
+					const networkData = [];
+
+					for ( let node of nodesCopy ) {
+						node.checkedBy = [];
+						CollapsableRule( node, nodesCopy, client );
+						if ( isCollapsable( node ) ) {
+							networkData.push( node );
+						}
+					}
+
+					const level = 1;
+					for ( let collapsable of networkData ) {
+						// this will hold id and level of all connected nodes
+						collapsable.contains = [];
+						insertConnected( collapsable, collapsable, nodesCopy, level );
+						// // get all connected nodes
+						// const connectedNodeIDs = node.connectedTo.map( aNode => aNode.id );
+						// // get their references, only if they do not have coordinates yet
+						// for ( let ID of connectedNodeIDs ) {
+						// 	const ref = nodesCopy.find( aNode => aNode.id === ID );
+						// 	if ( !isCollapsable( ref ) ) {
+						// 		ref.level = level;
+						// 		ref.collapsableID = node.id;
+						// 		node[level].push( ref );
+						// 	}
+						// }
+					}
+
+					debugger
+					for ( let collapsable of networkData ) {
+						for ( let level = 1; ; level++ ) {
+							if ( collapsable[level] ) {
+								debugger
+								FlowerRule2( nodesCopy, collapsable[level], level, client );
+							}
+							else {
+								break;
+							}
+						}
+					}
+
+					debugger
+					for ( let node of nodesCopy ) {
+						// FlowerRule( node, nodesCopy, client );
+					}
 
 					try {
 						for ( let rule of rules ) {
 							for ( let node of nodesCopy ) {
-								rule( node, nodesCopy, client );
+								// rule( node, nodesCopy, client );
 							}
 						}
 					}

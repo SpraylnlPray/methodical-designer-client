@@ -67,3 +67,12 @@ export const getDuplicates = ( list ) => {
 	}, [] );
 	return newList;
 };
+
+export const normalizeVector = ( vec ) => {
+	const magnitude = vectorMagnitude( vec );
+	return { x: vec.x / magnitude, y: vec.y / magnitude };
+};
+
+export const vectorMagnitude = ( vec ) => {
+	return Math.sqrt( vec.x * vec.x + vec.y * vec.y );
+};

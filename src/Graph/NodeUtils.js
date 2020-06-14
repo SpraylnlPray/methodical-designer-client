@@ -153,3 +153,92 @@ export const updateNode = ( node, variables ) => {
 	setNodeImage( node );
 	return node;
 };
+
+export const insertConnected = ( node, collapsable, nodes, level ) => {
+	try {
+		if ( !collapsable[level] ) {
+			collapsable[level] = [];
+		}
+		// get all connected nodes
+		const connectedNodes = node.connectedTo.filter( aNode => {
+			if ( !isCollapsable( aNode ) ) {
+				const ref = nodes.find( bNode => bNode.id === aNode.id );
+				if ( !ref.checkedBy.includes( collapsable.id ) ) {
+					return true;
+				}
+			}
+			return false;
+		} );
+		let connectedNodeIDs = connectedNodes.map( aNode => aNode.id );
+		const distinctIDs = Array.from( new Set( connectedNodeIDs ) );
+		// get their reference
+		for ( let ID of distinctIDs ) {
+			const ref = nodes.find( aNode => aNode.id === ID );
+			if ( !ref.collapsableIDs ) {
+				// under which node(s) it should be, is an array because it can be multiple arrays if there are multiple connections
+				ref.collapsableIDs = [];
+			}
+			if ( !ref.checkedBy ) {
+				// contains the containers which have already checked this node
+				ref.checkedBy = [];
+			}
+			// if the ref hasn't been checked by this collapsable, mark it as checked
+			if ( !ref.checkedBy.includes( collapsable.id ) ) {
+				ref.checkedBy.push( collapsable.id );
+				if ( !isCollapsable( ref ) ) {
+					// if the node has not been added to any level, save it
+					if ( !ref.level ) {
+						ref.level = level;
+						ref.parentID = node.id;
+						ref.collapsableIDs.push( collapsable.id );
+						collapsable[level].push( ref );
+						collapsable.contains.push( { id: ref.id, level } );
+					}
+					else if ( level < ref.level ) {
+						// check through all other collapsables if the "contains" property contains the link of this ref
+						for ( let node2 of nodes ) {
+							if ( isCollapsable( node2 ) && node2.contains ) {
+								const containsIDs = node2.contains.map( conNode => conNode.id );
+								if ( containsIDs.includes( ref.id ) ) {
+									// go to the level, remove the reference, then remove the reference from "contains"
+									const containsData = node2.contains.find( conNode => conNode.id === ref.id );
+									const { level } = containsData;
+									// remove the reference from the level
+									const levelIDs = node2[level].map( conNode => conNode.id );
+									const levelIndex = levelIDs.indexOf( ref.id );
+									node2[level].splice( levelIndex, 1 );
+									// remove the reference from the "contains" property
+									const indexData = containsIDs.indexOf( ref.id );
+									node2.contains.splice( indexData, 1 );
+								}
+							}
+						}
+						// then set the new level of the node
+						ref.level = level;
+						ref.collapsableIDs = [ collapsable.id ];
+						ref.parentID = node.id;
+						// and add the ref to the current collapsable
+						collapsable[level].push( ref );
+						collapsable.contains.push( { id: ref.id, level } );
+					}
+					// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
+					else if ( level === ref.level && !ref.collapsableIDs.includes( collapsable.id ) ) {
+						ref.double = true;
+						ref.collapsableIDs.push( collapsable.id );
+						ref.parentID = node.id;
+						collapsable[level].push( ref );
+						collapsable.contains.push( { id: ref.id, level } );
+					}
+				}
+			}
+		}
+		// go through the children and add their kids
+		for ( let ID of connectedNodeIDs ) {
+			const ref = nodes.find( aNode => aNode.id === ID );
+			insertConnected( ref, collapsable, nodes, level + 1 );
+		}
+	}
+	catch ( e ) {
+		console.log( 'error with node ' + node.label + ' collapsable ' + collapsable.label + ' level ' + level + ': ' + e.message );
+	}
+};
