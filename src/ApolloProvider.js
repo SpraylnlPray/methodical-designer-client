@@ -10,7 +10,7 @@ import {
 	assembleNewNode, updateNode, isCollapsable, insertConnected, saveChildren,
 } from './Graph/NodeUtils';
 import {
-	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, MOVE_NODE, NODES_DATA, NODES_WITH_TAGS,
+	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 	MOVE_NODE_DATA,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';

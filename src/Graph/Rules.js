@@ -32,6 +32,7 @@ export const CollapsableRule = ( node, nodes, client, minDist = 1000 ) => {
 	}
 };
 
+// eslint-disable-next-line
 const handleConnectedNodes = ( nodeWithCoord, nodes, client, minDistToParent = 150, minDistToEachOther = 100 ) => {
 	try {
 		// get the child nodes

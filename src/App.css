@@ -5,11 +5,11 @@
 
 .app {
     margin-top: 0 !important;
-    height: 950px;
+    height: 100vh;
 }
 
 .interaction-pane {
-    height: 870px;
+    height: 98.8%;
 }
 
 .margin-base {
@@ -17,11 +17,11 @@
 }
 
 .input-pane {
-    height: 800px;
+    height: 92.5%;
 }
 
 .editor-pane {
-    height: 870px;
+    height: 90.5vh;
 }
 
 .create-form {
@@ -33,7 +33,7 @@
 .create-group {
     display: flex;
     flex-wrap: wrap;
-    width: 410px;
+    width: 100%;
 }
 
 .create-required-input, .create-required-select, .create-props-input, .create-props-select {
