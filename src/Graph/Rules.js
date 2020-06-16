@@ -283,7 +283,7 @@ export const FlowerRule = ( node, nodes, client, distanceToContainer = 200 ) => 
 
 // todo: calculate new area depending on level and direction vector
 // todo: adapt distance to each other according to level
-export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 300, minDist = 100 ) => {
+export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 350, minDist = 150 ) => {
 	try {
 		const { children } = parent;
 		if ( children ) {
