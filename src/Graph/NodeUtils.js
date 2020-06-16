@@ -255,7 +255,7 @@ export const toRad = ( angle ) => {
 	return angle * Math.PI / 180;
 };
 
-export const saveChildren = (node, nodes) => {
+export const saveChildren = ( node, nodes ) => {
 	for ( let level = 1; ; level++ ) {
 		if ( node[level] ) {
 			for ( let childNode of node[level] ) {
@@ -271,4 +271,14 @@ export const saveChildren = (node, nodes) => {
 			break;
 		}
 	}
-}
+};
+
+export const clamp = ( val, min, max ) => {
+	if ( val > max ) {
+		val = max;
+	}
+	if ( val < min ) {
+		val = min;
+	}
+	return val;
+};

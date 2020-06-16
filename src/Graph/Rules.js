@@ -1,5 +1,6 @@
 import {
 	hasCoordinates, getExistingCoordinatesFor, hasPartOfLinks, isCollapsable, coordsExist, rotateVector, toRad, insertConnected, saveChildren,
+	clamp,
 } from './NodeUtils';
 import { addLogMessage, normalizeVector, vectorMagnitude } from '../utils';
 
@@ -282,7 +283,7 @@ export const FlowerRule = ( node, nodes, client, distanceToContainer = 200 ) => 
 
 // todo: calculate new area depending on level and direction vector
 // todo: adapt distance to each other according to level
-export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 300 ) => {
+export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 300, minDist = 100 ) => {
 	try {
 		const { children } = parent;
 		if ( children ) {
@@ -302,8 +303,8 @@ export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 300
 				}
 				const deltaRad = toRad( deltaAngle );
 				for ( let node of children ) {
-					const newX = parent.x + normalized.x * distanceToOther;
-					const newY = parent.y + normalized.y * distanceToOther;
+					const newX = parent.x + normalized.x * clamp( distanceToOther, minDist );
+					const newY = parent.y + normalized.y * clamp( distanceToOther, minDist );
 					node.x = newX;
 					node.y = newY;
 					// save the direction vector in the node to know where to orient the child vectors
@@ -327,8 +328,8 @@ export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 300
 				let normalized = normalizeVector( initVec );
 				let i = 1;
 				for ( let node of children ) {
-					const newX = parent.x + normalized.x * distanceToOther;
-					const newY = parent.y + normalized.y * distanceToOther;
+					const newX = parent.x + normalized.x * clamp( distanceToOther, minDist );
+					const newY = parent.y + normalized.y * clamp( distanceToOther, minDist );
 					node.x = newX;
 					node.y = newY;
 					node.dirVector = normalized;
