@@ -7,13 +7,13 @@ import {
 } from './Graph/LinkUtils';
 import {
 	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo, assembleNewNode,
-	updateNode, isCollapsable, hasCoordinates, insertConnected,
+	updateNode, isCollapsable, hasCoordinates, insertConnected, getExistingCoordinatesFor, coordsExist, saveChildren,
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import rules, { CollapsableRule, FlowerRule, FlowerRule2 } from './Graph/Rules';
+import rules, { CollapsableRule, FlowerRule, FlowerRule2, NonCollapsableRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -132,62 +132,35 @@ const client = new ApolloClient( {
 					}
 					const networkData = [];
 
-					for ( let node of nodesCopy ) {
-						node.checkedBy = [];
-						CollapsableRule( node, nodesCopy, client );
-						if ( isCollapsable( node ) ) {
-							networkData.push( node );
-						}
-					}
-
-					const level = 1;
-					for ( let collapsable of networkData ) {
-						// this will hold id and level of all connected nodes
-						collapsable.contains = [];
-						insertConnected( collapsable, collapsable, nodesCopy, level );
-					}
-					debugger
-					// save all the children of one node
-					for ( let collapsable of networkData ) {
-						for ( let level = 1; ; level++ ) {
-							if ( collapsable[level] ) {
-								for ( let node of collapsable[level] ) {
-									// debugger
-									const parent = nodesCopy.find( aNode => aNode.id === node.parentID );
-									if ( !parent.children ) {
-										parent.children = [];
-									}
-									parent.children.push( node );
-								}
-							}
-							else {
-								break;
-							}
-						}
-					}
-
-					debugger
-					for ( let collapsable of networkData ) {
-						const { children } = collapsable;
-						if ( children ) {
-							FlowerRule2( nodesCopy, collapsable, children, level, client );
-						}
-					}
-
-					debugger
-					for ( let node of nodesCopy ) {
-						// FlowerRule( node, nodesCopy, client );
-					}
-
 					try {
-						for ( let rule of rules ) {
-							for ( let node of nodesCopy ) {
-								// rule( node, nodesCopy, client );
+						for ( let node of nodesCopy ) {
+							node.checkedBy = [];
+							CollapsableRule( node, nodesCopy, client );
+							if ( isCollapsable( node ) ) {
+								networkData.push( node );
 							}
 						}
+
+						const level = 1;
+						for ( let collapsable of networkData ) {
+							// this will hold id and level of all connected nodes
+							collapsable.contains = [];
+							insertConnected( collapsable, collapsable, nodesCopy, level );
+						}
+
+						// save all the children of one node on itself
+						for ( let collapsable of networkData ) {
+							saveChildren( collapsable, nodesCopy );
+						}
+
+						for ( let collapsable of networkData ) {
+							FlowerRule2( nodesCopy, collapsable, level, client );
+						}
+
+						NonCollapsableRule( {}, nodesCopy, client );
 					}
 					catch ( e ) {
-						addLogMessage( client, 'Error when applying rules in setNodes: ' + e.message );
+						addLogMessage( client, 'Error when allocating nodes: ' + e.message );
 					}
 
 					cache.writeQuery( {
@@ -483,16 +456,39 @@ const client = new ApolloClient( {
 					node.x = undefined;
 					node.y = undefined;
 				}
+
+				const networkData = [];
 				try {
-					for ( let rule of rules ) {
-						for ( let node of nodesCopy ) {
-							rule( node, nodesCopy, client );
+					for ( let node of nodesCopy ) {
+						node.checkedBy = [];
+						CollapsableRule( node, nodesCopy, client );
+						if ( isCollapsable( node ) ) {
+							networkData.push( node );
 						}
 					}
+
+					const level = 1;
+					for ( let collapsable of networkData ) {
+						// this will hold id and level of all connected nodes
+						collapsable.contains = [];
+						insertConnected( collapsable, collapsable, nodesCopy, level );
+					}
+
+					// save all the children of one node on itself
+					for ( let collapsable of networkData ) {
+						saveChildren( collapsable, nodesCopy );
+					}
+
+					for ( let collapsable of networkData ) {
+						FlowerRule2( nodesCopy, collapsable, level, client );
+					}
+
+					NonCollapsableRule( {}, nodesCopy, client );
 				}
 				catch ( e ) {
-					addLogMessage( client, 'Error when applying rules in recalculateGraph: ' + e.message );
+					addLogMessage( client, 'Error when allocating nodes: ' + e.message );
 				}
+
 				cache.writeQuery( {
 					query: CALC_NODE_POSITION,
 					data: { Nodes: nodesCopy },

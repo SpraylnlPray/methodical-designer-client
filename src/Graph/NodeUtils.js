@@ -154,16 +154,16 @@ export const updateNode = ( node, variables ) => {
 	return node;
 };
 
-export const insertConnected = ( node, collapsable, nodes, level ) => {
+export const insertConnected = ( node, center, nodes, level ) => {
 	try {
-		if ( !collapsable[level] ) {
-			collapsable[level] = [];
+		if ( !center[level] ) {
+			center[level] = [];
 		}
 		// get all connected nodes
 		const connectedNodes = node.connectedTo.filter( aNode => {
-			if ( !isCollapsable( aNode ) ) {
+			if ( !isCollapsable( aNode ) && aNode.id !== center.id ) {
 				const ref = nodes.find( bNode => bNode.id === aNode.id );
-				if ( !ref.checkedBy.includes( collapsable.id ) ) {
+				if ( !ref.checkedBy.includes( center.id ) ) {
 					return true;
 				}
 			}
@@ -183,16 +183,16 @@ export const insertConnected = ( node, collapsable, nodes, level ) => {
 				ref.checkedBy = [];
 			}
 			// if the ref hasn't been checked by this collapsable, mark it as checked
-			if ( !ref.checkedBy.includes( collapsable.id ) ) {
-				ref.checkedBy.push( collapsable.id );
+			if ( !ref.checkedBy.includes( center.id ) ) {
+				ref.checkedBy.push( center.id );
 				if ( !isCollapsable( ref ) ) {
 					// if the node has not been added to any level, save it
 					if ( !ref.level ) {
 						ref.level = level;
 						ref.parentID = node.id;
-						ref.collapsableIDs.push( collapsable.id );
-						collapsable[level].push( ref );
-						collapsable.contains.push( { id: ref.id, level } );
+						ref.collapsableIDs.push( center.id );
+						center[level].push( ref );
+						center.contains.push( { id: ref.id, level } );
 					}
 					else if ( level < ref.level ) {
 						// check through all other collapsables if the "contains" property contains the link of this ref
@@ -215,20 +215,20 @@ export const insertConnected = ( node, collapsable, nodes, level ) => {
 						}
 						// then set the new level of the node
 						ref.level = level;
-						ref.collapsableIDs = [ collapsable.id ];
+						ref.collapsableIDs = [ center.id ];
 						ref.parentID = node.id;
 						// and add the ref to the current collapsable
-						collapsable[level].push( ref );
-						collapsable.contains.push( { id: ref.id, level } );
+						center[level].push( ref );
+						center.contains.push( { id: ref.id, level } );
 					}
 						// todo: check if this works and then apply it in rule!
 					// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
-					else if ( level === ref.level && !ref.collapsableIDs.includes( collapsable.id ) ) {
+					else if ( level === ref.level && !ref.collapsableIDs.includes( center.id ) ) {
 						ref.double = true;
-						ref.collapsableIDs.push( collapsable.id );
+						ref.collapsableIDs.push( center.id );
 						ref.parentID = node.id;
-						collapsable[level].push( ref );
-						collapsable.contains.push( { id: ref.id, level } );
+						center[level].push( ref );
+						center.contains.push( { id: ref.id, level } );
 					}
 				}
 			}
@@ -236,11 +236,11 @@ export const insertConnected = ( node, collapsable, nodes, level ) => {
 		// go through the children and add their kids
 		for ( let ID of connectedNodeIDs ) {
 			const ref = nodes.find( aNode => aNode.id === ID );
-			insertConnected( ref, collapsable, nodes, level + 1 );
+			insertConnected( ref, center, nodes, level + 1 );
 		}
 	}
 	catch ( e ) {
-		console.log( 'error with node ' + node.label + ' collapsable ' + collapsable.label + ' level ' + level + ': ' + e.message );
+		console.log( 'error with node ' + node.label + ' collapsable ' + center.label + ' level ' + level + ': ' + e.message );
 	}
 };
 
@@ -254,3 +254,21 @@ export const rotateVector = ( vec, angle ) => {
 export const toRad = ( angle ) => {
 	return angle * Math.PI / 180;
 };
+
+export const saveChildren = (node, nodes) => {
+	for ( let level = 1; ; level++ ) {
+		if ( node[level] ) {
+			for ( let childNode of node[level] ) {
+				// debugger
+				const parent = nodes.find( aNode => aNode.id === childNode.parentID );
+				if ( !parent.children ) {
+					parent.children = [];
+				}
+				parent.children.push( childNode );
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
