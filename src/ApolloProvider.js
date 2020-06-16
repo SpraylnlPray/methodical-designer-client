@@ -6,14 +6,14 @@ import {
 	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink, assembleNewLink,
 } from './Graph/LinkUtils';
 import {
-	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo, assembleNewNode,
-	updateNode, isCollapsable, hasCoordinates, insertConnected, getExistingCoordinatesFor, coordsExist, saveChildren,
+	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo,
+	assembleNewNode, updateNode, isCollapsable, insertConnected, saveChildren,
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import rules, { CollapsableRule, FlowerRule, FlowerRule2, NonCollapsableRule } from './Graph/Rules';
+import { CollapsableRule, FlowerRule2, NonCollapsableRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -156,7 +156,6 @@ const client = new ApolloClient( {
 						for ( let collapsable of networkData ) {
 							FlowerRule2( nodesCopy, collapsable, level, client );
 						}
-
 						NonCollapsableRule( {}, nodesCopy, client );
 					}
 					catch ( e ) {
@@ -218,20 +217,8 @@ const client = new ApolloClient( {
 					const newNode = assembleNewNode( variables );
 					setNodeImage( newNode );
 
-					if ( lastEditorAction.type ) {
-						newNode.x = lastEditorAction.position.x;
-						newNode.y = lastEditorAction.position.y;
-					}
-					else {
-						try {
-							for ( let rule of rules ) {
-								rule( newNode, Nodes );
-							}
-						}
-						catch ( e ) {
-							addLogMessage( client, 'Error when applying rules in addNode: ' + e.message );
-						}
-					}
+					newNode.x = lastEditorAction.position.x;
+					newNode.y = lastEditorAction.position.y;
 
 					const newNodes = Nodes.concat( newNode );
 					cache.writeQuery( {
@@ -306,6 +293,8 @@ const client = new ApolloClient( {
 					const linksCopy = deepCopy( Links );
 					// get old nodeIDs
 					let linkToEdit = linksCopy.find( link => link.id === variables.id );
+					// remove the link temporarily
+					let newLinks = linksCopy.filter( link => link.id !== linkToEdit.id );
 					const oldXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 					// update link
@@ -329,10 +318,10 @@ const client = new ApolloClient( {
 						addNodeToConnTo( newYNode, newXNode );
 					}
 
-					const newLinks = linksCopy.filter( link => link.id !== linkToEdit.id );
+					newLinks = newLinks.concat( linkToEdit );
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
-						data: { Links: newLinks.concat( linkToEdit ) },
+						data: { Links: newLinks },
 					} );
 					cache.writeQuery( {
 						query: NODES_DATA,

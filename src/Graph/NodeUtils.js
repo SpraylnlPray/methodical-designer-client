@@ -282,3 +282,13 @@ export const clamp = ( val, min, max ) => {
 	}
 	return val;
 };
+
+export const calcDistance = ( node ) => {
+	// the distance form its parent should depend on the amount of children a node has
+	// --> many children <-> big distance
+	let dist = 150;
+	if ( node.children ) {
+		dist = 100 + 50 * node.children.length;
+	}
+	return dist;
+};
