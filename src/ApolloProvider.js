@@ -145,29 +145,32 @@ const client = new ApolloClient( {
 						// this will hold id and level of all connected nodes
 						collapsable.contains = [];
 						insertConnected( collapsable, collapsable, nodesCopy, level );
-						// // get all connected nodes
-						// const connectedNodeIDs = node.connectedTo.map( aNode => aNode.id );
-						// // get their references, only if they do not have coordinates yet
-						// for ( let ID of connectedNodeIDs ) {
-						// 	const ref = nodesCopy.find( aNode => aNode.id === ID );
-						// 	if ( !isCollapsable( ref ) ) {
-						// 		ref.level = level;
-						// 		ref.collapsableID = node.id;
-						// 		node[level].push( ref );
-						// 	}
-						// }
 					}
-
 					debugger
+					// save all the children of one node
 					for ( let collapsable of networkData ) {
 						for ( let level = 1; ; level++ ) {
 							if ( collapsable[level] ) {
-								debugger
-								FlowerRule2( nodesCopy, collapsable[level], level, client );
+								for ( let node of collapsable[level] ) {
+									// debugger
+									const parent = nodesCopy.find( aNode => aNode.id === node.parentID );
+									if ( !parent.children ) {
+										parent.children = [];
+									}
+									parent.children.push( node );
+								}
 							}
 							else {
 								break;
 							}
+						}
+					}
+
+					debugger
+					for ( let collapsable of networkData ) {
+						const { children } = collapsable;
+						if ( children ) {
+							FlowerRule2( nodesCopy, collapsable, children, level, client );
 						}
 					}
 

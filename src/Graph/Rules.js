@@ -1,4 +1,4 @@
-import { hasCoordinates, getExistingCoordinatesFor, hasPartOfLinks, isCollapsable, coordsExist } from './NodeUtils';
+import { hasCoordinates, getExistingCoordinatesFor, hasPartOfLinks, isCollapsable, coordsExist, rotateVector, toRad } from './NodeUtils';
 import { addLogMessage, normalizeVector, vectorMagnitude } from '../utils';
 
 export const CollapsableRule = ( node, nodes, client, minDist = 800 ) => {
@@ -278,35 +278,64 @@ export const FlowerRule = ( node, nodes, client, distanceToContainer = 200 ) => 
 // todo: save direction vector of parent
 // todo: calculate new area depending on level and direction vector
 // todo: adapt distance to each other according to level
-export const FlowerRule2 = ( nodes, connectedNodes, level, client, distanceToOther = 200 ) => {
+export const FlowerRule2 = ( nodes, parent, childNodes, level, client, distanceToOther = 200 ) => {
 	try {
 		debugger
-		// all nodes connected to a collapsable, can be distributed 360° around it.
-		// to get a uniform distribution we need to divide this angle by the amount of connected nodes
-		let deltaAngle = 360 / connectedNodes.length;
-		// if there are just 2 nodes, reduce the angle as a connection between them might cover up labels
-		if ( connectedNodes.length === 2 ) {
-			deltaAngle = deltaAngle * 2 / 3;
+		if ( isCollapsable( parent ) ) {
+			// domains themselves rarely have other connections other than to their part-of nodes, so we start placing them on the top left
+			// and then go clockwise, placing one node each deltaAngle degrees
+			const initVec = { x: -1, y: -1 };
+			let normalized = normalizeVector( initVec );
+			let i = 1;
+			// all nodes connected to a collapsable, can be distributed 360° around it.
+			// to get a uniform distribution we need to divide this angle by the amount of connected nodes
+			let deltaAngle = 360 / childNodes.length;
+			// if there are just 2 nodes, reduce the angle as a connection between them might cover up labels
+			if ( childNodes.length === 2 ) {
+				deltaAngle = deltaAngle * 2 / 3;
+			}
+			const deltaRad = toRad( deltaAngle );
+			for ( let node of childNodes ) {
+				const newX = parent.x + normalized.x * distanceToOther;
+				const newY = parent.y + normalized.y * distanceToOther;
+				node.x = newX;
+				node.y = newY;
+				// save the direction vector in the node to know where to orient the child vectors
+				node.dirVector = normalized;
+				// after placing the node, calculate a new vector that is rotated i * delta rad
+				let newVec = rotateVector( initVec, i * deltaRad );
+				normalized = normalizeVector( newVec );
+				i++;
+			}
 		}
-		const deltaRad = deltaAngle * Math.PI / 180;
-		// domains themselves rarely have other connections other than to their part-of nodes, so we start placing them on the top left
-		// and then go clockwise, placing one node each deltaAngle degrees
-		let vec = { x: -1, y: -1 };
-		let normalized = normalizeVector( vec );
-		let i = 1;
-		for ( let node of connectedNodes ) {
-			const parent = nodes.find( aNode => aNode.id === node.parentID );
-			const newX = parent.x + normalized.x * distanceToOther;
-			const newY = parent.y + normalized.y * distanceToOther;
-			node.x = newX;
-			node.y = newY;
-			// after placing the node, calculate a new vector that is rotated i * delta rad
-			let newVec = {
-				x: vec.x * Math.cos( i * deltaRad ) - vec.y * Math.sin( i * deltaRad ),
-				y: vec.y * Math.cos( i * deltaRad ) + vec.x * Math.sin( i * deltaRad ),
-			};
-			normalized = normalizeVector( newVec );
-			i++;
+			// otherwise the parent node will have a dirVector property
+			// nodes can be allocated +-90° around this direction vector
+			// rotate the vector by -90°, get the amount of child nodes and divide 180° by this number
+		// then rotate the vector once by the delta angle (in rad) / 2 and from here on place the first node each delta angle degrees
+		else {
+			const { dirVector } = parent;
+			const zeroVec = rotateVector( dirVector, toRad( -90 ) );
+			const deltaAngle = 180 / childNodes.length;
+			const deltaRad = toRad( deltaAngle );
+			const initVec = rotateVector( zeroVec, deltaRad / 2 );
+			let normalized = normalizeVector( initVec );
+			let i = 1;
+			for ( let node of childNodes ) {
+				const newX = parent.x + normalized.x * distanceToOther;
+				const newY = parent.y + normalized.y * distanceToOther;
+				node.x = newX;
+				node.y = newY;
+				node.dirVector = normalized;
+				let newVec = rotateVector( initVec, i * deltaRad );
+				normalized = normalizeVector( newVec );
+				i++;
+			}
+		}
+		for ( let node of childNodes ) {
+			const { children } = node;
+			if ( children ) {
+				FlowerRule2( nodes, node, children, level + 1, client );
+			}
 		}
 	}
 	catch ( e ) {
