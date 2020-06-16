@@ -74,7 +74,6 @@ const EditLink = ( { activeItem, client } ) => {
 				.catch( e => addLogMessage( client, `Failed when editing link: ` + e.message ) );
 		}
 		else {
-			console.log( 'Must provide required inputs!' );
 			alert( 'Must provide required inputs!' );
 		}
 	};

@@ -16,6 +16,14 @@ const withLocalDataAccess = ( Component ) => {
 			onError: err => addLogMessage( client, 'Error when getting editing rights: ' + err.message ),
 		} );
 
+		const getMovedNodes = () => {
+			if ( localNodeData ) {
+				const { Nodes } = localNodeData;
+				return Nodes.filter( aNode => aNode.moved );
+			}
+			return [];
+		};
+
 		const getCreatedNodes = () => {
 			const { Nodes } = localNodeData;
 			return Nodes.filter( node => node.created );
@@ -67,7 +75,7 @@ const withLocalDataAccess = ( Component ) => {
 			<Component props={ props } hasUnsavedLocalChanges={ hasUnsavedLocalChanges } getDeletedLinks={ getDeletedLinks }
 								 getDeletedNodes={ getDeletedNodes } getEditedLinks={ getEditedLinks }
 								 getCreatedLinks={ getCreatedLinks } getEditedNodes={ getEditedNodes }
-								 getCreatedNodes={ getCreatedNodes } editingData={ editingData }/>
+								 getCreatedNodes={ getCreatedNodes } editingData={ editingData } getMovedNodes={ getMovedNodes }/>
 		);
 	};
 };

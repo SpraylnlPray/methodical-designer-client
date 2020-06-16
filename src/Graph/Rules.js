@@ -101,10 +101,10 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, client, minDistToE
 						node.x = newCoords.x;
 						node.y = newCoords.y;
 						node.contains = [];
-						insertConnected( node, node, nodes, 1 );
+						insertConnected( node, node, nodes, 1, client );
 						saveChildren( node, nodes );
 						// handle all nodes connected to this one
-						FlowerRule2( nodes, node, 1, client );
+						FlowerRule( nodes, node, 1, client );
 						break loop1;
 					}
 				}
@@ -120,7 +120,7 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, client, minDistToE
 	}
 };
 
-export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 350, minDist = 150 ) => {
+export const FlowerRule = ( nodes, parent, level, client, distanceToOther = 350, minDist = 150 ) => {
 	try {
 		const { children } = parent;
 		if ( children ) {
@@ -179,7 +179,7 @@ export const FlowerRule2 = ( nodes, parent, level, client, distanceToOther = 350
 			}
 			// now handle the children of each child
 			for ( let node of children ) {
-				FlowerRule2( nodes, node, level + 1, client, distanceToOther * 2 / 3 );
+				FlowerRule( nodes, node, level + 1, client, distanceToOther * 2 / 3 );
 			}
 		}
 	}

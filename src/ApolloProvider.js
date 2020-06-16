@@ -10,10 +10,11 @@ import {
 	assembleNewNode, updateNode, isCollapsable, insertConnected, saveChildren,
 } from './Graph/NodeUtils';
 import {
-	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
+	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, MOVE_NODE, NODES_DATA, NODES_WITH_TAGS,
+	MOVE_NODE_DATA,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule, FlowerRule2, NonCollapsableRule } from './Graph/Rules';
+import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -63,6 +64,9 @@ const cache = new InMemoryCache( {
 				},
 				shape( existingData ) {
 					return existingData || '';
+				},
+				moved( existingData ) {
+					return existingData || false;
 				},
 			},
 		},
@@ -145,7 +149,7 @@ const client = new ApolloClient( {
 						for ( let collapsable of networkData ) {
 							// this will hold id and level of all connected nodes
 							collapsable.contains = [];
-							insertConnected( collapsable, collapsable, nodesCopy, level );
+							insertConnected( collapsable, collapsable, nodesCopy, level, client );
 						}
 
 						// save all the children of one node on itself
@@ -154,7 +158,7 @@ const client = new ApolloClient( {
 						}
 
 						for ( let collapsable of networkData ) {
-							FlowerRule2( nodesCopy, collapsable, level, client );
+							FlowerRule( nodesCopy, collapsable, level, client );
 						}
 						NonCollapsableRule( {}, nodesCopy, client );
 					}
@@ -444,6 +448,7 @@ const client = new ApolloClient( {
 				for ( let node of nodesCopy ) {
 					node.x = undefined;
 					node.y = undefined;
+					node.moved = false;
 				}
 
 				const networkData = [];
@@ -460,7 +465,7 @@ const client = new ApolloClient( {
 					for ( let collapsable of networkData ) {
 						// this will hold id and level of all connected nodes
 						collapsable.contains = [];
-						insertConnected( collapsable, collapsable, nodesCopy, level );
+						insertConnected( collapsable, collapsable, nodesCopy, level, client );
 					}
 
 					// save all the children of one node on itself
@@ -469,7 +474,7 @@ const client = new ApolloClient( {
 					}
 
 					for ( let collapsable of networkData ) {
-						FlowerRule2( nodesCopy, collapsable, level, client );
+						FlowerRule( nodesCopy, collapsable, level, client );
 					}
 
 					NonCollapsableRule( {}, nodesCopy, client );
@@ -482,6 +487,24 @@ const client = new ApolloClient( {
 					query: CALC_NODE_POSITION,
 					data: { Nodes: nodesCopy },
 				} );
+			},
+			moveNode: ( _root, variables, { cache, client } ) => {
+				try {
+					const { id, x, y } = variables;
+					const { Nodes } = cache.readQuery( { query: MOVE_NODE_DATA } );
+					const nodesCopy = deepCopy( Nodes );
+					const movedNode = nodesCopy.find( aNode => aNode.id === id );
+					movedNode.x = x;
+					movedNode.y = y;
+					movedNode.moved = true;
+					cache.writeQuery( {
+						query: MOVE_NODE_DATA,
+						data: { Nodes: nodesCopy },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when moving node: ' + e.message );
+				}
 			},
 		},
 	},

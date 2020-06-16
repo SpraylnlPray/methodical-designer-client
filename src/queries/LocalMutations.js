@@ -60,3 +60,9 @@ export const RECALCULATE_GRAPH = gql`
     recalculateGraph @client
   }
 `;
+
+export const MOVE_NODE = gql`
+  mutation MoveNode($id: ID!, $x: Float!, $y: Float!) {
+    moveNode(id: $id, x: $x, y: $y) @client
+  }
+`;

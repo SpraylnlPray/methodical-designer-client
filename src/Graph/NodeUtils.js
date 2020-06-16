@@ -1,7 +1,7 @@
 import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
-import { deepCopy, generateLocalUUID } from '../utils';
+import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
 
 export const areBothHidden = ( node1, node2 ) => {
 	return isHidden( node1 ) && isHidden( node2 );
@@ -154,7 +154,7 @@ export const updateNode = ( node, variables ) => {
 	return node;
 };
 
-export const insertConnected = ( node, center, nodes, level ) => {
+export const insertConnected = ( node, center, nodes, level, client ) => {
 	try {
 		if ( !center[level] ) {
 			center[level] = [];
@@ -236,11 +236,11 @@ export const insertConnected = ( node, center, nodes, level ) => {
 		// go through the children and add their kids
 		for ( let ID of connectedNodeIDs ) {
 			const ref = nodes.find( aNode => aNode.id === ID );
-			insertConnected( ref, center, nodes, level + 1 );
+			insertConnected( ref, center, nodes, level + 1, client );
 		}
 	}
 	catch ( e ) {
-		console.log( 'error with node ' + node.label + ' collapsable ' + center.label + ' level ' + level + ': ' + e.message );
+		addLogMessage( client, 'error with node ' + node.label + ' collapsable ' + center.label + ' level ' + level + ': ' + e.message );
 	}
 };
 

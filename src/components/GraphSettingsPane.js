@@ -3,10 +3,16 @@ import { Button } from 'semantic-ui-react';
 import { useApolloClient, useMutation } from '@apollo/client';
 import { RECALCULATE_GRAPH } from '../queries/LocalMutations';
 import { addLogMessage } from '../utils';
+import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
-const GraphSettingsPane = () => {
+const GraphSettingsPane = ( { getMovedNodes } ) => {
 	const client = useApolloClient();
 	const [ runRecalculateGraph ] = useMutation( RECALCULATE_GRAPH );
+
+	const isButtonDisabled = () => {
+		const data = getMovedNodes();
+		return data.length === 0;
+	};
 
 	const handleClick = ( e ) => {
 		e.preventDefault();
@@ -17,9 +23,9 @@ const GraphSettingsPane = () => {
 
 	return (
 		<div className='margin-base'>
-			<Button color='blue' onClick={ handleClick }>Re-calculate Graph</Button>
+			<Button disabled={ isButtonDisabled() } color='blue' onClick={ handleClick }>Re-calculate Graph</Button>
 		</div>
 	);
 };
 
-export default GraphSettingsPane;
+export default withLocalDataAccess( GraphSettingsPane );

@@ -108,6 +108,7 @@ export const NODES_WITH_TAGS = gql`
       deleted
       image
       shape
+      moved
     }
   }
 `;
@@ -230,6 +231,7 @@ export const CALC_NODE_POSITION = gql`
     Nodes @client {
       id
       type
+      moved
       x
       y
       connectedTo {
@@ -250,5 +252,16 @@ export const CALC_NODE_POSITION = gql`
 export const EDITING_RIGHTS = gql`
   query {
     hasEditRights @client
+  }
+`;
+
+export const MOVE_NODE_DATA = gql`
+  query {
+    Nodes @client {
+      id
+      x
+      y
+      moved
+    }
   }
 `;

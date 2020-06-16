@@ -1,9 +1,10 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
-import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
-import { useApolloClient, useQuery } from '@apollo/client';
-import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
+import { addLogMessage, deepCopy, setActiveItem, setLastEditorAction } from '../utils';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client';
+import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, MOVE_NODE_DATA } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
+import { MOVE_NODE } from '../queries/LocalMutations';
 
 const EditorPane = () => {
 	const client = useApolloClient();
@@ -13,6 +14,9 @@ const EditorPane = () => {
 	} );
 	const { data: linkData } = useQuery( EDITOR_LINK_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local links: ` + error.message ),
+	} );
+	const [ moveNode ] = useMutation( MOVE_NODE, {
+		onError: error => addLogMessage( client, 'Error when moving node: ' + error.message ),
 	} );
 
 	let graph = {
@@ -43,6 +47,9 @@ const EditorPane = () => {
 			const { nodes, pointer } = event;
 			if ( nodes.length === 0 ) {
 				setLastEditorAction( client, 'drag', pointer.canvas.x, pointer.canvas.y );
+			}
+			else if ( nodes.length > 0 ) {
+				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } );
 			}
 		},
 		click: function handleEditorClick( event ) {
