@@ -66,3 +66,15 @@ export const MOVE_NODE = gql`
     moveNode(id: $id, x: $x, y: $y) @client
   }
 `;
+
+export const SEARCH_NODE_BY_LABEL = gql`
+  mutation SearchNodeByLabel($searchString: String!) {
+    searchNodeByLabel(searchString: $searchString) @client
+  }
+`;
+
+export const SET_NODE_LABEL_FILTER = gql`
+  mutation SetNodeLabelFilter($string: String!) {
+    setNodeLabelFilter(string: $string) @client
+  }
+`;

@@ -265,3 +265,20 @@ export const MOVE_NODE_DATA = gql`
     }
   }
 `;
+
+export const NODES_HIDE_DATA = gql`
+  query {
+    Nodes @client {
+      id
+      label
+      hidden
+      hiddenBy
+    }
+  }
+`;
+
+export const SEARCH_NODE_LABEL_FILTER = gql`
+  query {
+    searchNodeLabelFilter @client
+  }
+`;

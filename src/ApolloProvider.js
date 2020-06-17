@@ -11,7 +11,7 @@ import {
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
-	MOVE_NODE_DATA,
+	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Graph/Rules';
@@ -325,7 +325,7 @@ const client = new ApolloClient( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: newLinks },
 					} );
-					
+
 					cache.writeQuery( {
 						query: NODES_DATA,
 						data: { Nodes: nodesCopy },
@@ -505,6 +505,62 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when moving node: ' + e.message );
 				}
 			},
+
+			setNodeLabelFilter: ( _root, variables, { cache, client } ) => {
+				try {
+					const { string } = variables;
+					cache.writeQuery( {
+						query: SEARCH_NODE_LABEL_FILTER,
+						data: { searchNodeLabelFilter: string },
+					} );
+					return string;
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when setting node label filter: ' + e.message );
+				}
+			},
+			searchNodeByLabel: ( _root, variables, { cache, client } ) => {
+				try {
+					const { Nodes } = cache.readQuery( { query: NODES_HIDE_DATA } );
+					const { searchString } = variables;
+					const nodesCopy = deepCopy( Nodes );
+					if ( searchString.length > 0 ) {
+						for ( let node of nodesCopy ) {
+							// if the label of a node does not contain the search string
+							if ( !node.label.includes( searchString ) ) {
+								// if it is not hidden, hide it
+								if ( !node.hidden ) {
+									node.hidden = true;
+									node.hiddenBy = 'filter';
+								}
+							}
+							// if the label contains the search string and the node was previously hidden by a filter, make it visible
+							else if ( node.hiddenBy === 'filter' ) {
+								node.hidden = false;
+								node.hiddenBy = '';
+							}
+						}
+					}
+					else {
+						nodesCopy.forEach( aNode => {
+							// if the node was previously hidden by a filter, unhide it
+							if ( aNode.hiddenBy === 'filter' ) {
+								aNode.hidden = false;
+								aNode.hiddenBy = '';
+							}
+							return aNode;
+						} );
+					}
+
+					cache.writeQuery( {
+						query: NODES_HIDE_DATA,
+						data: { Nodes: nodesCopy },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when searching for node by label: ' + e.message );
+				}
+			},
 		},
 	},
 } );
@@ -514,6 +570,7 @@ cache.writeQuery( {
     query {
       logMessages
       hasEditRights
+      searchNodeLabelFilter
       activeItem {
         itemId
         itemType
@@ -530,6 +587,7 @@ cache.writeQuery( {
 	data: {
 		logMessages: [],
 		hasEditRights: false,
+		searchNodeLabelFilter: '',
 		activeItem: {
 			itemId: 'app',
 			itemType: 'app',

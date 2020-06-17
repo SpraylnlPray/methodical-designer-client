@@ -181,3 +181,8 @@
 .ui.form .field {
     margin-bottom: 0;
 }
+
+.graph-settings-pane-margin {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
