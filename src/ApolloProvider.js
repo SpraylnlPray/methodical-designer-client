@@ -294,39 +294,38 @@ const client = new ApolloClient( {
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 					const nodesCopy = deepCopy( Nodes );
-					const linksCopy = deepCopy( Links );
-					// get old nodeIDs
-					let linkToEdit = linksCopy.find( link => link.id === variables.id );
+					let linkToEdit = Links.find( link => link.id === variables.id );
 					// remove the link temporarily
-					let newLinks = linksCopy.filter( link => link.id !== linkToEdit.id );
+					let newLinks = Links.filter( link => link.id !== linkToEdit.id );
+					// get old nodeIDs
 					const oldXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 					// update link
+					// debugger
 					linkToEdit = updateLink( variables, linkToEdit );
 					// get new nodeIDs
 					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const newYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 
-					if ( newXNode.id !== oldXNode.id ) {
-						// on the old nodes, remove the link from links and remove the respective other node form connectedTo
-						removeLinkFromLinks( oldXNode, linkToEdit );
-						removeNodeFromConnTo( oldXNode, oldYNode );
-						// on the new nodes, add the link to links and add the respective other node to connectedTo
-						addLinkToLinks( newXNode, linkToEdit );
-						addNodeToConnTo( newXNode, newYNode );
-					}
-					if ( newYNode.id !== oldYNode.id ) {
-						removeLinkFromLinks( oldYNode, linkToEdit );
-						removeNodeFromConnTo( oldYNode, oldXNode );
-						addLinkToLinks( newYNode, linkToEdit );
-						addNodeToConnTo( newYNode, newXNode );
-					}
+					// on the old nodes, remove the link from links and remove the respective other node form connectedTo
+					removeLinkFromLinks( oldXNode, linkToEdit );
+					removeNodeFromConnTo( oldXNode, oldYNode );
+					// on the new nodes, add the link to links and add the respective other node to connectedTo
+					addLinkToLinks( newXNode, linkToEdit );
+					addNodeToConnTo( newXNode, newYNode );
+					// and vice versa for the other node
+					removeLinkFromLinks( oldYNode, linkToEdit );
+					removeNodeFromConnTo( oldYNode, oldXNode );
+					addLinkToLinks( newYNode, linkToEdit );
+					addNodeToConnTo( newYNode, newXNode );
+
 
 					newLinks = newLinks.concat( linkToEdit );
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: newLinks },
 					} );
+					
 					cache.writeQuery( {
 						query: NODES_DATA,
 						data: { Nodes: nodesCopy },
