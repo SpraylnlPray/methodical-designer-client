@@ -169,6 +169,8 @@ export const assembleNewLink = ( variables ) => {
 		type,
 		x,
 		y,
+		hidden: false,
+		needsCalculation: true,
 		name: label,
 		from: x.id,
 		to: y.id,

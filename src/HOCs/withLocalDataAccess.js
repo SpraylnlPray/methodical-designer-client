@@ -16,6 +16,22 @@ const withLocalDataAccess = ( Component ) => {
 			onError: err => addLogMessage( client, 'Error when getting editing rights: ' + err.message ),
 		} );
 
+		const getNodesNeedingRecalculation = () => {
+			if ( localNodeData ) {
+				const { Nodes } = localNodeData;
+				return Nodes.filter( aNode => aNode.needsCalculation );
+			}
+			return [];
+		};
+
+		const getLinksNeedingRecalculation = () => {
+			if ( localLinkData ) {
+				const { Links } = localLinkData;
+				return Links.filter( aLink => aLink.needsCalculation );
+			}
+			return [];
+		};
+
 		const getMovedNodes = () => {
 			if ( localNodeData ) {
 				const { Nodes } = localNodeData;
@@ -25,35 +41,53 @@ const withLocalDataAccess = ( Component ) => {
 		};
 
 		const getCreatedNodes = () => {
-			const { Nodes } = localNodeData;
-			return Nodes.filter( node => node.created );
+			if ( localNodeData ) {
+				const { Nodes } = localNodeData;
+				return Nodes.filter( node => node.created );
+			}
+			return [];
 		};
 
 		const getEditedNodes = () => {
-			const { Nodes } = localNodeData;
-			const notNewlyCreatedNodes = Nodes.filter( node => !node.created );
-			return notNewlyCreatedNodes.filter( node => node.edited );
+			if ( localNodeData ) {
+				const { Nodes } = localNodeData;
+				const notNewlyCreatedNodes = Nodes.filter( node => !node.created );
+				return notNewlyCreatedNodes.filter( node => node.edited );
+			}
+			return [];
 		};
 
 		const getCreatedLinks = () => {
-			const { Links } = localLinkData;
-			return Links.filter( link => link.created );
+			if ( localLinkData ) {
+				const { Links } = localLinkData;
+				return Links.filter( link => link.created );
+			}
+			return [];
 		};
 
 		const getEditedLinks = () => {
-			const { Links } = localLinkData;
-			const notNewlyCreatedLinks = Links.filter( link => !link.created );
-			return notNewlyCreatedLinks.filter( link => link.edited );
+			if ( localLinkData ) {
+				const { Links } = localLinkData;
+				const notNewlyCreatedLinks = Links.filter( link => !link.created );
+				return notNewlyCreatedLinks.filter( link => link.edited );
+			}
+			return [];
 		};
 
 		const getDeletedNodes = () => {
-			const { Nodes } = localNodeData;
-			return Nodes.filter( node => node.deleted );
+			if ( localNodeData ) {
+				const { Nodes } = localNodeData;
+				return Nodes.filter( node => node.deleted );
+			}
+			return [];
 		};
 
 		const getDeletedLinks = () => {
-			const { Links } = localLinkData;
-			return Links.filter( link => link.deleted );
+			if ( localLinkData ) {
+				const { Links } = localLinkData;
+				return Links.filter( link => link.deleted );
+			}
+			return [];
 		};
 
 		const hasUnsavedLocalChanges = () => {
@@ -65,17 +99,22 @@ const withLocalDataAccess = ( Component ) => {
 
 			const createdLinks = getCreatedLinks();
 			const editedLinks = getEditedLinks();
-
-			return deletedNodes.length > 0 || deletedLinks.length > 0
-				|| createdNodes.length > 0 || editedNodes.length > 0
-				|| createdLinks.length > 0 || editedLinks.length > 0;
+			if ( deletedNodes && deletedLinks && createdNodes &&
+				editedNodes && createdLinks && editedLinks ) {
+				return deletedNodes.length > 0 || deletedLinks.length > 0
+					|| createdNodes.length > 0 || editedNodes.length > 0
+					|| createdLinks.length > 0 || editedLinks.length > 0;
+			}
+			return false;
 		};
 
 		return (
 			<Component props={ props } hasUnsavedLocalChanges={ hasUnsavedLocalChanges } getDeletedLinks={ getDeletedLinks }
 								 getDeletedNodes={ getDeletedNodes } getEditedLinks={ getEditedLinks }
 								 getCreatedLinks={ getCreatedLinks } getEditedNodes={ getEditedNodes }
-								 getCreatedNodes={ getCreatedNodes } editingData={ editingData } getMovedNodes={ getMovedNodes }/>
+								 getCreatedNodes={ getCreatedNodes } editingData={ editingData } getMovedNodes={ getMovedNodes }
+								 getNodesNeedingRecalculation={ getNodesNeedingRecalculation }
+								 getLinksNeedingRecalculation={ getLinksNeedingRecalculation }/>
 		);
 	};
 };

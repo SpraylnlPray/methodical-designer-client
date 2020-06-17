@@ -98,6 +98,7 @@ export const NODES_WITH_TAGS = gql`
       story
       synchronous
       unreliable
+      needsCalculation
       x
       y
       collapsed
@@ -190,6 +191,7 @@ export const LINKS_WITH_TAGS = gql`
       label
 			name
       hidden
+      needsCalculation
       type
       story
       optional
@@ -228,11 +230,21 @@ export const LINKS_WITH_TAGS = gql`
   }
 `;
 
+export const LINKS_CALCULATION = gql`
+  query {
+    Links @client {
+      id
+      needsCalculation
+    }
+  }
+`;
+
 export const CALC_NODE_POSITION = gql`
   query {
     Nodes @client {
       id
       type
+      needsCalculation
       moved
       x
       y

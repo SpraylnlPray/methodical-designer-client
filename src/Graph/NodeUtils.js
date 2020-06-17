@@ -2,6 +2,7 @@ import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
+import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
 
 export const areBothHidden = ( node1, node2 ) => {
 	return isHidden( node1 ) && isHidden( node2 );
@@ -133,6 +134,7 @@ export const assembleNewNode = ( variables ) => {
 		created: true,
 		edited: false,
 		deleted: false,
+		needsCalculation: true,
 		__typename: 'Node',
 	};
 	setNodeImage( newNode );
@@ -160,81 +162,52 @@ export const insertConnected = ( node, center, nodes, level, client ) => {
 			center[level] = [];
 		}
 		// get all connected nodes
-		const connectedNodes = node.connectedTo.filter( aNode => {
-			if ( !isCollapsable( aNode ) && aNode.id !== center.id ) {
-				const ref = nodes.find( bNode => bNode.id === aNode.id );
-				if ( !ref.checkedBy.includes( center.id ) ) {
-					return true;
-				}
-			}
-			return false;
-		} );
-		let connectedNodeIDs = connectedNodes.map( aNode => aNode.id );
-		const distinctIDs = Array.from( new Set( connectedNodeIDs ) );
+		const connectedNodes = getConnectedNodes( node, nodes, center );
+		const distinctIDs = getDistinctIDs( connectedNodes );
 		// get their reference
 		for ( let ID of distinctIDs ) {
-			const ref = nodes.find( aNode => aNode.id === ID );
-			if ( !ref.collapsableIDs ) {
-				// under which node(s) it should be, is an array because it can be multiple arrays if there are multiple connections
-				ref.collapsableIDs = [];
-			}
-			if ( !ref.checkedBy ) {
-				// contains the containers which have already checked this node
-				ref.checkedBy = [];
-			}
+			let ref = nodes.find( aNode => aNode.id === ID );
+			ref = formatRef( ref );
+			// save that this combination has been checked
+			ref.checkedBy.push( center.id );
 			// if the ref hasn't been checked by this collapsable, mark it as checked
-			if ( !ref.checkedBy.includes( center.id ) ) {
-				ref.checkedBy.push( center.id );
-				if ( !isCollapsable( ref ) ) {
-					// if the node has not been added to any level, save it
-					if ( !ref.level ) {
-						ref.level = level;
-						ref.parentID = node.id;
-						ref.collapsableIDs.push( center.id );
-						center[level].push( ref );
-						center.contains.push( { id: ref.id, level } );
-					}
-					else if ( level < ref.level ) {
-						// check through all other collapsables if the "contains" property contains the link of this ref
-						for ( let node2 of nodes ) {
-							if ( isCollapsable( node2 ) && node2.contains ) {
-								const containsIDs = node2.contains.map( conNode => conNode.id );
-								if ( containsIDs.includes( ref.id ) ) {
-									// go to the level, remove the reference, then remove the reference from "contains"
-									const containsData = node2.contains.find( conNode => conNode.id === ref.id );
-									const { level } = containsData;
-									// remove the reference from the level
-									const levelIDs = node2[level].map( conNode => conNode.id );
-									const levelIndex = levelIDs.indexOf( ref.id );
-									node2[level].splice( levelIndex, 1 );
-									// remove the reference from the "contains" property
-									const indexData = containsIDs.indexOf( ref.id );
-									node2.contains.splice( indexData, 1 );
-								}
+			if ( !isCollapsable( ref ) ) {
+				// if the node has not been added to any level, save it
+				if ( !ref.level ) {
+					ref.level = level;
+					ref.centerIDs.push( center.id );
+					center.contains.push( { id: ref.id, parentID: node.id } );
+				}
+				else if ( level < ref.level ) {
+					// check through all other collapsables if the "contains" property contains the link of this ref
+					for ( let node2 of nodes ) {
+						if ( isCollapsable( node2 ) && node2.contains ) {
+							const containsIDs = node2.contains.map( conNode => conNode.id );
+							if ( containsIDs.includes( ref.id ) ) {
+								// remove the reference from "contains"
+								const indexData = containsIDs.indexOf( ref.id );
+								node2.contains.splice( indexData, 1 );
 							}
 						}
-						// then set the new level of the node
-						ref.level = level;
-						ref.collapsableIDs = [ center.id ];
-						ref.parentID = node.id;
-						// and add the ref to the current collapsable
-						center[level].push( ref );
-						center.contains.push( { id: ref.id, level } );
 					}
-						// todo: check if this works and then apply it in rule!
-					// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
-					else if ( level === ref.level && !ref.collapsableIDs.includes( center.id ) ) {
-						ref.double = true;
-						ref.collapsableIDs.push( center.id );
-						ref.parentID = node.id;
-						center[level].push( ref );
-						center.contains.push( { id: ref.id, level } );
-					}
+					// then set the new level of the node
+					ref.level = level;
+					ref.centerIDs = [ center.id ];
+					center.contains.push( { id: ref.id, parentID: node.id } );
+				}
+					// todo: check if this works and then apply it in rule!
+				// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
+				else if ( level === ref.level ) {
+					// do I need to remove it from other centers "contains" array?
+					ref.double = true;
+					ref.level = level;
+					ref.centerIDs.push( center.id );
+					center.contains.push( { id: ref.id, parentID: node.id } );
 				}
 			}
 		}
 		// go through the children and add their kids
-		for ( let ID of connectedNodeIDs ) {
+		for ( let ID of distinctIDs ) {
 			const ref = nodes.find( aNode => aNode.id === ID );
 			insertConnected( ref, center, nodes, level + 1, client );
 		}
@@ -255,21 +228,15 @@ export const toRad = ( angle ) => {
 	return angle * Math.PI / 180;
 };
 
-export const saveChildren = ( node, nodes ) => {
-	for ( let level = 1; ; level++ ) {
-		if ( node[level] ) {
-			for ( let childNode of node[level] ) {
-				// debugger
-				const parent = nodes.find( aNode => aNode.id === childNode.parentID );
-				if ( !parent.children ) {
-					parent.children = [];
-				}
-				parent.children.push( childNode );
-			}
+export const saveChildren = ( center, nodes ) => {
+	for ( let nodeRef of center.contains ) {
+		const { id, parentID } = nodeRef;
+		const node = nodes.find( aNode => aNode.id === id );
+		const parent = nodes.find( aNode => aNode.id === parentID );
+		if ( !parent.children ) {
+			parent.children = [];
 		}
-		else {
-			break;
-		}
+		parent.children.push( node );
 	}
 };
 
@@ -291,4 +258,64 @@ export const calcDistance = ( node ) => {
 		dist = 100 + 50 * node.children.length;
 	}
 	return dist;
+};
+
+export const placeNodes = ( nodesCopy, client ) => {
+	const networkData = [];
+	for ( let node of nodesCopy ) {
+		node.checkedBy = [];
+		CollapsableRule( node, nodesCopy, client );
+		if ( isCollapsable( node ) ) {
+			node.level = 0;
+			networkData.push( node );
+		}
+	}
+
+	const level = 1;
+	for ( let collapsable of networkData ) {
+		// this will hold id and level of all connected nodes
+		collapsable.contains = [];
+		insertConnected( collapsable, collapsable, nodesCopy, level, client );
+	}
+
+	// save all the children of one node on itself
+	for ( let collapsable of networkData ) {
+		saveChildren( collapsable, nodesCopy );
+	}
+
+	for ( let collapsable of networkData ) {
+		FlowerRule( nodesCopy, collapsable, level, client );
+	}
+	NonCollapsableRule( {}, nodesCopy, client );
+};
+
+const getConnectedNodes = ( node, nodes, center ) => {
+	const connectedNodes = node.connectedTo.filter( aNode => {
+		if ( !isCollapsable( aNode ) && aNode.id !== center.id ) {
+			const ref = nodes.find( bNode => bNode.id === aNode.id );
+			if ( !ref?.checkedBy.includes( center.id ) ) {
+				return true;
+			}
+		}
+		return false;
+	} );
+	return connectedNodes;
+};
+
+const formatRef = ref => {
+	if ( !ref.centerIDs ) {
+		// under which node(s) it should be, is an array because it can be multiple arrays if there are multiple connections
+		ref.centerIDs = [];
+	}
+	if ( !ref.checkedBy ) {
+		// by which nodes has it been checked already?
+		ref.checkedBy = [];
+	}
+	return ref;
+};
+
+const getDistinctIDs = nodeArray => {
+	let connectedNodeIDs = nodeArray.map( aNode => aNode.id );
+	const distinctIDs = Array.from( new Set( connectedNodeIDs ) );
+	return distinctIDs;
 };

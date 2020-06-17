@@ -8,7 +8,7 @@ import { addLogMessage } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 import { SEARCH_LINK_LABEL_FILTER, SEARCH_NODE_LABEL_FILTER } from '../queries/LocalQueries';
 
-const GraphSettingsPane = ( { getMovedNodes } ) => {
+const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNodesNeedingRecalculation } ) => {
 	const client = useApolloClient();
 	const [ runRecalculateGraph ] = useMutation( RECALCULATE_GRAPH );
 	const [ runSetNodeLabelFilter ] = useMutation( SET_NODE_LABEL_FILTER );
@@ -19,8 +19,13 @@ const GraphSettingsPane = ( { getMovedNodes } ) => {
 	const { data: linkLabelSearchString } = useQuery( SEARCH_LINK_LABEL_FILTER );
 
 	const isButtonDisabled = () => {
-		const data = getMovedNodes();
-		return data.length === 0;
+		const movedNodes = getMovedNodes();
+		const nodesNeedingRecalculation = getNodesNeedingRecalculation();
+		const linksNeedingRecalculation = getLinksNeedingRecalculation();
+		if ( nodesNeedingRecalculation.length > 0 || linksNeedingRecalculation.length > 0 ) {
+			return false;
+		}
+		return movedNodes.length === 0;
 	};
 
 	const handleClick = ( e ) => {
@@ -66,6 +71,7 @@ const GraphSettingsPane = ( { getMovedNodes } ) => {
 				icon='search'
 				label='Search Node by Label:'
 				placeholder='Search...'
+				fluid
 			/>
 			<Input
 				value={ linkLabelSearchString.searchLinkLabelFilter }
@@ -74,6 +80,7 @@ const GraphSettingsPane = ( { getMovedNodes } ) => {
 				icon='search'
 				label='Search Link by Label:'
 				placeholder='Search...'
+				fluid
 			/>
 		</div>
 	);

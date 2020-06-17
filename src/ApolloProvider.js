@@ -7,14 +7,13 @@ import {
 } from './Graph/LinkUtils';
 import {
 	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo,
-	assembleNewNode, updateNode, isCollapsable, insertConnected, saveChildren,
+	assembleNewNode, updateNode, placeNodes,
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
-	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA,
+	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
-import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Graph/Rules';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
 
@@ -68,6 +67,9 @@ const cache = new InMemoryCache( {
 				moved( existingData ) {
 					return existingData || false;
 				},
+				needsCalculation( existingData ) {
+					return existingData || false;
+				},
 			},
 		},
 		Link: {
@@ -114,6 +116,9 @@ const cache = new InMemoryCache( {
 				hidden( existingData ) {
 					return existingData || false;
 				},
+				needsCalculation( existingData ) {
+					return existingData || false;
+				},
 			},
 		},
 	},
@@ -135,35 +140,12 @@ const client = new ApolloClient( {
 						node.edited = false;
 						node.created = false;
 						node.deleted = false;
+						node.needsCalculation = false;
 						setNodeImage( node );
 					}
-					const networkData = [];
 
 					try {
-						for ( let node of nodesCopy ) {
-							node.checkedBy = [];
-							CollapsableRule( node, nodesCopy, client );
-							if ( isCollapsable( node ) ) {
-								networkData.push( node );
-							}
-						}
-
-						const level = 1;
-						for ( let collapsable of networkData ) {
-							// this will hold id and level of all connected nodes
-							collapsable.contains = [];
-							insertConnected( collapsable, collapsable, nodesCopy, level, client );
-						}
-
-						// save all the children of one node on itself
-						for ( let collapsable of networkData ) {
-							saveChildren( collapsable, nodesCopy );
-						}
-
-						for ( let collapsable of networkData ) {
-							FlowerRule( nodesCopy, collapsable, level, client );
-						}
-						NonCollapsableRule( {}, nodesCopy, client );
+						placeNodes( nodesCopy, client );
 					}
 					catch ( e ) {
 						addLogMessage( client, 'Error when allocating nodes: ' + e.message );
@@ -189,6 +171,7 @@ const client = new ApolloClient( {
 						link.created = false;
 						link.deleted = false;
 						link.hidden = false;
+						link.needsCalculation = false;
 					}
 
 					for ( let link of linksCopy ) {
@@ -282,7 +265,12 @@ const client = new ApolloClient( {
 					const newNodes = Nodes.filter( node => node.id !== variables.id );
 
 					let nodeToEdit = Nodes.find( node => node.id === variables.id );
+					const prevType = nodeToEdit.type;
 					nodeToEdit = updateNode( nodeToEdit, variables );
+					const afterType = nodeToEdit.type;
+					if ( prevType !== afterType ) {
+						nodeToEdit.needsCalculation = true;
+					}
 
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
@@ -304,13 +292,18 @@ const client = new ApolloClient( {
 					// get old nodeIDs
 					const oldXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
+					const oldType = linkToEdit.type;
 					// update link
 					// debugger
 					linkToEdit = updateLink( variables, linkToEdit );
 					// get new nodeIDs
 					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const newYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
+					const newType = linkToEdit.type;
 
+					if ( oldXNode.id !== newXNode.id || oldYNode.id !== newYNode.id || newType !== oldType ) {
+						linkToEdit.needsCalculation = true;
+					}
 					// on the old nodes, remove the link from links and remove the respective other node form connectedTo
 					removeLinkFromLinks( oldXNode, linkToEdit );
 					removeNodeFromConnTo( oldXNode, oldYNode );
@@ -322,7 +315,6 @@ const client = new ApolloClient( {
 					removeNodeFromConnTo( oldYNode, oldXNode );
 					addLinkToLinks( newYNode, linkToEdit );
 					addNodeToConnTo( newYNode, newXNode );
-
 
 					newLinks = newLinks.concat( linkToEdit );
 					cache.writeQuery( {
@@ -447,48 +439,39 @@ const client = new ApolloClient( {
 			},
 			recalculateGraph: ( _root, variables, { cache } ) => {
 				const { Nodes } = cache.readQuery( { query: CALC_NODE_POSITION } );
-				let nodesCopy = deepCopy( Nodes );
+				const { Links } = cache.readQuery( { query: LINKS_CALCULATION } );
+				const nodesCopy = deepCopy( Nodes );
+				const linksCopy = deepCopy( Links );
 				for ( let node of nodesCopy ) {
 					node.x = undefined;
 					node.y = undefined;
 					node.moved = false;
+					node.needsCalculation = false;
 				}
 
-				const networkData = [];
 				try {
-					for ( let node of nodesCopy ) {
-						node.checkedBy = [];
-						CollapsableRule( node, nodesCopy, client );
-						if ( isCollapsable( node ) ) {
-							networkData.push( node );
-						}
-					}
-
-					const level = 1;
-					for ( let collapsable of networkData ) {
-						// this will hold id and level of all connected nodes
-						collapsable.contains = [];
-						insertConnected( collapsable, collapsable, nodesCopy, level, client );
-					}
-
-					// save all the children of one node on itself
-					for ( let collapsable of networkData ) {
-						saveChildren( collapsable, nodesCopy );
-					}
-
-					for ( let collapsable of networkData ) {
-						FlowerRule( nodesCopy, collapsable, level, client );
-					}
-
-					NonCollapsableRule( {}, nodesCopy, client );
+					placeNodes( nodesCopy, client );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error when allocating nodes: ' + e.message );
 				}
 
+				try {
+					for ( let link of linksCopy ) {
+						link.needsCalculation = false;
+					}
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when resetting calculation status of links: ' + e.message );
+				}
+
 				cache.writeQuery( {
 					query: CALC_NODE_POSITION,
 					data: { Nodes: nodesCopy },
+				} );
+				cache.writeQuery( {
+					query: LINKS_CALCULATION,
+					data: { Links: linksCopy },
 				} );
 			},
 			moveNode: ( _root, variables, { cache, client } ) => {
