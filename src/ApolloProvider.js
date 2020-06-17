@@ -11,7 +11,7 @@ import {
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
-	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER,
+	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA,
 } from './queries/LocalQueries';
 import Favicon from 'react-favicon';
 import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Graph/Rules';
@@ -111,6 +111,9 @@ const cache = new InMemoryCache( {
 				name( existingData ) {
 					return existingData || '';
 				},
+				hidden( existingData ) {
+					return existingData || false;
+				},
 			},
 		},
 	},
@@ -185,6 +188,7 @@ const client = new ApolloClient( {
 						link.edited = false;
 						link.created = false;
 						link.deleted = false;
+						link.hidden = false;
 					}
 
 					for ( let link of linksCopy ) {
@@ -561,6 +565,56 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when searching for node by label: ' + e.message );
 				}
 			},
+
+			setLinkLabelFilter: ( _root, variables, { cache, client } ) => {
+				try {
+					const { string } = variables;
+					cache.writeQuery( {
+						query: SEARCH_LINK_LABEL_FILTER,
+						data: { searchLinkLabelFilter: string },
+					} );
+					return string;
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when setting link label filter: ' + e.message );
+				}
+			},
+			searchLinkByLabel: ( _root, variables, { cache, client } ) => {
+				try {
+					const { Links } = cache.readQuery( { query: LINKS_HIDE_DATA } );
+					const linksCopy = deepCopy( Links );
+					const { searchString } = variables;
+					if ( searchString.length > 0 ) {
+						for ( let link of linksCopy ) {
+							// if the label of a link does not contain the search string
+							if ( !link.label.includes( searchString ) ) {
+								// if it is not hidden, hide it
+								if ( !link.hidden ) {
+									link.hidden = true;
+								}
+							}
+							// if the label contains the search string and the link was previously hidden by a filter, make it visible
+							else {
+								link.hidden = false;
+							}
+						}
+					}
+					else {
+						linksCopy.forEach( aLink => {
+							aLink.hidden = false;
+							return aLink;
+						} );
+					}
+
+					cache.writeQuery( {
+						query: LINKS_HIDE_DATA,
+						data: { Links: linksCopy },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when searching link by label: ' + e.message );
+				}
+			},
 		},
 	},
 } );
@@ -571,6 +625,7 @@ cache.writeQuery( {
       logMessages
       hasEditRights
       searchNodeLabelFilter
+      searchLinkLabelFilter
       activeItem {
         itemId
         itemType
@@ -588,6 +643,7 @@ cache.writeQuery( {
 		logMessages: [],
 		hasEditRights: false,
 		searchNodeLabelFilter: '',
+		searchLinkLabelFilter: '',
 		activeItem: {
 			itemId: 'app',
 			itemType: 'app',

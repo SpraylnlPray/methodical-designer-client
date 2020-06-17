@@ -78,3 +78,15 @@ export const SET_NODE_LABEL_FILTER = gql`
     setNodeLabelFilter(string: $string) @client
   }
 `;
+
+export const SET_LINK_LABEL_FILTER = gql`
+  mutation SetLinkLabelFilter($string: String!) {
+    setLinkLabelFilter(string: $string) @client
+  }
+`;
+
+export const SEARCH_LINK_BY_LABEL = gql`
+  mutation SearchLinkByLabel($searchString: String!) {
+    searchLinkByLabel(searchString: $searchString) @client
+  }
+`;

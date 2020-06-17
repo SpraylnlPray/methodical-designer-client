@@ -149,6 +149,7 @@ export const EDITOR_LINK_DATA = gql`
     Links @client {
       id
       label
+      hidden
       type
       x {
         id
@@ -188,6 +189,7 @@ export const LINKS_WITH_TAGS = gql`
       id
       label
 			name
+      hidden
       type
       story
       optional
@@ -277,8 +279,24 @@ export const NODES_HIDE_DATA = gql`
   }
 `;
 
+export const LINKS_HIDE_DATA = gql`
+  query {
+    Links @client{
+      id
+      label
+      hidden
+    }
+  }
+`;
+
 export const SEARCH_NODE_LABEL_FILTER = gql`
   query {
     searchNodeLabelFilter @client
+  }
+`;
+
+export const SEARCH_LINK_LABEL_FILTER = gql`
+  query {
+    searchLinkLabelFilter @client
   }
 `;
