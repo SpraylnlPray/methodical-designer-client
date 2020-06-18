@@ -72,14 +72,14 @@ const SavePane = ( {
 		 */
 		addLogMessage( client, `saving created nodes` );
 		for ( let node of createdNodes ) {
-			const { id, label, story, synchronous, type, unreliable } = node;
-			const variables = { id, label, type, props: { story, synchronous, unreliable } };
+			const { id, label, story, synchronous, nodeType, unreliable } = node;
+			const variables = { id, label, nodeType, props: { story, synchronous, unreliable } };
 			nodePromises.push( runCreateNode( { variables } ) );
 		}
 		addLogMessage( client, `saving updated nodes` );
 		for ( let node of editedNodes ) {
-			const { id, label, story, synchronous, type, unreliable } = node;
-			const variables = { id, props: { label, type, story, synchronous, unreliable } };
+			const { id, label, story, synchronous, nodeType, unreliable } = node;
+			const variables = { id, props: { label, nodeType, story, synchronous, unreliable } };
 			nodePromises.push( runUpdateNode( { variables } ) );
 		}
 
@@ -87,8 +87,8 @@ const SavePane = ( {
 			.then( () => {
 				addLogMessage( client, `finished creating and updating nodes, will now handle created links` );
 				for ( let link of createdLinks ) {
-					const { id, name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
-					const variables = { id, label, type, x_id, y_id, props: { story, optional } };
+					const { id, name: label, linkType, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+					const variables = { id, label, linkType, x_id, y_id, props: { story, optional } };
 					createLinkPromises.push( runCreateLink( { variables } ) );
 				}
 				Promise.all( createLinkPromises )
@@ -103,8 +103,8 @@ const SavePane = ( {
 							.then( () => {
 								addLogMessage( client, `finished sequences and link ends, will now handle edited links` );
 								for ( let link of editedLinks ) {
-									const { id, name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
-									const variables = { id, props: { story, optional, label, type, x_id, y_id } };
+									const { id, name: label, linkType, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
+									const variables = { id, props: { story, optional, label, linkType, x_id, y_id } };
 									editedLinkPromises.push( runUpdateLink( { variables } ) );
 								}
 

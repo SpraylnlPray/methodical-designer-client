@@ -14,13 +14,13 @@ export const isHidden = ( node ) => {
 };
 
 export const setNodeImage = ( node ) => {
-	if ( NodeImages[node.type] ) {
-		node.image = NodeImages[node.type];
+	if ( NodeImages[node.nodeType] ) {
+		node.image = NodeImages[node.nodeType];
 		node.shape = 'image';
 	}
 	else {
-		node.shape = NodeShapes[node.type];
-		node.color = NodeColors[node.type];
+		node.shape = NodeShapes[node.nodeType];
+		node.color = NodeColors[node.nodeType];
 	}
 };
 
@@ -37,7 +37,7 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 	const connectedNodeIDs = [];
 	for ( let link of links ) {
 		// if the x/parent node is the collapsable, save the y ID
-		if ( link.x.id === collapsable.id && link.type === 'PartOf' ) {
+		if ( link.x.id === collapsable.id && link.linkType === 'PartOf' ) {
 			connectedNodeIDs.push( link.y.id );
 		}
 	}
@@ -60,7 +60,7 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 };
 
 export const isCollapsable = ( node ) => {
-	return node.type === 'Container' || node.type === 'Domain';
+	return node.nodeType === 'Container' || node.nodeType === 'Domain';
 };
 
 export const hasCoordinates = node => {
@@ -82,7 +82,7 @@ export const getExistingCoordinatesFor = nodesToConsider => {
 export const getConnectedLinkTypes = ( links ) => {
 	const types = [];
 	links.forEach( link => {
-		types.push( link.type );
+		types.push( link.linkType );
 	} );
 	return types;
 };
@@ -114,21 +114,21 @@ export const removeNodeFromConnTo = ( node, nodeToRemove ) => {
 };
 
 export const addLinkToLinks = ( node, link ) => {
-	node.Links.push( { __typename: 'Link', id: link.id, type: link.type } );
+	node.Links.push( { __typename: 'Link', id: link.id, linkType: link.linkType } );
 };
 
 export const addNodeToConnTo = ( node, nodeToAdd ) => {
-	node.connectedTo.push( { __typename: 'Node', id: nodeToAdd.id, type: nodeToAdd.type } );
+	node.connectedTo.push( { __typename: 'Node', id: nodeToAdd.id, nodeType: nodeToAdd.nodeType } );
 };
 
 export const assembleNewNode = ( variables ) => {
-	const { label, props, type } = variables;
+	const { label, props, nodeType } = variables;
 
 	const newId = generateLocalUUID();
 	let newNode = {
 		id: newId,
 		label,
-		type,
+		nodeType,
 		connectedTo: [],
 		Links: [],
 		...props,
@@ -326,8 +326,8 @@ export const pasteNodeToClipboard = ( activeItem, client ) => {
 	const { Nodes } = client.readQuery( { query: NODES_BASE_DATA } );
 	const nodeToCopy = Nodes.find( aNode => aNode.id === itemId );
 	const nodeCopy = deepCopy( nodeToCopy );
-	const { label, type, story, synchronous, unreliable } = nodeCopy;
-	navigator.clipboard.writeText( JSON.stringify( { label, type, story, synchronous, unreliable, isNode: true } ) )
+	const { label, nodeType, story, synchronous, unreliable } = nodeCopy;
+	navigator.clipboard.writeText( JSON.stringify( { label, nodeType, story, synchronous, unreliable, isNode: true } ) )
 		.catch( error => addLogMessage( client, 'Error when saving to clipboard: ' + error.message ) );
 };
 
@@ -335,10 +335,10 @@ export const createNodeFromClipboard = ( editingData, clipText, createNode, clie
 	if ( editingData.hasEditRights ) {
 		const clipBoardData = JSON.parse( clipText );
 		if ( clipBoardData.isNode ) {
-			const { label, type, story, synchronous, unreliable } = clipBoardData;
+			const { label, nodeType, story, synchronous, unreliable } = clipBoardData;
 			createNode( {
 				variables: {
-					label, type, props: { story, synchronous, unreliable },
+					label, nodeType, props: { story, synchronous, unreliable },
 				},
 			} )
 				.catch( e => addLogMessage( client, 'Error when creating node from paste command: ' + e.message ) );

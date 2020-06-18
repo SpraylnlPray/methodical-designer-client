@@ -1,8 +1,8 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
-import { addLogMessage, deepCopy, setActiveItem, setLastEditorAction } from '../utils';
+import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, NODES_BASE_DATA } from '../queries/LocalQueries';
+import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
 import { CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';

@@ -7,7 +7,7 @@ function LogStream() {
 	const [ visible, setVisible ] = useState( false );
 	const { data } = useQuery( LOG_MESSAGES, {
 		// adding a log message doesn't make sense here
-		onError: err => console.log( 'error when reading log messages from cache' ),
+		onError: err => console.log( 'error when reading log messages from cache: ' + err.message ),
 	} );
 	const messagesEndRef = useRef( null );
 

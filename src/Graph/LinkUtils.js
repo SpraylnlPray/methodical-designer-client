@@ -26,7 +26,7 @@ export const snap = ( link, nodesCopy ) => {
 	const x_node = nodesCopy.find( node => node.id === link.x.id );
 	const y_node = nodesCopy.find( node => node.id === link.y.id );
 	// snapping should only happen if one of them is still visible
-	if ( x_node && y_node && !areBothHidden( x_node, y_node ) && link.type !== 'PartOf' ) {
+	if ( x_node && y_node && !areBothHidden( x_node, y_node ) && link.linkType !== 'PartOf' ) {
 		setXConnection( x_node, link );
 		setYConnection( y_node, link );
 	}
@@ -76,8 +76,8 @@ export const findAndHandleMultipleLinks = ( link, linksCopy ) => {
 
 export const setLinkDisplayProps = ( link, x_end, y_end ) => {
 	// x is from, y is to!
-	if ( LinkColors[link.type] ) {
-		link.color = LinkColors[link.type];
+	if ( LinkColors[link.linkType] ) {
+		link.color = LinkColors[link.linkType];
 	}
 	else {
 		link.color = LinkColors.Default;
@@ -135,10 +135,10 @@ export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
 
 export const updateLink = ( variables, linkToEdit ) => {
 	let { props, seq: sequence, x_end, y_end } = variables;
-	const { label, type, x_id, y_id, optional, story } = props;
+	const { label, linkType, x_id, y_id, optional, story } = props;
 	const x = { id: x_id };
 	const y = { id: y_id };
-	props = { label, type, optional, story, x, y, sequence, x_end, y_end };
+	props = { label, linkType, optional, story, x, y, sequence, x_end, y_end };
 
 	// let linkToEdit = Links.find( link => link.id === id );
 	linkToEdit = deepCopy( linkToEdit );
@@ -158,7 +158,7 @@ export const updateLink = ( variables, linkToEdit ) => {
 };
 
 export const assembleNewLink = ( variables ) => {
-	const { label, type, x_id, y_id, props, seq, x_end, y_end } = variables;
+	const { label, linkType, x_id, y_id, props, seq, x_end, y_end } = variables;
 	const { optional, story } = props;
 	const x = { id: x_id };
 	const y = { id: y_id };
@@ -166,7 +166,7 @@ export const assembleNewLink = ( variables ) => {
 	let newLink = {
 		id: newId,
 		label,
-		type,
+		linkType,
 		x,
 		y,
 		hidden: false,

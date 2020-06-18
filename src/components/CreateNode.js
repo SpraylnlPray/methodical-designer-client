@@ -10,7 +10,7 @@ import { EDITING_RIGHTS } from '../queries/LocalQueries';
 
 function CreateNode( { client } ) {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
-	const inputs = { required: { label: '', type: '' }, props: { story: '', synchronous: false, unreliable: false } };
+	const inputs = { required: { label: '', nodeType: '' }, props: { story: '', synchronous: false, unreliable: false } };
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
@@ -73,8 +73,8 @@ function CreateNode( { client } ) {
 						placeholder='Type'
 						onChange={ handleRequiredChange }
 						required
-						name='type'
-						value={ store.required['type'] }
+						name='nodeType'
+						value={ store.required['nodeType'] }
 					/>
 					<Form.Input
 						fluid

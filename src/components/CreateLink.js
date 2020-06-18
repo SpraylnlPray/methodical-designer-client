@@ -12,7 +12,7 @@ function CreateLink( { client } ) {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
 
 	const inputs = {
-		required: { label: '', type: '', x_id: '', y_id: '' },
+		required: { label: '', linkType: '', x_id: '', y_id: '' },
 		props: { story: '', optional: false },
 		x_end: { arrow: '', note: '' },
 		y_end: { arrow: '', note: '' },
@@ -102,8 +102,8 @@ function CreateLink( { client } ) {
 						placeholder='Type'
 						onChange={ handleRequiredChange }
 						required
-						name='type'
-						value={ store.required['type'] }
+						name='linkType'
+						value={ store.required['linkType'] }
 					/>
 					<Form.Dropdown
 						fluid

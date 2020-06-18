@@ -12,8 +12,8 @@ const EditNode = ( { activeItem, client } ) => {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
 	const { data: { Nodes } } = useQuery( NODES_WITH_TAGS );
 	const node = Nodes.find( node => node.id === activeItem.itemId );
-	const { label, type, story, synchronous, unreliable } = node;
-	const inputs = { required: { label, type }, props: { story, synchronous, unreliable } };
+	const { label, nodeType, story, synchronous, unreliable } = node;
+	const inputs = { required: { label, nodeType }, props: { story, synchronous, unreliable } };
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
@@ -72,7 +72,7 @@ const EditNode = ( { activeItem, client } ) => {
 			.catch( err => addLogMessage( client, 'Error when collapsing node: ' + err.message ) );
 	};
 
-	const isCollapsable = () => store.required['type'] === 'Container' || store.required['type'] === 'Domain';
+	const isCollapsable = () => store.required['nodeType'] === 'Container' || store.required['nodeType'] === 'Domain';
 	const isCollapsed = () => {
 		return isCollapsable() && node.collapsed;
 	};
@@ -106,8 +106,8 @@ const EditNode = ( { activeItem, client } ) => {
 						placeholder='Type'
 						onChange={ handleRequiredChange }
 						required
-						name='type'
-						value={ store.required['type'] }
+						name='nodeType'
+						value={ store.required['nodeType'] }
 					/>
 					<Form.Input
 						fluid

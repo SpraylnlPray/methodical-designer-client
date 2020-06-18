@@ -32,7 +32,7 @@ export const NODES_DATA = gql`
     Nodes @client {
       id
       label
-      type
+      nodeType
       story
       synchronous
       unreliable
@@ -41,11 +41,11 @@ export const NODES_DATA = gql`
       deleted
       connectedTo {
         id
-        type
+        nodeType
       }
       Links {
         id
-        type
+        linkType
       }
     }
   }
@@ -56,14 +56,14 @@ export const EDITOR_NODE_DATA = gql`
     Nodes @client {
       id
       label
-      type
+      nodeType
       connectedTo {
         id
-        type
+        nodeType
       }
       Links {
         id
-        type
+        linkType
       }
       image
       shape
@@ -81,7 +81,7 @@ export const NODES_COLLAPSE = gql`
   query {
     Nodes @client {
       id
-      type
+      nodeType
       collapsed
       hidden
       hiddenBy
@@ -94,7 +94,7 @@ export const NODES_WITH_TAGS = gql`
     Nodes @client {
       id
       label
-      type
+      nodeType
       story
       synchronous
       unreliable
@@ -120,7 +120,7 @@ export const LINKS_DATA = gql`
       id
       label
 			name
-      type
+      linkType
       story
       optional
       x {
@@ -151,7 +151,7 @@ export const EDITOR_LINK_DATA = gql`
       id
       label
       hidden
-      type
+      linkType
       x {
         id
       }
@@ -189,7 +189,7 @@ export const NODES_BASE_DATA = gql`
     Nodes @client {
       id
       label
-      type
+      nodeType
       story
       synchronous
       unreliable
@@ -205,7 +205,7 @@ export const LINKS_WITH_TAGS = gql`
 			name
       hidden
       needsCalculation
-      type
+      linkType
       story
       optional
       x {
@@ -256,7 +256,7 @@ export const CALC_NODE_POSITION = gql`
   query {
     Nodes @client {
       id
-      type
+      nodeType
       needsCalculation
       moved
       x
@@ -266,11 +266,11 @@ export const CALC_NODE_POSITION = gql`
       }
       Links {
         id
-        type
+        linkType
       }
       connectedTo {
         id
-        type
+        nodeType
       }
     }
   }

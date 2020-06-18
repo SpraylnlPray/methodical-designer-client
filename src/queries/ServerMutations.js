@@ -19,14 +19,14 @@ export const FREE_EDITING_RIGHTS = gql`
 `;
 
 export const CREATE_NODE = gql`
-  mutation($id: ID!, $label: String!, $type: NodeType!, $props: NodeCreateInput){
-    CreateNode(id: $id, label: $label, type: $type, props: $props) {
+  mutation($id: ID!, $label: String!, $nodeType: NodeType!, $props: NodeCreateInput){
+    CreateNode(id: $id, label: $label, nodeType: $nodeType, props: $props) {
       success
       message
       node {
         id
         label
-        type
+        nodeType
         story
         synchronous
         unreliable
@@ -36,14 +36,14 @@ export const CREATE_NODE = gql`
 `;
 
 export const CREATE_LINK = gql`
-  mutation($id: ID!, $label: String!, $type: LinkType!, $x_id: ID!, $y_id: ID! $props: LinkCreateInput){
-    CreateLink(id: $id, label: $label, type: $type, x_id: $x_id, y_id: $y_id, props: $props){
+  mutation($id: ID!, $label: String!, $linkType: LinkType!, $x_id: ID!, $y_id: ID! $props: LinkCreateInput){
+    CreateLink(id: $id, label: $label, linkType: $linkType, x_id: $x_id, y_id: $y_id, props: $props){
       success
       message
       link {
         id
         label
-        type
+        linkType
         story
         optional
       }
@@ -59,7 +59,7 @@ export const UPDATE_NODE = gql`
       node {
         id
         label
-        type
+        nodeType
         story
         synchronous
         unreliable
@@ -76,7 +76,7 @@ export const UPDATE_LINK = gql`
       link {
         id
         label
-        type
+        linkType
         story
         optional
       }

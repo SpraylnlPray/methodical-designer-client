@@ -267,9 +267,9 @@ const client = new ApolloClient( {
 					const newNodes = Nodes.filter( node => node.id !== variables.id );
 
 					let nodeToEdit = Nodes.find( node => node.id === variables.id );
-					const prevType = nodeToEdit.type;
+					const prevType = nodeToEdit.nodeType;
 					nodeToEdit = updateNode( nodeToEdit, variables );
-					const afterType = nodeToEdit.type;
+					const afterType = nodeToEdit.nodeType;
 					if ( prevType !== afterType ) {
 						nodeToEdit.needsCalculation = true;
 					}
@@ -294,14 +294,14 @@ const client = new ApolloClient( {
 					// get old nodeIDs
 					const oldXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
-					const oldType = linkToEdit.type;
+					const oldType = linkToEdit.linkType;
 					// update link
 					// debugger
 					linkToEdit = updateLink( variables, linkToEdit );
 					// get new nodeIDs
 					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
 					const newYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
-					const newType = linkToEdit.type;
+					const newType = linkToEdit.linkType;
 
 					if ( oldXNode.id !== newXNode.id || oldYNode.id !== newYNode.id || newType !== oldType ) {
 						linkToEdit.needsCalculation = true;

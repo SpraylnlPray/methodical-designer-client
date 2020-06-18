@@ -13,10 +13,10 @@ const EditLink = ( { activeItem, client } ) => {
 	const { data: { Links } } = useQuery( LINKS_DATA );
 	let linkToEdit = Links.find( aLink => aLink.id === activeItem.itemId );
 	linkToEdit = deepCopy( linkToEdit );
-	const { name: label, type, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = linkToEdit;
+	const { name: label, linkType, x: { id: x_id }, y: { id: y_id }, story, optional, x_end, y_end, sequence: seq } = linkToEdit;
 
 	const inputs = {
-		required: { label, type, x_id, y_id },
+		required: { label, linkType, x_id, y_id },
 		props: { story: story ? story : '', optional },
 		x_end: x_end ? x_end : { arrow: '', note: '' },
 		y_end: y_end ? y_end : { arrow: '', note: '' },
@@ -113,8 +113,8 @@ const EditLink = ( { activeItem, client } ) => {
 						placeholder='Type'
 						onChange={ handleRequiredChange }
 						required
-						name='type'
-						value={ store.required['type'] }
+						name='linkType'
+						value={ store.required['linkType'] }
 					/>
 					<Form.Dropdown
 						fluid

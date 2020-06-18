@@ -5,17 +5,17 @@ export const GET_SERVER_NODES = gql`
     Nodes{
       id
       label
-      type
+      nodeType
       story
       synchronous
       unreliable
       Links {
         id
-        type
+        linkType
       }
       connectedTo {
         id
-        type
+        nodeType
       }
     }
   }
@@ -26,7 +26,7 @@ export const GET_SERVER_LINKS = gql`
     Links {
       id
       label
-      type
+      linkType
       story
       optional
       x {
