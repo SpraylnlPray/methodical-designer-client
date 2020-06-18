@@ -13,9 +13,11 @@ import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
 } from './queries/LocalQueries';
+import Fuse from 'fuse.js';
 import Favicon from 'react-favicon';
 
 const icon_url = process.env.REACT_APP_ENV === 'prod' ? '../production-icon.png' : '../dev-icon.png';
+const options = { keys: [ 'label' ], findAllMatches: true, includeScore: true };
 
 const cache = new InMemoryCache( {
 	dataIdFromObject: ( { id } ) => id,
@@ -512,9 +514,13 @@ const client = new ApolloClient( {
 					const { searchString } = variables;
 					const nodesCopy = deepCopy( Nodes );
 					if ( searchString.length > 0 ) {
+						const fuse = new Fuse( nodesCopy, options );
+						const results = fuse.search( searchString );
+						const goodResults = results.filter( aResult => aResult.score < 0.6 );
+						const foundIDs = goodResults.map( aResult => aResult.item.id );
 						for ( let node of nodesCopy ) {
 							// if the label of a node does not contain the search string
-							if ( !node.label.includes( searchString ) ) {
+							if ( !foundIDs.includes( node.id ) ) {
 								// if it is not hidden, hide it
 								if ( !node.hidden ) {
 									node.hidden = true;
@@ -568,9 +574,13 @@ const client = new ApolloClient( {
 					const linksCopy = deepCopy( Links );
 					const { searchString } = variables;
 					if ( searchString.length > 0 ) {
+						const fuse = new Fuse( linksCopy, options );
+						const results = fuse.search( searchString );
+						const goodResults = results.filter( aResult => aResult.score < 0.5 );
+						const foundIDs = goodResults.map( aResult => aResult.item.id );
 						for ( let link of linksCopy ) {
 							// if the label of a link does not contain the search string
-							if ( !link.label.includes( searchString ) ) {
+							if ( !foundIDs.includes( link.id ) ) {
 								// if it is not hidden, hide it
 								if ( !link.hidden ) {
 									link.hidden = true;
