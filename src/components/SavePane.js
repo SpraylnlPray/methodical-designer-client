@@ -34,6 +34,12 @@ const SavePane = ( {
 				.catch( err => addLogMessage( client, 'Error when freeing editing rights after leaving page: ' + err.message ) );
 		}
 	} );
+	window.addEventListener( 'onunload', function( e ) {
+		if ( editingData.hasEditRights ) {
+			freeEditingRights()
+				.catch( err => addLogMessage( client, 'Error when freeing editing rights after leaving page: ' + err.message ) );
+		}
+	} );
 
 	const handleDiscard = e => {
 		e.stopPropagation();
