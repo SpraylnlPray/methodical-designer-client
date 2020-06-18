@@ -1,12 +1,13 @@
 import React from 'react';
 import Graph from 'react-graph-vis';
-import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
+import { addLogMessage, deepCopy, setActiveItem, setLastEditorAction } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { EDITOR_NODE_DATA, EDITOR_LINK_DATA } from '../queries/LocalQueries';
+import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, NODES_BASE_DATA } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
-import { MOVE_NODE } from '../queries/LocalMutations';
+import { CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
+import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 
-const EditorPane = () => {
+const EditorPane = ( { editingData } ) => {
 	const client = useApolloClient();
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
@@ -18,6 +19,7 @@ const EditorPane = () => {
 	const [ moveNode ] = useMutation( MOVE_NODE, {
 		onError: error => addLogMessage( client, 'Error when moving node: ' + error.message ),
 	} );
+	const [ createNode ] = useMutation( CREATE_LOCAL_NODE );
 
 	let graph = {
 		nodes: [],
@@ -49,7 +51,8 @@ const EditorPane = () => {
 				setLastEditorAction( client, 'drag', pointer.canvas.x, pointer.canvas.y );
 			}
 			else if ( nodes.length > 0 ) {
-				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } );
+				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } )
+					.catch( error => addLogMessage( client, 'Error when moving node: ' + error.message ) );
 			}
 		},
 		click: function handleEditorClick( event ) {
@@ -73,12 +76,60 @@ const EditorPane = () => {
 
 	// stopping events in the events object above is not possible
 	// so we handle the logic there, and stop the propagation here before it can get to the app level
-	function handleClick( e ) {
+	const handleClick = ( e ) => {
 		e.stopPropagation();
-	}
+	};
+
+	// listen to ctrl + c
+	// get active item id and type
+	// if its a node, read node from memory and write all data to clipboard
+	const handleKeyDown = ( e ) => {
+		const charCode = String.fromCharCode( e.which ).toLowerCase();
+		if ( e.ctrlKey ) {
+			switch ( charCode ) {
+				case 'c':
+					const { activeItem } = client.readQuery( { query: ACTIVE_ITEM } );
+					if ( activeItem.itemType === 'node' ) {
+						const { itemId } = activeItem;
+						const { Nodes } = client.readQuery( { query: NODES_BASE_DATA } );
+						const nodeToCopy = Nodes.find( aNode => aNode.id === itemId );
+						const nodeCopy = deepCopy( nodeToCopy );
+						const { label, type, story, synchronous, unreliable } = nodeCopy;
+						navigator.clipboard.writeText( JSON.stringify( { label, type, story, synchronous, unreliable, isNode: true } ) )
+							.catch( error => addLogMessage( client, 'Error when saving to clipboard: ' + error.message ) );
+					}
+					break;
+				case 'v':
+					navigator.clipboard.readText()
+						.then( clipText => {
+							if ( editingData.hasEditRights ) {
+								try {
+									const clipBoardData = JSON.parse( clipText );
+									if ( clipBoardData.isNode ) {
+										const { label, type, story, synchronous, unreliable } = clipBoardData;
+										createNode( {
+											variables: {
+												label, type, props: { story, synchronous, unreliable },
+											},
+										} )
+											.catch( e => addLogMessage( client, 'Error when creating node from paste command: ' + e.message ) );
+									}
+								}
+								catch ( e ) {
+									addLogMessage( client, `clipboard text can't be processed by JSON: ` + clipText );
+								}
+							}
+						} );
+					break;
+				default:
+					addLogMessage( client, 'Pressed Something' );
+					break;
+			}
+		}
+	};
 
 	return (
-		<div className='bordered editor-pane margin-base' onClick={ handleClick }>
+		<div className='bordered editor-pane margin-base' onClick={ handleClick } onKeyDown={ handleKeyDown }>
 			<Graph
 				graph={ graph }
 				options={ options }
@@ -88,4 +139,4 @@ const EditorPane = () => {
 	);
 };
 
-export default EditorPane;
+export default withLocalDataAccess( EditorPane );

@@ -195,7 +195,7 @@ export const insertConnected = ( node, center, nodes, level, client ) => {
 					ref.centerIDs = [ center.id ];
 					center.contains.push( { id: ref.id, parentID: node.id } );
 				}
-					// todo: check if this works and then apply it in rule!
+					// todo: this needs to be reworked
 				// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
 				else if ( level === ref.level ) {
 					// do I need to remove it from other centers "contains" array?

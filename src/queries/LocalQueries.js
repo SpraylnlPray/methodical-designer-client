@@ -184,6 +184,19 @@ export const EDITOR_LINK_DATA = gql`
   }
 `;
 
+export const NODES_BASE_DATA = gql`
+  query {
+    Nodes @client {
+      id
+      label
+      type
+      story
+      synchronous
+      unreliable
+    }
+  }
+`;
+
 export const LINKS_WITH_TAGS = gql`
   query {
     Links @client {
