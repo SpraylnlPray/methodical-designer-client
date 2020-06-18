@@ -3,6 +3,7 @@ import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
 import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
+import { NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
 	return isHidden( node1 ) && isHidden( node2 );
@@ -318,4 +319,29 @@ const getDistinctIDs = nodeArray => {
 	let connectedNodeIDs = nodeArray.map( aNode => aNode.id );
 	const distinctIDs = Array.from( new Set( connectedNodeIDs ) );
 	return distinctIDs;
+};
+
+export const pasteNodeToClipboard = ( activeItem, client ) => {
+	const { itemId } = activeItem;
+	const { Nodes } = client.readQuery( { query: NODES_BASE_DATA } );
+	const nodeToCopy = Nodes.find( aNode => aNode.id === itemId );
+	const nodeCopy = deepCopy( nodeToCopy );
+	const { label, type, story, synchronous, unreliable } = nodeCopy;
+	navigator.clipboard.writeText( JSON.stringify( { label, type, story, synchronous, unreliable, isNode: true } ) )
+		.catch( error => addLogMessage( client, 'Error when saving to clipboard: ' + error.message ) );
+};
+
+export const createNodeFromClipboard = ( editingData, clipText, createNode, client ) => {
+	if ( editingData.hasEditRights ) {
+		const clipBoardData = JSON.parse( clipText );
+		if ( clipBoardData.isNode ) {
+			const { label, type, story, synchronous, unreliable } = clipBoardData;
+			createNode( {
+				variables: {
+					label, type, props: { story, synchronous, unreliable },
+				},
+			} )
+				.catch( e => addLogMessage( client, 'Error when creating node from paste command: ' + e.message ) );
+		}
+	}
 };

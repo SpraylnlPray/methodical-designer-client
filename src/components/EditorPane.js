@@ -6,6 +6,7 @@ import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, NODES_BASE_DATA } from
 import options from '../Graph/GraphOptions';
 import { CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
+import { createNodeFromClipboard, pasteNodeToClipboard } from '../Graph/NodeUtils';
 
 const EditorPane = ( { editingData } ) => {
 	const client = useApolloClient();
@@ -80,9 +81,6 @@ const EditorPane = ( { editingData } ) => {
 		e.stopPropagation();
 	};
 
-	// listen to ctrl + c
-	// get active item id and type
-	// if its a node, read node from memory and write all data to clipboard
 	const handleKeyDown = ( e ) => {
 		const charCode = String.fromCharCode( e.which ).toLowerCase();
 		if ( e.ctrlKey ) {
@@ -90,39 +88,26 @@ const EditorPane = ( { editingData } ) => {
 				case 'c':
 					const { activeItem } = client.readQuery( { query: ACTIVE_ITEM } );
 					if ( activeItem.itemType === 'node' ) {
-						const { itemId } = activeItem;
-						const { Nodes } = client.readQuery( { query: NODES_BASE_DATA } );
-						const nodeToCopy = Nodes.find( aNode => aNode.id === itemId );
-						const nodeCopy = deepCopy( nodeToCopy );
-						const { label, type, story, synchronous, unreliable } = nodeCopy;
-						navigator.clipboard.writeText( JSON.stringify( { label, type, story, synchronous, unreliable, isNode: true } ) )
-							.catch( error => addLogMessage( client, 'Error when saving to clipboard: ' + error.message ) );
+						try {
+							pasteNodeToClipboard( activeItem, client );
+						}
+						catch ( e ) {
+							addLogMessage( client, 'Error in pasteNodeToClipboard: ' + e.message );
+						}
 					}
 					break;
 				case 'v':
 					navigator.clipboard.readText()
 						.then( clipText => {
-							if ( editingData.hasEditRights ) {
-								try {
-									const clipBoardData = JSON.parse( clipText );
-									if ( clipBoardData.isNode ) {
-										const { label, type, story, synchronous, unreliable } = clipBoardData;
-										createNode( {
-											variables: {
-												label, type, props: { story, synchronous, unreliable },
-											},
-										} )
-											.catch( e => addLogMessage( client, 'Error when creating node from paste command: ' + e.message ) );
-									}
-								}
-								catch ( e ) {
-									addLogMessage( client, `clipboard text can't be processed by JSON: ` + clipText );
-								}
+							try {
+								createNodeFromClipboard( editingData, clipText, createNode, client );
+							}
+							catch ( e ) {
+								addLogMessage( client, 'Error in createNodeFromClipboard: ' + e.message );
 							}
 						} );
 					break;
 				default:
-					addLogMessage( client, 'Pressed Something' );
 					break;
 			}
 		}
