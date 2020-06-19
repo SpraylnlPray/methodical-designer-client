@@ -1,17 +1,18 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { addLogMessage, deepCopy, getDuplicates } from './utils';
+import { addLogMessage, deepCopy, getDuplicates, getMatchingIDs, setCameraPos } from './utils';
 import {
 	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink, assembleNewLink,
 } from './Graph/LinkUtils';
 import {
 	setNodeImage, handleConnectedNodes, removeLinkFromLinks, removeNodeFromConnTo, addLinkToLinks, addNodeToConnTo,
-	assembleNewNode, updateNode, placeNodes,
+	assembleNewNode, updateNode, placeNodes, setMaxNodeIndex, setNodeSearchIndex,
 } from './Graph/NodeUtils';
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
-	MOVE_NODE_DATA, NODES_HIDE_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
+	MOVE_NODE_DATA, NODES_SEARCH_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
+	CAMERA_POS, NODE_SEARCH_INDEX, MAX_NODE_INDEX,
 } from './queries/LocalQueries';
 import Fuse from 'fuse.js';
 import Favicon from 'react-favicon';
@@ -71,6 +72,12 @@ const cache = new InMemoryCache( {
 				},
 				needsCalculation( existingData ) {
 					return existingData || false;
+				},
+				searchIndex( existingData ) {
+					if ( existingData === undefined ) {
+						return '';
+					}
+					return existingData;
 				},
 			},
 		},
@@ -157,6 +164,13 @@ const client = new ApolloClient( {
 						query: NODES_WITH_TAGS,
 						data: { Nodes: nodesCopy },
 					} );
+					setTimeout( () => {
+						let camCoords = { __typename: 'SetCameraPos', type: 'fit', x: 0, y: 0 };
+						cache.writeQuery( {
+							query: CAMERA_POS,
+							data: { setCameraPos: camCoords },
+						} );
+					}, 500 );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in setNodes: ' + e.message );
@@ -510,43 +524,48 @@ const client = new ApolloClient( {
 			},
 			searchNodeByLabel: ( _root, variables, { cache, client } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_HIDE_DATA } );
+					const { Nodes } = cache.readQuery( { query: NODES_SEARCH_DATA } );
 					const { searchString } = variables;
 					const nodesCopy = deepCopy( Nodes );
+
 					if ( searchString.length > 0 ) {
-						const fuse = new Fuse( nodesCopy, options );
-						const results = fuse.search( searchString );
-						const goodResults = results.filter( aResult => aResult.score < 0.6 );
-						const foundIDs = goodResults.map( aResult => aResult.item.id );
+						let setCamCoords = false;
+						let camCoords = { __typename: 'SetCameraPos', type: 'select', x: 0, y: 0 };
+						const foundIDs = getMatchingIDs( nodesCopy, searchString );
 						for ( let node of nodesCopy ) {
-							// if the label of a node does not contain the search string
-							if ( !foundIDs.includes( node.id ) ) {
-								// if it is not hidden, hide it
-								if ( !node.hidden ) {
-									node.hidden = true;
-									node.hiddenBy = 'filter';
+							// if the label of a node does not contains the search string
+							if ( foundIDs.includes( node.id ) ) {
+								// give the node a searchIndex
+								const searchIndex = foundIDs.indexOf( node.id );
+								node.searchIndex = searchIndex;
+								// if the camera coordinates have not been set yet
+								if ( searchIndex === 0 && !setCamCoords ) {
+									setCamCoords = true;
+									camCoords.x = node.x;
+									camCoords.y = node.y;
 								}
 							}
-							// if the label contains the search string and the node was previously hidden by a filter, make it visible
-							else if ( node.hiddenBy === 'filter' ) {
-								node.hidden = false;
-								node.hiddenBy = '';
+							// if the label doesn't contain the search string remove the searchIndex prop
+							else {
+								node.searchIndex = '';
 							}
 						}
+						setMaxNodeIndex( cache, foundIDs );
+						setNodeSearchIndex( cache, 0 );
+						setCameraPos( cache, camCoords );
 					}
+
 					else {
+						setNodeSearchIndex( cache, '' );
 						nodesCopy.forEach( aNode => {
-							// if the node was previously hidden by a filter, unhide it
-							if ( aNode.hiddenBy === 'filter' ) {
-								aNode.hidden = false;
-								aNode.hiddenBy = '';
-							}
+							// remove searchIndex from all nodes
+							aNode.searchIndex = '';
 							return aNode;
 						} );
 					}
 
 					cache.writeQuery( {
-						query: NODES_HIDE_DATA,
+						query: NODES_SEARCH_DATA,
 						data: { Nodes: nodesCopy },
 					} );
 				}
@@ -608,6 +627,30 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when searching link by label: ' + e.message );
 				}
 			},
+
+			setCameraNodeIndex: ( _root, variables, { cache, client } ) => {
+				try {
+					cache.writeQuery( {
+						query: NODE_SEARCH_INDEX,
+						data: { nodeSearchIndex: variables.index },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when setting camera node index: ' + e.message );
+				}
+			},
+			setCameraPos: ( _root, variables, { cache, client } ) => {
+				try {
+					const { x, y } = variables;
+					cache.writeQuery( {
+						query: CAMERA_POS,
+						data: { setCameraPos: { x, y, type: 'select', __typename: 'SetCameraPos' } },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error when setting camera pos: ' + e.message );
+				}
+			},
 		},
 	},
 } );
@@ -619,6 +662,14 @@ cache.writeQuery( {
       hasEditRights
       searchNodeLabelFilter
       searchLinkLabelFilter
+      maxNodeIndex
+      nodeSearchIndex
+      linkSearchIndex
+      setCameraPos {
+        type
+        x
+        y
+      }
       activeItem {
         itemId
         itemType
@@ -637,6 +688,16 @@ cache.writeQuery( {
 		hasEditRights: false,
 		searchNodeLabelFilter: '',
 		searchLinkLabelFilter: '',
+		maxNodeIndex: '',
+		nodeSearchIndex: '',
+		linkSearchIndex: '',
+		setCameraPos: {
+			// can be 'init' or 'select', init is in the beginning to use 'fit' from vis, 'select' when user searches
+			type: '',
+			x: 0,
+			y: 0,
+			__typename: 'SetCameraPos',
+		},
 		activeItem: {
 			itemId: 'app',
 			itemType: 'app',

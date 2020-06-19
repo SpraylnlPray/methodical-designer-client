@@ -186,3 +186,24 @@
     margin-top: 3px;
     margin-bottom: 3px;
 }
+
+.search-line {
+    width: 76%;
+}
+
+.search-input>input {
+    width: 46% !important;
+    flex: none !important;
+    padding-left: 0.7em !important;
+    padding-right: 0.7em !important;
+}
+
+.ui.label {
+    width: 55%;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+}
+
+.button-left {
+    margin-left: 4px !important;
+}

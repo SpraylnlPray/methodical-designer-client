@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Graph from 'react-graph-vis';
+import { Button } from 'semantic-ui-react';
 import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM } from '../queries/LocalQueries';
+import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, CAMERA_POS, NODE_IDS } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
 import { CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 import { createNodeFromClipboard, pasteNodeToClipboard } from '../Graph/NodeUtils';
 
+const { useState } = require( 'react' );
+
 const EditorPane = ( { editingData } ) => {
 	const client = useApolloClient();
+	const [ network, setNetwork ] = useState( null );
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ` + error.message ),
+	} );
+	const { data: cameraPosData } = useQuery( CAMERA_POS, {
+		onError: error => addLogMessage( client, 'Failed when getting camera coords: ' + error.message ),
 	} );
 	const { data: linkData } = useQuery( EDITOR_LINK_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local links: ` + error.message ),
@@ -21,6 +28,30 @@ const EditorPane = ( { editingData } ) => {
 		onError: error => addLogMessage( client, 'Error when moving node: ' + error.message ),
 	} );
 	const [ createNode ] = useMutation( CREATE_LOCAL_NODE );
+
+	useEffect( () => {
+		const { setCameraPos } = cameraPosData;
+		if ( setCameraPos.type === 'select' ) {
+			const { x, y } = setCameraPos;
+			network.moveTo( {
+				position: { x, y },
+				scale: 1,
+				animation: {
+					duration: 300,
+					easingFunction: 'easeInOutQuad',
+				},
+			} );
+		}
+		else if ( setCameraPos.type === 'fit' ) {
+			const { Nodes } = client.readQuery( { query: NODE_IDS } );
+			const IDs = Nodes.map( aNode => aNode.id );
+			network.fit( {
+				nodes: IDs,
+				animation: true,
+			} );
+		}
+		// eslint-disable-next-line
+	}, [ cameraPosData ] );
 
 	let graph = {
 		nodes: [],
@@ -119,6 +150,9 @@ const EditorPane = ( { editingData } ) => {
 				graph={ graph }
 				options={ options }
 				events={ events }
+				getNetwork={ network => {
+					setNetwork( network );
+				} }
 			/>
 		</div>
 	);

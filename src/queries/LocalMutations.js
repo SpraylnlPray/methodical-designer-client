@@ -90,3 +90,15 @@ export const SEARCH_LINK_BY_LABEL = gql`
     searchLinkByLabel(searchString: $searchString) @client
   }
 `;
+
+export const SET_CAMERA_POS = gql`
+  mutation SetCameraPos($x: Float!, $y: Float!) {
+    setCameraPos(x: $x, y: $y) @client
+  }
+`;
+
+export const SET_CAMERA_NODE_INDEX = gql`
+  mutation SetCameraNodeIndex($index: Int!) {
+    setCameraNodeIndex(index: $index) @client
+  }
+`;

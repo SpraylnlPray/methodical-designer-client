@@ -119,7 +119,7 @@ export const LINKS_DATA = gql`
     Links @client {
       id
       label
-			name
+      name
       linkType
       story
       optional
@@ -202,7 +202,7 @@ export const LINKS_WITH_TAGS = gql`
     Links @client {
       id
       label
-			name
+      name
       hidden
       needsCalculation
       linkType
@@ -293,13 +293,44 @@ export const MOVE_NODE_DATA = gql`
   }
 `;
 
-export const NODES_HIDE_DATA = gql`
+export const NODE_IDS = gql`
+  query {
+    Nodes @client {
+      id
+    }
+  }
+`;
+
+export const NODE_SEARCH_INDEX = gql`
+  query {
+    nodeSearchIndex @client
+  }
+`;
+
+export const MAX_NODE_INDEX = gql`
+  query {
+    maxNodeIndex @client
+  }
+`;
+
+export const CAMERA_POS = gql`
+  query {
+    setCameraPos @client {
+      type
+      x
+      y
+    }
+  }
+`;
+
+export const NODES_SEARCH_DATA = gql`
   query {
     Nodes @client {
       id
       label
-      hidden
-      hiddenBy
+      searchIndex
+      x
+      y
     }
   }
 `;

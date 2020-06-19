@@ -1,4 +1,5 @@
-import { ACTIVE_ITEM, LAST_EDITOR_ACTION, LOG_MESSAGES } from './queries/LocalQueries';
+import { ACTIVE_ITEM, CAMERA_POS, LAST_EDITOR_ACTION, LOG_MESSAGES } from './queries/LocalQueries';
+import Fuse from 'fuse.js';
 
 export const setActiveItem = ( client, itemId, itemType ) => {
 	client.writeQuery( {
@@ -75,4 +76,20 @@ export const normalizeVector = ( vec ) => {
 
 export const vectorMagnitude = ( vec ) => {
 	return Math.sqrt( vec.x * vec.x + vec.y * vec.y );
+};
+
+const options = { keys: [ 'label' ], findAllMatches: true, includeScore: true };
+export const getMatchingIDs = ( nodesCopy, searchString ) => {
+	const fuse = new Fuse( nodesCopy, options );
+	const results = fuse.search( searchString );
+	const goodResults = results.filter( aResult => aResult.score < 0.6 );
+	const foundIDs = goodResults.map( aResult => aResult.item.id );
+	return foundIDs;
+};
+
+export const setCameraPos = ( cache, camCoords ) => {
+	cache.writeQuery( {
+		query: CAMERA_POS,
+		data: { setCameraPos: camCoords },
+	} );
 };

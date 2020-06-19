@@ -3,7 +3,7 @@ import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
 import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
-import { NODES_BASE_DATA } from '../queries/LocalQueries';
+import { MAX_NODE_INDEX, NODE_SEARCH_INDEX, NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
 	return isHidden( node1 ) && isHidden( node2 );
@@ -345,3 +345,17 @@ export const createNodeFromClipboard = ( editingData, clipText, createNode, clie
 		}
 	}
 };
+
+export const setMaxNodeIndex = ( cache, foundIDs ) => {
+	cache.writeQuery( {
+		query: MAX_NODE_INDEX,
+		data: { maxNodeIndex: foundIDs.length - 1 },
+	} );
+};
+
+export const setNodeSearchIndex = ( cache, index ) => {
+	cache.writeQuery( {
+		query: NODE_SEARCH_INDEX,
+		data: { nodeSearchIndex: index },
+	} );
+}
