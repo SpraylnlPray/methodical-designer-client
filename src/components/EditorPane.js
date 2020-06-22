@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import Graph from 'react-graph-vis';
-import { Button } from 'semantic-ui-react';
 import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, CAMERA_POS, NODE_IDS } from '../queries/LocalQueries';

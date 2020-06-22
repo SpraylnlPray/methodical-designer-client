@@ -181,6 +181,7 @@ export const assembleNewLink = ( variables ) => {
 		sequence: seq,
 		created: true,
 		edited: false,
+		deleted: false,
 		__typename: 'Link',
 	};
 	setLinkDisplayProps( newLink, x_end, y_end );

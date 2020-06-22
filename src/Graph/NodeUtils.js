@@ -2,7 +2,7 @@ import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
-import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
+import { CollapsableRule, FlowerRule2, NonCollapsableRule } from './Rules';
 import { MAX_NODE_INDEX, NODE_SEARCH_INDEX, NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
@@ -25,8 +25,8 @@ export const setNodeImage = ( node ) => {
 };
 
 export const VecDist = ( p1, p2 ) => {
-	const deltaX = p1.x - p2.x;
-	const deltaY = p1.y - p2.y;
+	const deltaX = p1.position.x - p2.position.x;
+	const deltaY = p1.position.y - p2.position.y;
 	return Math.hypot( deltaX, deltaY );
 };
 
@@ -64,16 +64,16 @@ export const isCollapsable = ( node ) => {
 };
 
 export const hasCoordinates = node => {
-	const { x, y } = node;
-	return x !== undefined && y !== undefined;
+	const { position } = node;
+	return position !== undefined;
 };
 
 export const getExistingCoordinatesFor = nodesToConsider => {
 	const existingCoords = [];
 	nodesToConsider.forEach( nodeToCheck => {
-		const { x, y } = nodeToCheck;
-		if ( x !== undefined && y !== undefined ) {
-			existingCoords.push( { x, y } );
+		const { position } = nodeToCheck;
+		if ( position ) {
+			existingCoords.push( position );
 		}
 	} );
 	return existingCoords;
@@ -157,67 +157,6 @@ export const updateNode = ( node, variables ) => {
 	return node;
 };
 
-export const insertConnected = ( node, center, nodes, level, client ) => {
-	try {
-		if ( !center[level] ) {
-			center[level] = [];
-		}
-		// get all connected nodes
-		const connectedNodes = getConnectedNodes( node, nodes, center );
-		const distinctIDs = getDistinctIDs( connectedNodes );
-		// get their reference
-		for ( let ID of distinctIDs ) {
-			let ref = nodes.find( aNode => aNode.id === ID );
-			ref = formatRef( ref );
-			// save that this combination has been checked
-			ref.checkedBy.push( center.id );
-			// if the ref hasn't been checked by this collapsable, mark it as checked
-			if ( !isCollapsable( ref ) ) {
-				// if the node has not been added to any level, save it
-				if ( !ref.level ) {
-					ref.level = level;
-					ref.centerIDs.push( center.id );
-					center.contains.push( { id: ref.id, parentID: node.id } );
-				}
-				else if ( level < ref.level ) {
-					// check through all other collapsables if the "contains" property contains the link of this ref
-					for ( let node2 of nodes ) {
-						if ( isCollapsable( node2 ) && node2.contains ) {
-							const containsIDs = node2.contains.map( conNode => conNode.id );
-							if ( containsIDs.includes( ref.id ) ) {
-								// remove the reference from "contains"
-								const indexData = containsIDs.indexOf( ref.id );
-								node2.contains.splice( indexData, 1 );
-							}
-						}
-					}
-					// then set the new level of the node
-					ref.level = level;
-					ref.centerIDs = [ center.id ];
-					center.contains.push( { id: ref.id, parentID: node.id } );
-				}
-					// todo: this needs to be reworked
-				// the level is the same and it doesn't know of this parent yet, add it to the current collapsable, and mark it as double
-				else if ( level === ref.level ) {
-					// do I need to remove it from other centers "contains" array?
-					ref.double = true;
-					ref.level = level;
-					ref.centerIDs.push( center.id );
-					center.contains.push( { id: ref.id, parentID: node.id } );
-				}
-			}
-		}
-		// go through the children and add their kids
-		for ( let ID of distinctIDs ) {
-			const ref = nodes.find( aNode => aNode.id === ID );
-			insertConnected( ref, center, nodes, level + 1, client );
-		}
-	}
-	catch ( e ) {
-		addLogMessage( client, 'error with node ' + node.label + ' collapsable ' + center.label + ' level ' + level + ': ' + e.message );
-	}
-};
-
 export const rotateVector = ( vec, angle ) => {
 	return {
 		x: vec.x * Math.cos( angle ) - vec.y * Math.sin( angle ),
@@ -227,18 +166,6 @@ export const rotateVector = ( vec, angle ) => {
 
 export const toRad = ( angle ) => {
 	return angle * Math.PI / 180;
-};
-
-export const saveChildren = ( center, nodes ) => {
-	for ( let nodeRef of center.contains ) {
-		const { id, parentID } = nodeRef;
-		const node = nodes.find( aNode => aNode.id === id );
-		const parent = nodes.find( aNode => aNode.id === parentID );
-		if ( !parent.children ) {
-			parent.children = [];
-		}
-		parent.children.push( node );
-	}
 };
 
 export const clamp = ( val, min, max ) => {
@@ -261,58 +188,129 @@ export const calcDistance = ( node ) => {
 	return dist;
 };
 
+export const assignChildren = ( nodes ) => {
+	for ( let node of nodes ) {
+		if ( node.parents && !node.position ) {
+			for ( let parent of node.parents ) {
+				if ( !parent.children ) {
+					parent.children = [];
+				}
+				parent.children.push( node );
+			}
+		}
+	}
+};
+
+export const findParents = ( parent, center, nodes, toCheck, checked, client ) => {
+	try {
+		// get all connected node ids
+		const connectedNodeRefs = getConnectedNodes( parent, nodes, center );
+		const distinctIDs = getDistinctIDs( connectedNodeRefs );
+		for ( let nodeID of distinctIDs ) {
+			const ref = nodes.find( aNode => aNode.id === nodeID );
+			if ( !ref.parents ) {
+				ref.parents = [];
+			}
+			// if the node is not on the list of nodes to check, nor is it in the list of already checked nodes
+			if ( !toCheck.includes( ref ) && !checked.includes( ref ) ) {
+				toCheck.push( ref );
+				// if the node doesn't have a center
+				if ( !ref.center ) {
+					// set the centerID, save the level and the parent
+					ref.center = center;
+					ref.level = parent.level + 1;
+					ref.parents.push( parent );
+				}
+				// if it has a center
+				else {
+					// check if its a different than the current one
+					if ( ref.center !== center ) {
+						// if so, if the nodes level is higher than the new level
+						if ( ref.level > parent.level + 1 ) {
+							// set the new center, level and parent
+							ref.center = center;
+							ref.level = parent.level + 1;
+							ref.parents = [ parent ];
+						}
+					}
+				}
+			}
+			else {
+				// if it was already discovered, check if it is one level below the current node
+				if ( ref.level === parent.level + 1 && !ref.parents.includes( parent ) ) {
+					ref.parents.push( parent );
+				}
+			}
+		}
+
+		const nodeToCheck = toCheck.shift();
+		if ( nodeToCheck ) {
+			checked.push( nodeToCheck );
+			if ( !nodeToCheck.children ) {
+				nodeToCheck.children = [];
+			}
+			findParents( nodeToCheck, center, nodes, toCheck, checked, client );
+		}
+	}
+	catch ( e ) {
+		addLogMessage( client, 'error in findParents with node ' + parent.label + ': ' + e.message );
+	}
+};
+
 export const placeNodes = ( nodesCopy, client ) => {
-	const networkData = [];
+	const collapsables = [];
 	for ( let node of nodesCopy ) {
-		node.checkedBy = [];
-		CollapsableRule( node, nodesCopy, client );
 		if ( isCollapsable( node ) ) {
 			node.level = 0;
-			networkData.push( node );
+			node.children = [];
+			collapsables.push( node );
 		}
 	}
 
-	const level = 1;
-	for ( let collapsable of networkData ) {
-		// this will hold id and level of all connected nodes
-		collapsable.contains = [];
-		insertConnected( collapsable, collapsable, nodesCopy, level, client );
+	for ( let collapsable of collapsables ) {
+		const toCheck = [];
+		const checked = [];
+		findParents( collapsable, collapsable, nodesCopy, toCheck, checked, client );
 	}
 
-	// save all the children of one node on itself
-	for ( let collapsable of networkData ) {
-		saveChildren( collapsable, nodesCopy );
+	assignChildren( nodesCopy );
+	for ( let collapsable of collapsables ) {
+		CollapsableRule( collapsable, collapsables, client );
 	}
 
-	for ( let collapsable of networkData ) {
-		FlowerRule( nodesCopy, collapsable, level, client );
+	for ( let collapsable of collapsables ) {
+		const next = [].concat( collapsable.children );
+		FlowerRule2( next, client );
 	}
+
+	for ( let node of nodesCopy ) {
+		convertToVisCoords( node );
+	}
+
 	NonCollapsableRule( {}, nodesCopy, client );
+};
+
+export const normalizeCoords = ( node ) => {
+	if ( hasCoordinates( node ) ) {
+		if ( node.parents ) {
+			node.position = divideVec( node.position, node.parents.length );
+		}
+	}
+};
+
+export const convertToVisCoords = ( node ) => {
+	if ( node.position ) {
+		const { x, y } = node.position;
+		node.x = x;
+		node.y = y;
+	}
 };
 
 const getConnectedNodes = ( node, nodes, center ) => {
 	const connectedNodes = node.connectedTo.filter( aNode => {
-		if ( !isCollapsable( aNode ) && aNode.id !== center.id ) {
-			const ref = nodes.find( bNode => bNode.id === aNode.id );
-			if ( !ref?.checkedBy.includes( center.id ) ) {
-				return true;
-			}
-		}
-		return false;
+		return !isCollapsable( aNode ) && aNode.id !== center.id;
 	} );
 	return connectedNodes;
-};
-
-const formatRef = ref => {
-	if ( !ref.centerIDs ) {
-		// under which node(s) it should be, is an array because it can be multiple arrays if there are multiple connections
-		ref.centerIDs = [];
-	}
-	if ( !ref.checkedBy ) {
-		// by which nodes has it been checked already?
-		ref.checkedBy = [];
-	}
-	return ref;
 };
 
 const getDistinctIDs = nodeArray => {
@@ -358,4 +356,18 @@ export const setNodeSearchIndex = ( cache, index ) => {
 		query: NODE_SEARCH_INDEX,
 		data: { nodeSearchIndex: index },
 	} );
-}
+};
+
+export const addVertex = ( vec1, vec2 ) => {
+	let newVec = { x: 0, y: 0 };
+	newVec.x = vec1.x + vec2.x;
+	newVec.y = vec1.y + vec2.y;
+	return newVec;
+};
+
+export const divideVec = ( vec, factor ) => {
+	let newVec = { x: 0, y: 0 };
+	newVec.x = vec.x / factor;
+	newVec.y = vec.y / factor;
+	return newVec;
+};
