@@ -7,7 +7,7 @@ import { useQuery } from '@apollo/client';
 const InteractionPane = ( { client } ) => {
 	const { data: { activeItem } } = useQuery( ACTIVE_ITEM );
 	return (
-		<div className='bordered interaction-pane margin-base'>
+		<div className='bordered margin-base'>
 			<OptionBar
 				activeItem={ activeItem }
 			/>

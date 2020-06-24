@@ -1,0 +1,30 @@
+.log-container {
+    position: fixed;
+    bottom: 0;
+    right: 10px;
+    width: 500px;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    background-color: white;
+}
+
+.log-header {
+    height: 30px;
+    font-size: 15px !important;
+    display: flex !important;
+    align-items: center;
+    background-color: rgb(224, 225, 226);
+    color: rgba(0, 0, 0, 0.6);
+    padding: 0 0 0 20px !important;
+    width: 100%;
+}
+
+.log-stream {
+    height: 250px;
+    line-height: 1.4;
+    list-style-type: square;
+    padding-left: 20px;
+}

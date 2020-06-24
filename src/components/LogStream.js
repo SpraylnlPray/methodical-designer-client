@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import '../css/LogStream.css';
 import { useQuery } from '@apollo/client';
 import { Button } from 'semantic-ui-react';
 import { LOG_MESSAGES } from '../queries/LocalQueries';

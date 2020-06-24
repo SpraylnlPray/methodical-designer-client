@@ -1,7 +1,8 @@
 import React, { useEffect, useReducer } from 'react';
+import '../css/NodeForm.css';
 import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, NODES_WITH_TAGS } from '../queries/LocalQueries';
-import { Container, Form } from 'semantic-ui-react';
+import { Form } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
@@ -85,54 +86,52 @@ const EditNode = ( { activeItem, client } ) => {
 	};
 
 	return (
-		<Container>
-			<Form className='create-form'>
-				<Form.Group className='create-group'>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Label'
-						placeholder='Label'
-						onChange={ handleRequiredChange }
-						required
-						name='label'
-						value={ store.required['label'] }
-					/>
-					<Form.Select
-						className='create-required-select create-input'
-						fluid
-						label='Type'
-						options={ typeOptions }
-						placeholder='Type'
-						onChange={ handleRequiredChange }
-						required
-						name='nodeType'
-						value={ store.required['nodeType'] }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Story'
-						placeholder='Story'
-						onChange={ handlePropsChange }
-						name='story'
-						value={ store.props['story'] }
-					/>
-					<Form.Checkbox
-						className='create-input'
-						label='Synchronous'
-						onChange={ handlePropsChange }
-						checked={ store.props['synchronous'] }
-						name='synchronous'
-					/>
-					<Form.Checkbox
-						className='create-input'
-						label='Unreliable'
-						onChange={ handlePropsChange }
-						checked={ store.props['unreliable'] }
-						name='unreliable'
-					/>
-				</Form.Group>
+		<div className='node-form'>
+			<Form className='node-form-grid'>
+				<Form.Input
+					fluid
+					className='node-label'
+					label='Label'
+					placeholder='Label'
+					onChange={ handleRequiredChange }
+					required
+					name='label'
+					value={ store.required['label'] }
+				/>
+				<Form.Select
+					className='node-type'
+					fluid
+					label='Type'
+					options={ typeOptions }
+					placeholder='Type'
+					onChange={ handleRequiredChange }
+					required
+					name='nodeType'
+					value={ store.required['nodeType'] }
+				/>
+				<Form.Input
+					fluid
+					className='node-story'
+					label='Story'
+					placeholder='Story'
+					onChange={ handlePropsChange }
+					name='story'
+					value={ store.props['story'] }
+				/>
+				<Form.Checkbox
+					className='node-synchronous'
+					label='Synchronous'
+					onChange={ handlePropsChange }
+					checked={ store.props['synchronous'] }
+					name='synchronous'
+				/>
+				<Form.Checkbox
+					className='node-unreliable'
+					label='Unreliable'
+					onChange={ handlePropsChange }
+					checked={ store.props['unreliable'] }
+					name='unreliable'
+				/>
 				<div className='edit-button-area'>
 					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
@@ -142,7 +141,7 @@ const EditNode = ( { activeItem, client } ) => {
 				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
-		</Container>
+		</div>
 	);
 };
 

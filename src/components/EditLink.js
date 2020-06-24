@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LINKS_DATA, NODES_DATA } from '../queries/LocalQueries';
-import { Container, Form } from 'semantic-ui-react';
+import { Form } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, deepCopy, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
@@ -89,147 +89,145 @@ const EditLink = ( { activeItem, client } ) => {
 	const isPartOf = store.required['type'] === 'PartOf';
 
 	return (
-		<Container>
-			<Form className='create-form'>
-				<Form.Group className='create-group'>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Label'
-						placeholder='Label'
-						onChange={ handleRequiredChange }
-						required
-						name='label'
-						value={ store.required['label'] }
-					/>
-					<Form.Dropdown
-						className='create-required-select create-input'
-						fluid
-						clearable
-						search
-						selection
-						label='Type'
-						options={ typeOptions }
-						placeholder='Type'
-						onChange={ handleRequiredChange }
-						required
-						name='linkType'
-						value={ store.required['linkType'] }
-					/>
-					<Form.Dropdown
-						fluid
-						label={ isPartOf ? 'Parent-Node' : 'X-Node' }
-						placeholder={ isPartOf ? 'Parent-Node' : 'X-Node' }
-						clearable
-						search
-						selection
-						required
-						onChange={ handleRequiredChange }
-						options={ nodeOptions }
-						name='x_id'
-						value={ store.required['x_id'] }
-						className={ 'create-required-select create-input' }
-					/>
-					<Form.Dropdown
-						fluid
-						clearable
-						search
-						selection
-						className='create-required-select create-input'
-						label={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
-						placeholder={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
-						name='arrow'
-						value={ store.x_end['arrow'] }
-						options={ arrowOptions }
-						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-select create-input'
-						label={ isPartOf ? 'Parent-Note' : 'X-Note' }
-						placeholder={ isPartOf ? 'Parent-Note' : 'X-Note' }
-						onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
-						name='note'
-						value={ store.x_end['note'] }
-					/>
-					<Form.Dropdown
-						fluid
-						className='create-required-select create-input'
-						label={ isPartOf ? 'Child-Node' : 'Y-Node' }
-						placeholder={ isPartOf ? 'Child-Node' : 'Y-Node' }
-						required
-						clearable
-						search
-						selection
-						onChange={ handleRequiredChange }
-						options={ nodeOptions }
-						name='y_id'
-						value={ store.required['y_id'] }
-					/>
-					<Form.Dropdown
-						fluid
-						clearable
-						search
-						selection
-						className='create-required-select create-input'
-						label={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
-						placeholder={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
-						name='arrow'
-						value={ store.y_end['arrow'] }
-						options={ arrowOptions }
-						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-select create-input'
-						label={ isPartOf ? 'Child-Note' : 'Y-Note' }
-						placeholder={ isPartOf ? 'Child-Note' : 'Y-Note' }
-						onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
-						name='note'
-						value={ store.y_end['note'] }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Story'
-						placeholder='Story'
-						onChange={ handlePropsChange }
-						name='story'
-						value={ store.props['story'] }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Sequence Group'
-						placeholder='Group'
-						onChange={ handleSeqChange }
-						name='group'
-						value={ store.seq['group'] }
-					/>
-					<Form.Input
-						fluid
-						className='create-required-input create-input'
-						label='Sequence Number'
-						placeholder='0'
-						onChange={ handleSeqChange }
-						name='seq'
-						value={ store.seq['seq'] }
-					/>
-					<Form.Checkbox
-						className='create-input'
-						label='optional'
-						onChange={ handlePropsChange }
-						checked={ store.props['optional'] }
-						name='optional'
-					/>
-				</Form.Group>
+		<div className='link-form'>
+			<Form className='link-form-grid'>
+				<Form.Input
+					fluid
+					className='link-label'
+					label='Label'
+					placeholder='Label'
+					onChange={ handleRequiredChange }
+					required
+					name='label'
+					value={ store.required['label'] }
+				/>
+				<Form.Dropdown
+					className='link-type'
+					fluid
+					clearable
+					search
+					selection
+					label='Type'
+					options={ typeOptions }
+					placeholder='Type'
+					onChange={ handleRequiredChange }
+					required
+					name='linkType'
+					value={ store.required['linkType'] }
+				/>
+				<Form.Dropdown
+					fluid
+					label={ isPartOf ? 'Parent-Node' : 'X-Node' }
+					placeholder={ isPartOf ? 'Parent-Node' : 'X-Node' }
+					clearable
+					search
+					selection
+					required
+					onChange={ handleRequiredChange }
+					options={ nodeOptions }
+					name='x_id'
+					value={ store.required['x_id'] }
+					className={ 'create-required-select  link-x-node' }
+				/>
+				<Form.Dropdown
+					fluid
+					clearable
+					search
+					selection
+					className='link-x-arrow'
+					label={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
+					placeholder={ isPartOf ? 'Parent-Arrow' : 'X-Arrow' }
+					name='arrow'
+					value={ store.x_end['arrow'] }
+					options={ arrowOptions }
+					onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
+				/>
+				<Form.Input
+					fluid
+					className='link-x-note'
+					label={ isPartOf ? 'Parent-Note' : 'X-Note' }
+					placeholder={ isPartOf ? 'Parent-Note' : 'X-Note' }
+					onChange={ ( e, data ) => handleEndChange( e, data, 'x' ) }
+					name='note'
+					value={ store.x_end['note'] }
+				/>
+				<Form.Dropdown
+					fluid
+					className='link-y-node'
+					label={ isPartOf ? 'Child-Node' : 'Y-Node' }
+					placeholder={ isPartOf ? 'Child-Node' : 'Y-Node' }
+					required
+					clearable
+					search
+					selection
+					onChange={ handleRequiredChange }
+					options={ nodeOptions }
+					name='y_id'
+					value={ store.required['y_id'] }
+				/>
+				<Form.Dropdown
+					fluid
+					clearable
+					search
+					selection
+					className='link-y-arrow'
+					label={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
+					placeholder={ isPartOf ? 'Child-Arrow' : 'Y-Arrow' }
+					name='arrow'
+					value={ store.y_end['arrow'] }
+					options={ arrowOptions }
+					onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
+				/>
+				<Form.Input
+					fluid
+					className='link-y-note'
+					label={ isPartOf ? 'Child-Note' : 'Y-Note' }
+					placeholder={ isPartOf ? 'Child-Note' : 'Y-Note' }
+					onChange={ ( e, data ) => handleEndChange( e, data, 'y' ) }
+					name='note'
+					value={ store.y_end['note'] }
+				/>
+				<Form.Input
+					fluid
+					className='link-story'
+					label='Story'
+					placeholder='Story'
+					onChange={ handlePropsChange }
+					name='story'
+					value={ store.props['story'] }
+				/>
+				<Form.Input
+					fluid
+					className='link-sequence-group'
+					label='Sequence Group'
+					placeholder='Group'
+					onChange={ handleSeqChange }
+					name='group'
+					value={ store.seq['group'] }
+				/>
+				<Form.Input
+					fluid
+					className='link-sequence-number'
+					label='Sequence Number'
+					placeholder='0'
+					onChange={ handleSeqChange }
+					name='seq'
+					value={ store.seq['seq'] }
+				/>
+				<Form.Checkbox
+					className='link-optional'
+					label='optional'
+					onChange={ handlePropsChange }
+					checked={ store.props['optional'] }
+					name='optional'
+				/>
 				<div className='edit-button-area'>
 					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
 				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
-		</Container>
+		</div>
 	);
 };
 

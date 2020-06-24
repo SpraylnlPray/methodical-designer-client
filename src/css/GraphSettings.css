@@ -1,0 +1,27 @@
+.graph-settings-pane {
+    margin: 10px 10px 10px 10px;
+    padding: 5px 5px 0;
+    display: grid;
+    grid-gap: 5px;
+    grid-template-columns: [left-border] 3fr [middle] 4fr [right-border];
+    grid-template-rows: [top-border] repeat(3, [row-start] 40px [row-end]) [bottom-border];
+}
+
+.calculate-button {
+    grid-row: row-start 1 / row-end 1;
+    grid-column: left-border / middle;
+}
+
+.search-node-label {
+    grid-row: row-start 2 / row-end 2;
+    grid-column: left-border / right-border;
+}
+
+.search-link-label {
+    grid-row: row-start 3 / row-end 3;
+    grid-column: left-border / right-border;
+}
+
+.button-left {
+    margin-left: 4px !important;
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import '../css/GraphSettings.css';
 import { Button, Input } from 'semantic-ui-react';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import {
@@ -116,34 +117,38 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 	};
 
 	return (
-		<div className='margin-base'>
+		<div className='graph-settings-pane'>
 			<Button
-				className='graph-settings-pane-margin'
+				className='graph-settings-pane-margin calculate-button'
 				disabled={ isButtonDisabled() }
 				color='blue'
 				onClick={ handleClick }>
 				Re-calculate Graph
 			</Button>
-			<Input
-				value={ nodeLabelSearchString.searchNodeLabelFilter }
-				className='graph-settings-pane-margin search-line search-input'
-				onChange={ handleNodeSearchChange }
-				label='Search Node by Label:'
-				placeholder='Search...'
-			/>
-			<Button className='button-left' icon onClick={ handlePrevNode }>
-				<Icon name='long arrow alternate left'/>
-			</Button>
-			<Button icon onClick={ handleNextNode }>
-				<Icon name='long arrow alternate right'/>
-			</Button>
-			<Input
-				value={ linkLabelSearchString.searchLinkLabelFilter }
-				className='graph-settings-pane-margin search-line search-input'
-				onChange={ handleLinksSearchChange }
-				label='Search Link by Label:'
-				placeholder='Search...'
-			/>
+			<div className='search-node-label'>
+				<Input
+					value={ nodeLabelSearchString.searchNodeLabelFilter }
+					className='graph-settings-pane-margin search-line search-input'
+					onChange={ handleNodeSearchChange }
+					label='Search Node by Label:'
+					placeholder='Search...'
+				/>
+				<Button className='button-left' icon onClick={ handlePrevNode }>
+					<Icon name='long arrow alternate left'/>
+				</Button>
+				<Button icon onClick={ handleNextNode }>
+					<Icon name='long arrow alternate right'/>
+				</Button>
+			</div>
+			<div className='search-link-label'>
+				<Input
+					value={ linkLabelSearchString.searchLinkLabelFilter }
+					className='graph-settings-pane-margin search-line search-input'
+					onChange={ handleLinksSearchChange }
+					label='Search Link by Label:'
+					placeholder='Search...'
+				/>
+			</div>
 		</div>
 	);
 };
