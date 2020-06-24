@@ -62,12 +62,12 @@
     grid-row: row-start 12 / row-end 12;
 }
 
-@media screen and (min-width: 2500px) {
+@media screen and (max-height: 700px) {
     .link-form-grid {
         padding: 3px 5px 3px 5px;
         display: grid;
         grid-gap: 3px;
-        grid-template-columns: [left-border col-start] 1fr [col-end col-start] 2fr [col-end col-start] 2fr [col-end col-start] 1fr [col-end right-border];
+        grid-template-columns: [left-border col-start] 1fr [col-end col-start] 2.25fr [col-end col-start] 2.25fr [col-end col-start] 1.5fr [col-end right-border];
         grid-template-rows: [top-border] repeat(5, [row-start] 60px [row-end]) [row-start] 25px [row-end bottom-border];
     }
 
