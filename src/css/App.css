@@ -87,6 +87,12 @@
     font-size: 40px !important;
 }
 
+@media screen and (max-width: 1000px) {
+    .main-header {
+        font-size: 2em !important;
+    }
+}
+
 .version {
     position: fixed;
     left: 0;
@@ -99,8 +105,24 @@
     align-items: center;
 }
 
+@media screen and (max-width: 1000px) {
+    .rights-pane {
+        font-size: 0.8em !important;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .rights-info {
+        display: none;
+    }
+    .rights-message {
+        min-width: 115px;
+    }
+}
+
 .rights-button {
     height: 2.5em;
+    padding: 0 7px !important;
     font-weight: 600 !important;
 }
 
