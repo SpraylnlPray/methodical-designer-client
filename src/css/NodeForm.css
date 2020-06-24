@@ -36,7 +36,7 @@
     grid-column: middle / right-border;
 }
 
-@media screen and (max-height: 700px) {
+@media screen and (max-height: 915px) {
     .node-form-grid {
         padding: 3px 5px 3px 5px;
         display: grid;

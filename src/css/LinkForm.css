@@ -62,7 +62,7 @@
     grid-row: row-start 12 / row-end 12;
 }
 
-@media screen and (max-height: 700px) {
+@media screen and (max-height: 915px) {
     .link-form-grid {
         padding: 3px 5px 3px 5px;
         display: grid;

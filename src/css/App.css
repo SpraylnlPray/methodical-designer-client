@@ -163,7 +163,7 @@
     grid-column: to-main-area / right-border;
 }
 
-@media screen and (max-height: 700px) {
+@media screen and (max-height: 915px) {
     .main-grid {
         display: grid;
         grid-template-columns: [left-border] 6fr [to-main-area] 11fr [right-border];
