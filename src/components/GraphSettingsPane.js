@@ -116,6 +116,13 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 		}
 	};
 
+	const handleLog = ( e ) => {
+		e.stopPropagation();
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+		addLogMessage( client, 'inner width: ' + width + ' inner height: ' + height );
+	};
+
 	return (
 		<div className='graph-settings-pane'>
 			<Button
@@ -149,6 +156,12 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					placeholder='Search...'
 				/>
 			</div>
+			<Button
+				className='graph-settings-pane-margin'
+				color='blue'
+				onClick={ handleLog }>
+				Log screen dimension
+			</Button>
 		</div>
 	);
 };
