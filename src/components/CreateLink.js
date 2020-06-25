@@ -70,7 +70,7 @@ function CreateLink( { client } ) {
 		}
 	};
 
-	const isPartOf = store.required['type'] === 'PartOf';
+	const isPartOf = store.required['linkType'] === 'PartOf';
 	useEffect( () => {
 		if ( isPartOf ) {
 			dispatch( { type: 'ADD_X_END', name: 'arrow', value: 'Default' } );
