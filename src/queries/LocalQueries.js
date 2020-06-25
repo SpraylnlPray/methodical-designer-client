@@ -82,6 +82,7 @@ export const NODES_COLLAPSE = gql`
     Nodes @client {
       id
       nodeType
+      listIndex
       collapsed
       hidden
       hiddenBy
@@ -98,6 +99,7 @@ export const NODES_WITH_TAGS = gql`
       story
       synchronous
       unreliable
+      listIndex
       needsCalculation
       x
       y

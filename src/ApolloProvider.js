@@ -79,6 +79,9 @@ const cache = new InMemoryCache( {
 					}
 					return existingData;
 				},
+				listIndex( existingData ) {
+					return existingData || '';
+				},
 			},
 		},
 		Link: {
@@ -150,6 +153,7 @@ const client = new ApolloClient( {
 						node.created = false;
 						node.deleted = false;
 						node.needsCalculation = false;
+						node.listIndex = nodesCopy.indexOf( node );
 						setNodeImage( node );
 					}
 
@@ -226,6 +230,7 @@ const client = new ApolloClient( {
 
 					newNode.x = lastEditorAction.position.x;
 					newNode.y = lastEditorAction.position.y;
+					newNode.listIndex = Nodes.length;
 
 					const newNodes = Nodes.concat( newNode );
 					cache.writeQuery( {
@@ -288,9 +293,11 @@ const client = new ApolloClient( {
 						nodeToEdit.needsCalculation = true;
 					}
 
+					const ret = newNodes.concat( nodeToEdit );
+					ret.sort( ( node1, node2 ) => node1.listIndex > node2.listIndex ? 1 : node1.listIndex < node2.listIndex ? -1 : 0 );
 					cache.writeQuery( {
 						query: NODES_WITH_TAGS,
-						data: { Nodes: newNodes.concat( nodeToEdit ) },
+						data: { Nodes: ret },
 					} );
 				}
 				catch ( e ) {
@@ -444,9 +451,11 @@ const client = new ApolloClient( {
 						query: LINKS_WITH_TAGS,
 						data: { Links: linksCopy },
 					} );
+					const ret = nodesCopy.concat( collapsable );
+					ret.sort( ( node1, node2 ) => node1.listIndex > node2.listIndex ? 1 : node1.listIndex < node2.listIndex ? -1 : 0 );
 					cache.writeQuery( {
 						query: NODES_COLLAPSE,
-						data: { Nodes: nodesCopy.concat( collapsable ) },
+						data: { Nodes: ret },
 					} );
 				}
 				catch ( e ) {

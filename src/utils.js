@@ -93,3 +93,4 @@ export const setCameraPos = ( cache, camCoords ) => {
 		data: { setCameraPos: camCoords },
 	} );
 };
+
