@@ -75,6 +75,9 @@ function CreateLink( { client } ) {
 		if ( isPartOf ) {
 			dispatch( { type: 'ADD_X_END', name: 'arrow', value: 'Default' } );
 		}
+		else {
+			dispatch( { type: 'ADD_X_END', name: 'arrow', value: '' } );
+		}
 		// eslint-disable-next-line
 	}, [ isPartOf ] );
 
