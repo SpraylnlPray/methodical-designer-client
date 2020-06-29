@@ -162,12 +162,11 @@
     margin-left: 5px !important;
 }
 
-/*@media screen and (min-width: 1900px) and (max-width: 1940px) {*/
 /* Main layout */
 .main-grid {
     display: grid;
-    grid-template-columns: [left-border] 4fr [to-main-area] 12fr [right-border];
-    grid-template-rows: [top-border] 1fr [to-main-area] 14fr [bottom-limit] 0.3fr [bottom-border];
+    grid-template-rows: [top-border] 1fr [to-main-area] 0.25fr [after-button] 14fr [bottom-limit] 0.3fr [bottom-border];
+    grid-template-columns: [left-border] 0.25fr [after-button] 4fr [to-main-area] 12fr [right-border];
 }
 
 .header-area {
@@ -185,11 +184,21 @@
     grid-column: to-main-area / right-border;
 }
 
+.editor-pane-full {
+    grid-row: to-main-area / bottom-limit;
+    grid-column: after-button / right-border;
+}
+
+.unhide-button {
+    grid-row: to-main-area / after-button;
+    grid-column: left-border / after-button;
+}
+
 @media screen and (max-height: 915px) {
     .main-grid {
         display: grid;
-        grid-template-columns: [left-border] 6fr [to-main-area] 11fr [right-border];
-        grid-template-rows: [top-border] 1fr [to-main-area] 14fr [bottom-limit] 0.3fr [bottom-border];
+        grid-template-rows: [top-border] 1fr [to-main-area] 0.25fr [after-button] 14fr [bottom-limit] 0.3fr [bottom-border];
+        grid-template-columns: [left-border] 0.25fr [after-button] 4fr [to-main-area] 12fr [right-border];
     }
 
     .header-area {
@@ -205,6 +214,16 @@
     .editor-pane {
         grid-row: to-main-area / bottom-limit;
         grid-column: to-main-area / right-border;
+    }
+
+    .editor-pane-full {
+        grid-row: to-main-area / bottom-limit;
+        grid-column: after-button / right-border;
+    }
+
+    .unhide-button {
+        grid-row: to-main-area / after-button;
+        grid-column: left-border / after-button;
     }
 }
 

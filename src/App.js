@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
 import HeaderArea from './components/HeaderArea';

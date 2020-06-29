@@ -1,14 +1,23 @@
 import React from 'react';
-import { Button } from 'semantic-ui-react';
+import { Button, Icon } from 'semantic-ui-react';
 import { setActiveItem } from '../utils';
 import { useApolloClient } from '@apollo/client';
 
-const OptionBar = ( { activeItem } ) => {
+const OptionBar = ( { activeItem, setVisible } ) => {
 	const client = useApolloClient();
 
 	const handleClick = ( e ) => {
 		e.stopPropagation();
 		setActiveItem( client, e.target.value, 'option' );
+	};
+
+	const handleHide = ( e ) => {
+		e.stopPropagation();
+		document.getElementById( 'editor-pane' )
+			.classList.remove( 'editor-pane' );
+		document.getElementById( 'editor-pane' )
+			.classList.add( 'editor-pane-full' );
+		setVisible( false );
 	};
 
 	return (
@@ -30,6 +39,9 @@ const OptionBar = ( { activeItem } ) => {
 				value='createlink'
 				onClick={ e => handleClick( e ) }>
 				Create Link
+			</Button>
+			<Button icon onClick={ handleHide }>
+				<Icon name='hide'/>
 			</Button>
 		</div>
 	);

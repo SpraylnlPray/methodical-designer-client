@@ -144,7 +144,7 @@ const EditorPane = ( { editingData } ) => {
 	};
 
 	return (
-		<div className='bordered editor-pane margin-base' onClick={ handleClick } onKeyDown={ handleKeyDown }>
+		<div className='bordered editor-pane margin-base' id='editor-pane' onClick={ handleClick } onKeyDown={ handleKeyDown }>
 			<Graph
 				graph={ graph }
 				options={ options }
