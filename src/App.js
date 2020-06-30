@@ -20,14 +20,6 @@ function App() {
 
 	const [ setNodes ] = useMutation( SET_NODES );
 	const [ setLinks ] = useMutation( SET_LINKS );
-	const [ getLastClicks ] = useLazyQuery( LAST_EDITOR_ACTIONS, {
-		fetchPolicy: 'network-only',
-		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error.message ),
-		onCompleted: data => {
-			debugger
-			console.log( data );
-		},
-	} );
 
 	useQuery( GET_SERVER_NODES, {
 		onError: error => addLogMessage( client, 'Error when pulling server nodes: ' + error.message ),
@@ -47,9 +39,6 @@ function App() {
 	return (
 		<div className='bordered app margin-base main-grid' onClick={ handleClick }>
 			<HeaderArea client={ client }/>
-			<Button onClick={ getLastClicks }>
-				Click me
-			</Button>
 			<InteractionPane client={ client }/>
 			<EditorPane/>
 			<LogStream/>
