@@ -15,18 +15,6 @@ export const ACTIVE_ITEM = gql`
   }
 `;
 
-export const LAST_EDITOR_ACTION = gql`
-  query {
-    lastEditorAction @client {
-      type
-      position {
-        x
-        y
-      }
-    }
-  }
-`;
-
 export const NODES_DATA = gql`
   query {
     Nodes @client {
@@ -356,5 +344,11 @@ export const SEARCH_NODE_LABEL_FILTER = gql`
 export const SEARCH_LINK_LABEL_FILTER = gql`
   query {
     searchLinkLabelFilter @client
+  }
+`;
+
+export const LAST_EDITOR_ACTIONS = gql`
+  query {
+    lastEditorActions @client
   }
 `;

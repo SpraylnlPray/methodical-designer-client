@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import Graph from 'react-graph-vis';
-import { addLogMessage, setActiveItem, setLastEditorAction } from '../utils';
+import { addLogMessage, setActiveItem } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, CAMERA_POS, NODE_IDS } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
-import { CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
+import { ADD_EDITOR_ACTION, CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 import { createNodeFromClipboard, pasteNodeToClipboard } from '../Graph/NodeUtils';
 
@@ -13,6 +13,8 @@ const { useState } = require( 'react' );
 const EditorPane = ( { editingData } ) => {
 	const client = useApolloClient();
 	const [ network, setNetwork ] = useState( null );
+
+	const [ runAddEditorAction ] = useMutation( ADD_EDITOR_ACTION );
 
 	const { data: nodeData } = useQuery( EDITOR_NODE_DATA, {
 		onError: error => addLogMessage( client, `Failed when getting local nodes: ` + error.message ),
@@ -61,25 +63,33 @@ const EditorPane = ( { editingData } ) => {
 			const { nodes, edges } = event;
 			if ( nodes.length > 0 ) {
 				setActiveItem( client, nodes[0], 'node' );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: ''} } )
+					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting node: ' + error.message ) );
 			}
 			else if ( edges.length > 0 ) {
 				setActiveItem( client, edges[0], 'link' );
+				runAddEditorAction( { variables: { type: 'link', itemID: edges[0], x: '', y: '' } } )
+					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting link: ' + error.message ) );
 			}
 		},
 		zoom: function handleZoom( event ) {
 			const { pointer } = event;
-			setLastEditorAction( client, 'zoom', pointer.x, pointer.y );
+			runAddEditorAction( { variables: { type: 'zoom', itemID: '', x: pointer.x, y: pointer.y } } )
+				.catch( error => addLogMessage( client, 'Error when adding editor action zoom: ' + error.message ) );
 		},
 		dragStart: function handleDragStart( event ) {
 			const { nodes } = event;
 			if ( nodes.length > 0 ) {
 				setActiveItem( client, nodes[0], 'node' );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: '' } } )
+					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 		},
 		dragEnd: function handleDragEnd( event ) {
 			const { nodes, pointer } = event;
 			if ( nodes.length === 0 ) {
-				setLastEditorAction( client, 'drag', pointer.canvas.x, pointer.canvas.y );
+				runAddEditorAction( { variables: { type: 'drag', itemID: '', x: pointer.canvas.x, y: pointer.canvas.y } } )
+					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 			else if ( nodes.length > 0 ) {
 				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } )
@@ -90,7 +100,8 @@ const EditorPane = ( { editingData } ) => {
 			const { nodes, edges, pointer } = event;
 			if ( nodes.length === 0 && edges.length === 0 ) {
 				setActiveItem( client, 'app', 'app' );
-				setLastEditorAction( client, 'click', pointer.canvas.x, pointer.canvas.y );
+				runAddEditorAction( { variables: { type: 'click', itemID: '', x: pointer.canvas.x, y: pointer.canvas.y } } )
+					.catch( error => addLogMessage( client, 'Error when adding editor click: ' + error.message ) );
 			}
 		},
 	};

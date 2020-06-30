@@ -4,9 +4,10 @@ import { Form } from 'semantic-ui-react';
 import Status from './Status';
 import { useMutation, useQuery } from '@apollo/client';
 import { addLogMessage, enteredRequired } from '../utils';
-import { EDITING_RIGHTS, NODES_DATA } from '../queries/LocalQueries';
+import { EDITING_RIGHTS, LAST_EDITOR_ACTIONS, NODES_DATA } from '../queries/LocalQueries';
 import { CREATE_LOCAL_LINK } from '../queries/LocalMutations';
 import { inputReducer } from '../InputReducer';
+import { NodeImages } from '../Graph/Images';
 import { arrowOptions, typeOptions } from '../linkOptions';
 import Button from 'semantic-ui-react/dist/commonjs/elements/Button';
 
@@ -22,13 +23,31 @@ function CreateLink( { client } ) {
 	};
 
 	const { data: { Nodes } } = useQuery( NODES_DATA );
-	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id }) );
+	const nodeOptions = Nodes.map( node => ({ 'text': node.label, 'value': node.id, 'image': NodeImages[node.nodeType] }) );
 	nodeOptions.sort( ( node1, node2 ) => node1.text.localeCompare( node2.text ) );
 
 	const [ store, dispatch ] = useReducer(
 		inputReducer,
 		{ ...inputs },
 	);
+
+	// get the last two clicked nodeIDs
+	const { data: actionData } = useQuery( LAST_EDITOR_ACTIONS );
+	const foundNodes = [];
+	for ( let action of actionData.lastEditorActions ) {
+		if ( action.type === 'node' ) {
+			foundNodes.unshift( action.itemID );
+			if ( foundNodes.length === 2 ) {
+				break;
+			}
+		}
+	}
+	if ( foundNodes[0] ) {
+		inputs.required.x_id = foundNodes[0];
+	}
+	if ( foundNodes[1] ) {
+		inputs.required.y_id = foundNodes[1];
+	}
 
 	const [ runCreateLink, { data, loading, error } ] = useMutation( CREATE_LOCAL_LINK );
 

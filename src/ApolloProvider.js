@@ -10,9 +10,9 @@ import {
 	assembleNewNode, updateNode, placeNodes, setMaxNodeIndex, setNodeSearchIndex,
 } from './Graph/NodeUtils';
 import {
-	CALC_NODE_POSITION, EDITOR_NODE_DATA, LAST_EDITOR_ACTION, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
+	CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 	MOVE_NODE_DATA, NODES_SEARCH_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
-	CAMERA_POS, NODE_SEARCH_INDEX,
+	CAMERA_POS, NODE_SEARCH_INDEX, LAST_EDITOR_ACTIONS,
 } from './queries/LocalQueries';
 import Fuse from 'fuse.js';
 import Favicon from 'react-favicon';
@@ -23,6 +23,13 @@ const options = { keys: [ 'label' ], findAllMatches: true, includeScore: true };
 const cache = new InMemoryCache( {
 	dataIdFromObject: ( { id } ) => id,
 	typePolicies: {
+		Query: {
+			fields: {
+				lastEditorActions( existingData ) {
+					return existingData || [];
+				},
+			},
+		},
 		Node: {
 			fields: {
 				created( existingData ) {
@@ -224,12 +231,18 @@ const client = new ApolloClient( {
 			addNode: ( _root, variables, { cache } ) => {
 				try {
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
-					const { lastEditorAction } = cache.readQuery( { query: LAST_EDITOR_ACTION } );
 					const newNode = assembleNewNode( variables );
 					setNodeImage( newNode );
 
-					newNode.x = lastEditorAction.position.x;
-					newNode.y = lastEditorAction.position.y;
+					// get the last editor action with a 'click' type and its coordinates
+					let { lastEditorActions } = cache.readQuery( { query: LAST_EDITOR_ACTIONS } );
+					for ( let action of lastEditorActions ) {
+						if ( action.type === 'click' || action.type === 'drag' || action.type === 'zoom' ) {
+							newNode.x = action.position.x;
+							newNode.y = action.position.y;
+							break;
+						}
+					}
 					newNode.listIndex = Nodes.length;
 
 					const newNodes = Nodes.concat( newNode );
@@ -660,6 +673,42 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when setting camera pos: ' + e.message );
 				}
 			},
+
+			addEditorAction: ( _root, variables, { cache, client } ) => {
+				try {
+					const { type, itemID, x, y } = variables;
+					let { lastEditorActions } = cache.readQuery( { query: LAST_EDITOR_ACTIONS } );
+					if ( !lastEditorActions ) {
+						lastEditorActions = [];
+					}
+					const clicksCopy = deepCopy( lastEditorActions );
+					if ( type === 'zoom' && clicksCopy[0]?.type === 'zoom' ) {
+						// if its a zoom event after a previous zoom event, only update the position
+						clicksCopy[0].position.x = x;
+						clicksCopy[0].position.y = y;
+					}
+					else if ( type === 'drag' && clicksCopy[0]?.type === 'drag' ) {
+						// if its a drag event after a previous drag event, only update the position
+						clicksCopy[0].position.x = x;
+						clicksCopy[0].position.y = y;
+					}
+					else {
+						// otherwise add the new action to the array
+						clicksCopy.unshift( { __typename: 'EditorAction', type, itemID, position: { x, y } } );
+					}
+					// do not save more than 10 clicks
+					if ( clicksCopy.length >= 11 ) {
+						clicksCopy.pop();
+					}
+					cache.writeQuery( {
+						query: LAST_EDITOR_ACTIONS,
+						data: { lastEditorActions: clicksCopy },
+					} );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error in addEditorAction: ' + e.message );
+				}
+			},
 		},
 	},
 } );
@@ -683,13 +732,7 @@ cache.writeQuery( {
         itemId
         itemType
       }
-      lastEditorAction {
-        type
-        position {
-          x
-          y
-        }
-      }
+      lastEditorActions
     }
 	`,
 	data: {
@@ -701,7 +744,7 @@ cache.writeQuery( {
 		nodeSearchIndex: '',
 		linkSearchIndex: '',
 		setCameraPos: {
-			// can be 'init' or 'select', init is in the beginning to use 'fit' from vis, 'select' when user searches
+			// can be 'fit' or 'select', init is in the beginning to use 'fit' from vis, 'select' when user searches
 			type: '',
 			x: 0,
 			y: 0,
@@ -712,14 +755,7 @@ cache.writeQuery( {
 			itemType: 'app',
 			__typename: 'ActiveItem',
 		},
-		lastEditorAction: {
-			type: null,
-			position: {
-				x: '',
-				y: '',
-			},
-			__typename: 'LastEditorAction',
-		},
+		lastEditorActions: [],
 	},
 } );
 

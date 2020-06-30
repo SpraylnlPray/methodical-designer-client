@@ -102,3 +102,9 @@ export const SET_CAMERA_NODE_INDEX = gql`
     setCameraNodeIndex(index: $index) @client
   }
 `;
+
+export const ADD_EDITOR_ACTION = gql`
+  mutation AddEditorAction($type: String!, $itemID: String!, $x: Float!, $y: String!) {
+    addEditorAction(type: $type, itemID: $itemID, x: $x, y: $y) @client
+  }
+`;
