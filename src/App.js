@@ -3,13 +3,11 @@ import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
 import HeaderArea from './components/HeaderArea';
 import './css/App.css';
-import { useApolloClient, useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import LogStream from './components/LogStream';
 import { addLogMessage, setActiveItem } from './utils';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from './queries/ServerQueries';
 import { SET_LINKS, SET_NODES } from './queries/LocalMutations';
-import { LAST_EDITOR_ACTIONS } from './queries/LocalQueries';
-import { Button } from 'semantic-ui-react';
 
 function App() {
 	const client = useApolloClient();
