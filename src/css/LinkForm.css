@@ -5,7 +5,7 @@
 .link-form-grid {
     padding: 3px 5px 3px 5px;
     display: grid;
-    grid-gap: 5px;
+    grid-gap: 4px;
     grid-template-columns: [left-border] auto [right-border];
     grid-template-rows: [top-border] repeat(11, [row-start] 60px [row-end]) [row-start] 25px [row-end bottom-border];
 }
