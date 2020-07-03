@@ -58,15 +58,15 @@ export const setXConnection = ( node, link ) => {
 
 export const findAndHandleMultipleLinks = ( link, linksCopy ) => {
 	const multipleLinksIDs = [ link.id ];
-	// get the x and y node id of the link
-	const x_id = link.x.id;
-	const y_id = link.y.id;
+	// get the from and to node id of the link
+	const from_id = link.from;
+	const to_id = link.to;
 	// get all other links
 	const otherLinks = linksCopy.filter( aLink => aLink.id !== link.id && !aLink.checked );
 	// check if any of the other links connects the same nodes
 	for ( let checkLink of otherLinks ) {
 		// if it connects the same nodes
-		if ( connectsNodes( x_id, y_id, checkLink ) ) {
+		if ( connectsNodes( from_id, to_id, checkLink ) ) {
 			// save it to the list
 			multipleLinksIDs.push( checkLink.id );
 		}
@@ -75,6 +75,8 @@ export const findAndHandleMultipleLinks = ( link, linksCopy ) => {
 };
 
 export const setLinkDisplayProps = ( link, x_end, y_end ) => {
+	link.from = link.x.id;
+	link.to = link.y.id;
 	// x is from, y is to!
 	if ( LinkColors[link.linkType] ) {
 		link.color = LinkColors[link.linkType];
@@ -108,9 +110,9 @@ export const setLinkDisplayProps = ( link, x_end, y_end ) => {
 
 export const connectsNodes = ( node1ID, node2ID, link ) => {
 	// eslint-disable-next-line
-	return link.x.id === node1ID && link.y.id === node2ID ||
+	return link.from === node1ID && link.to === node2ID ||
 		// eslint-disable-next-line
-		link.y.id === node1ID && link.x.id === node2ID;
+		link.to === node1ID && link.from === node2ID;
 };
 
 export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
@@ -120,8 +122,6 @@ export const setMultipleLinksProps = ( links, multipleConnIDs ) => {
 				const index = multipleConnIDs.indexOf( link.id );
 				link.found = true;
 				link.checked = true;
-				link.from = link.x.id;
-				link.to = link.y.id;
 				link.smooth = {
 					enabled: index !== 0,
 					type: 'horizontal',

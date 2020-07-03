@@ -205,14 +205,6 @@ const client = new ApolloClient( {
 						findAndHandleMultipleLinks( link, linksCopy );
 					}
 
-					// for any links that were not found as multiple connections, set their properties
-					for ( let link of linksCopy ) {
-						if ( !link.found ) {
-							link.from = link.x.id;
-							link.to = link.y.id;
-						}
-					}
-
 					try {
 						cache.writeQuery( {
 							query: LINKS_WITH_TAGS,
@@ -458,6 +450,21 @@ const client = new ApolloClient( {
 					// update the links to snap to the right node
 					for ( let link of linksCopy ) {
 						snap( link, nodesCopy );
+					}
+
+					for ( let link of linksCopy ) {
+						findAndHandleMultipleLinks( link, linksCopy );
+					}
+
+					// any links that were not found (= marked as multiple links) disable the smoothness
+					for ( let link of linksCopy ) {
+						if ( !link.found ) {
+							link.smooth = {
+								enabled: false,
+								type: 'horizontal',
+								roundness: 0,
+							};
+						}
 					}
 
 					cache.writeQuery( {
