@@ -62,13 +62,13 @@
     grid-row: row-start 12 / row-end 12;
 }
 
-@media screen and (max-height: 915px) {
+@media screen and (max-height: 930px) {
     .link-form-grid {
         padding: 3px 5px 3px 5px;
         display: grid;
         grid-gap: 3px;
         grid-template-columns: [left-border col-start] 1fr [col-end col-start] 2.25fr [col-end col-start] 2.25fr [col-end col-start] 1.5fr [col-end right-border];
-        grid-template-rows: [top-border] repeat(5, [row-start] 60px [row-end]) [row-start] 25px [row-end bottom-border];
+        grid-template-rows: [top-border] repeat(4, [row-start] 60px [row-end]) [row-start] 80px [row-end row-start] 25px [row-end bottom-border];
     }
 
     .link-label {
@@ -114,11 +114,13 @@
     .link-story {
         grid-column: col-start 1 / col-end 2;
         grid-row: row-start 5 / row-end 5;
+        align-self: end;
     }
 
     .link-sequence-group {
         grid-column: col-start 3 / col-end 3;
         grid-row: row-start 5 / row-end 5;
+        align-self: end;
     }
 
     .link-sequence-number {
