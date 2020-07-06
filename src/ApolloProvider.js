@@ -406,6 +406,7 @@ const client = new ApolloClient( {
 					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
 					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
 					const newLinks = Links.filter( link => link.id !== variables.id );
+					const linksCopy = deepCopy( newLinks );
 					let linkToDelete = Links.find( link => link.id === variables.id );
 
 					let xNode = deepCopy( Nodes.find( aNode => aNode.id === linkToDelete.x.id ) );
@@ -416,13 +417,19 @@ const client = new ApolloClient( {
 					removeLinkFromLinks( yNode, linkToDelete );
 					removeNodeFromConnTo( yNode, xNode );
 
-					const newNodes = Nodes.filter( aNode => aNode.id !== xNode.id && aNode.id !== yNode.id );
-
 					linkToDelete = deepCopy( linkToDelete );
 					linkToDelete.deleted = true;
+
+					const ret = linksCopy.concat( linkToDelete );
+					for ( let link of ret ) {
+						findAndHandleMultipleLinks( link, ret );
+					}
+
+					const newNodes = Nodes.filter( aNode => aNode.id !== xNode.id && aNode.id !== yNode.id );
+
 					cache.writeQuery( {
 						query: LINKS_WITH_TAGS,
-						data: { Links: newLinks.concat( linkToDelete ) },
+						data: { Links: ret },
 					} );
 
 					cache.writeQuery( {
