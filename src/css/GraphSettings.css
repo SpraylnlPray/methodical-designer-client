@@ -68,3 +68,20 @@
     color: rgba(169, 169, 169, 0.75);
     font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
 }
+
+@media screen and (max-width: 1740px) {
+    .graph-settings-pane {
+        grid-template-columns: [left-border] 3fr [middle] 4fr [right-border];
+        grid-template-rows: [top-border] repeat(3, [row-start] 80px [row-end]) [bottom-border];
+    }
+
+    .search-label {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .search .search-input {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+}
