@@ -1,6 +1,6 @@
 import React from 'react';
 import '../css/GraphSettings.css';
-import { Button, Input } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import {
 	RECALCULATE_GRAPH, SEARCH_LINK_BY_LABEL, SEARCH_NODE_BY_LABEL, SET_CAMERA_NODE_INDEX, SET_CAMERA_POS, SET_LINK_LABEL_FILTER,
@@ -44,7 +44,8 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			.catch( err => addLogMessage( client, 'Error when recalculation graph: ' + err.message ) );
 	};
 
-	const handleNodeSearchChange = ( e, { value } ) => {
+	const handleNodeSearchChange = ( e ) => {
+		const { value } = e.target;
 		e.stopPropagation();
 		e.preventDefault();
 		runSetNodeLabelFilter( { variables: { string: value } } )
@@ -53,7 +54,8 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			.catch( e => addLogMessage( client, 'Error when running set node label filter: ' + e.message ) );
 	};
 
-	const handleLinksSearchChange = ( e, { value } ) => {
+	const handleLinkSearchChange = ( e ) => {
+		const { value } = e.target;
 		e.stopPropagation();
 		e.preventDefault();
 		runSetLinkLabelFilter( { variables: { string: value } } )
@@ -126,19 +128,29 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 	return (
 		<div className='graph-settings-pane'>
 			<Button
-				className='graph-settings-pane-margin calculate-button'
+				className='graph-settings-pane-margin calculate-button settings-button'
 				disabled={ isButtonDisabled() }
 				color='blue'
 				onClick={ handleClick }>
 				Re-calculate Graph
 			</Button>
-			<div className='search-node-label'>
-				<Input
-					value={ nodeLabelSearchString.searchNodeLabelFilter }
-					className='graph-settings-pane-margin search-line search-input'
-					onChange={ handleNodeSearchChange }
-					label='Search Node by Label:'
+			<Button
+				className='graph-settings-pane-margin settings-button'
+				color='blue'
+				onClick={ handleLog }>
+				Log screen dimension
+			</Button>
+			<div className='search-node-label search'>
+				<label htmlFor="search-node-label" className='search-label'>
+					<div className='label-string'>Search Node by Label:</div>
+				</label>
+				<input
+					type='text'
+					id="search-node-label"
+					className='search-input'
 					placeholder='Search...'
+					onChange={ handleNodeSearchChange }
+					value={ nodeLabelSearchString.searchNodeLabelFilter }
 				/>
 				<Button className='button-left' icon onClick={ handlePrevNode }>
 					<Icon name='long arrow alternate left'/>
@@ -147,21 +159,19 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					<Icon name='long arrow alternate right'/>
 				</Button>
 			</div>
-			<div className='search-link-label'>
-				<Input
-					value={ linkLabelSearchString.searchLinkLabelFilter }
-					className='graph-settings-pane-margin search-line search-input'
-					onChange={ handleLinksSearchChange }
-					label='Search Link by Label:'
+			<div className='search-link-label search'>
+				<label htmlFor="search-link-label" className='search-label'>
+					<div className='label-string'>Search Link by Label:</div>
+				</label>
+				<input
+					type='text'
+					id="search-link-label"
+					className='search-input'
 					placeholder='Search...'
+					onChange={ handleLinkSearchChange }
+					value={ linkLabelSearchString.searchLinkLabelFilter }
 				/>
 			</div>
-			<Button
-				className='graph-settings-pane-margin'
-				color='blue'
-				onClick={ handleLog }>
-				Log screen dimension
-			</Button>
 		</div>
 	);
 };

@@ -25,3 +25,46 @@
 .button-left {
     margin-left: 4px !important;
 }
+
+.settings-button {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.search {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.search-label {
+    background-color: #e8e8e8;
+    font-weight: 700;
+    color: rgba(0, 0, 0, .6);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    width: 41.5%;
+    min-width: 110px;
+}
+
+.label-string {
+    padding: 0 8px;
+}
+
+.search .search-input {
+    border: 1px solid rgba(34, 36, 38, .15);
+    width: 35%;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    color: rgba(0, 0, 0, .87);
+    padding-left: 10px;
+    min-width: 110px;
+}
+
+.search-input::placeholder {
+    color: rgba(169, 169, 169, 0.75);
+    font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
+}

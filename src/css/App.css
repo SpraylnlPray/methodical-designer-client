@@ -128,7 +128,7 @@
 
 .edit-button-area {
     display: flex;
-    width: 90%;
+    width: 100%;
     justify-content: space-evenly;
 }
 

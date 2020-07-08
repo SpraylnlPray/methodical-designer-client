@@ -67,7 +67,7 @@
         padding: 3px 5px 3px 5px;
         display: grid;
         grid-gap: 3px;
-        grid-template-columns: [left-border col-start] 1fr [col-end col-start] 2.25fr [col-end col-start] 2.25fr [col-end col-start] 1.5fr [col-end right-border];
+        grid-template-columns: [left-border col-start] 1.5fr [col-end col-start] 2.25fr [col-end col-start] 2.25fr [col-end col-start] 1.5fr [col-end right-border];
         grid-template-rows: [top-border] repeat(4, [row-start] 60px [row-end]) [row-start] 80px [row-end row-start] 25px [row-end bottom-border];
     }
 
@@ -77,7 +77,7 @@
     }
 
     .link-type {
-        grid-column: col-start 3 / right-border;
+        grid-column: col-start 3 / col-end 4;
         grid-row: row-start 1 / row-end 1;
     }
 
@@ -97,17 +97,17 @@
     }
 
     .link-y-node {
-        grid-column: col-start 3 / right-border;
+        grid-column: col-start 3 / col-end 4;
         grid-row: row-start 2 / row-end 2;
     }
 
     .link-y-arrow {
-        grid-column: col-start 3 / right-border;
+        grid-column: col-start 3 / col-end 4;
         grid-row: row-start 3 / row-end 3;
     }
 
     .link-y-note {
-        grid-column: col-start 3 / right-border;
+        grid-column: col-start 3 / col-end 4;
         grid-row: row-start 4 / row-end 4;
     }
 
@@ -126,6 +126,7 @@
     .link-sequence-number {
         grid-column: col-start 4 / col-end 4;
         grid-row: row-start 5 / row-end 5;
+        align-self: end;
     }
 
     .link-optional {
