@@ -9,6 +9,7 @@ import { deleteLinkOrNode, handleLinkEnds, handleSequence } from '../Transaction
 import LoadingMessage from './LoadingMessage';
 import { addLogMessage, setActiveItem } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
+import '../css/SavePane.css';
 
 const SavePane = ( {
 										 props, getDeletedLinks, getDeletedNodes, getEditedLinks, getEditedNodes,
@@ -150,56 +151,49 @@ const SavePane = ( {
 					} ).catch( reason => addLogMessage( client, `failed creating link because of ${ reason }` ) );
 			} ).catch( reason => addLogMessage( client, `failed saving/updating node because of ${ reason }` ) );
 	};
-	const statusRender = () => {
+	const saveRender = () => {
 		if ( nodeCreateLoading ) {
-			return <LoadingMessage message='Saving Created Nodes'/>;
+			return <LoadingMessage message='Step 1/10'/>;
 		}
 		else if ( nodeUpdateLoading ) {
-			return <LoadingMessage message='Saving Updated Nodes'/>;
+			return <LoadingMessage message='Step 2/10'/>;
 		}
 		else if ( createLinkLoading ) {
-			return <LoadingMessage message='Saving Created Links'/>;
+			return <LoadingMessage message='Step 3/10'/>;
 		}
 		else if ( updateLinkLoading ) {
-			return <LoadingMessage message='Saving Updated Links'/>;
+			return <LoadingMessage message='Step 4/10'/>;
 		}
 		else if ( deleteNodeLoading ) {
-			return <LoadingMessage message='Saving Deleted Nodes'/>;
+			return <LoadingMessage message='Step 5/10'/>;
 		}
 		else if ( deleteLinkLoading ) {
-			return <LoadingMessage message='Saving Deleted Links'/>;
+			return <LoadingMessage message='Step 6/10'/>;
 		}
 		else if ( mergeSeqLoading ) {
-			return <LoadingMessage message='Saving Updated Sequences'/>;
+			return <LoadingMessage message='Step 7/10'/>;
 		}
 		else if ( deleteSeqLoading ) {
-			return <LoadingMessage message='Saving Deleted Sequences'/>;
+			return <LoadingMessage message='Step 8/10'/>;
 		}
 		else if ( mergeLinkEndLoading ) {
-			return <LoadingMessage message='Saving Edited Link Ends'/>;
+			return <LoadingMessage message='Step 9/10'/>;
 		}
 		else if ( deleteLinkEndLoading ) {
-			return <LoadingMessage message='Saving Deleted Link Ends'/>;
+			return <LoadingMessage message='Step 10/10'/>;
 		}
 
-		return '';
+		return <Button color='grey' disabled={ disableButton() } className='save-button' onClick={ handleSave }>Save</Button>;
 	};
 
 	const disableButton = () => {
 		// save button should be disable if the user has no edit rights, or no local changes that need to be saved
-		if ( !editingData.hasEditRights ) {
-			return true;
-		}
-		if ( !hasUnsavedLocalChanges() ) {
-			return true;
-		}
-		return false;
+		return !editingData.hasEditRights || !hasUnsavedLocalChanges();
 	};
 
 	return (
-		<div className='flex-area save-area'>
-			{ statusRender() }
-			<Button color='grey' disabled={ disableButton() } className='save-button' onClick={ handleSave }>Save</Button>
+		<div className='save-area'>
+			{ saveRender() }
 			<Button color='grey' disabled={ disableButton() } className='discard-button' onClick={ handleDiscard }>Discard
 				Local Changes</Button>
 		</div>

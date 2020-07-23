@@ -1,0 +1,35 @@
+.header-area {
+    /*try inline grid to see difference*/
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 5fr 4fr 6fr 5fr 2.5fr;
+}
+
+.main-header {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    margin: 0 10px !important;
+    font-size: 40px !important;
+}
+
+.project-status {
+    grid-row: 1 / 2;
+    grid-column: 3 / 4;
+}
+
+.save-button {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    align-self: center;
+    justify-self: stretch;
+    height: 2.5em;
+    min-width: 4em;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+@media screen and (max-width: 1000px) {
+    .main-header {
+        font-size: 2em !important;
+    }
+}

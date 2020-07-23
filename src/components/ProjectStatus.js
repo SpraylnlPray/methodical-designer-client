@@ -5,6 +5,7 @@ import { FREE_EDITING_RIGHTS, REQUEST_EDITING_RIGHTS } from '../queries/ServerMu
 import { EDITING_RIGHTS } from '../queries/LocalQueries';
 import { addLogMessage } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
+import '../css/ProjectStatus.css';
 
 const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 	const { getNodes, getLinks } = props;
@@ -78,16 +79,16 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 					</Message>
 					<Button color='teal' className='rights-button' onClick={ handleRequestEditRights }>Request Now</Button>
 					{ negativeRequest &&
-					<Button color='red' className='rights-button' onClick={ handleForceRights }>Force Rights</Button> }
+					<Button color='red' className='force-button' onClick={ handleForceRights }>Force Rights</Button> }
 				</div>
 			);
 		}
 		else {
 			return (
 				<div className='rights-pane'>
-					<Message positive>
+					<Message positive className='rights-message'>
 						<Message.Header>You have editing rights!</Message.Header>
-						<Message.Content>Feel free to make changes</Message.Content>
+						<Message.Content className='rights-info'>Feel free to make changes</Message.Content>
 					</Message>
 					<Button color='teal' className='rights-button' onClick={ handleFreeRights }>Free Editing Rights</Button>
 				</div>

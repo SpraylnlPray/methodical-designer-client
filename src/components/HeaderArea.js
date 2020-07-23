@@ -6,6 +6,7 @@ import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_SERVER_LINKS, GET_SERVER_NODES } from '../queries/ServerQueries';
 import { addLogMessage } from '../utils';
 import { SET_LINKS, SET_NODES } from '../queries/LocalMutations';
+import '../css/HeaderArea.css';
 
 const HeaderArea = ( { client } ) => {
 

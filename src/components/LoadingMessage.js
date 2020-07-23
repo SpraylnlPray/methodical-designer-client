@@ -4,9 +4,9 @@ import { Message } from 'semantic-ui-react';
 const LoadingMessage = ( { message } ) => {
 	return (
 		<Message
+			className='loading-message'
 			size='tiny'
-			icon='save'
-			header='Loading...'
+			header='Saving...'
 			content={ message }
 		/>
 	);
