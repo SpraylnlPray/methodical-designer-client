@@ -1,5 +1,4 @@
 .header-area {
-    /*try inline grid to see difference*/
     display: grid;
     grid-template-rows: 1fr;
     grid-template-columns: 5fr 4fr 6fr 5fr 2.5fr;
@@ -10,11 +9,6 @@
     grid-column: 1 / 2;
     margin: 0 10px !important;
     font-size: 40px !important;
-}
-
-.project-status {
-    grid-row: 1 / 2;
-    grid-column: 3 / 4;
 }
 
 .save-button {
@@ -28,8 +22,69 @@
     margin: 0 !important;
 }
 
-@media screen and (max-width: 1000px) {
+.rights-pane {
+    grid-row: 1 / 2;
+    grid-column: 3 / 4;
+}
+
+.save-area {
+    grid-row: 1 / 2;
+    grid-column: 5 / 6;
+}
+
+@media screen and (max-width: 1315px) {
+    .header-area {
+        grid-template-rows: 1fr;
+        grid-template-columns: 2fr 2fr 2fr;
+    }
+    .rights-pane {
+        grid-row: 1 / 2;
+        grid-column: 2 / 3;
+    }
+    .save-area {
+        grid-column: 3 / 4;
+    }
+}
+
+@media screen and (max-width: 750px) {
+    .header-area {
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: repeat(10, 1fr);
+    }
+    .main-header {
+        grid-row: 1 / 2;
+        grid-column: 1 / 5;
+    }
+    .rights-pane {
+        grid-row: 2 / 3;
+        grid-column: 1 / 11;
+    }
+    .save-area {
+        grid-row: 1 / 2;
+        grid-column: 6 / 11;
+    }
+}
+
+@media screen and (max-width: 1810px) {
     .main-header {
         font-size: 2em !important;
+        margin: 0 7px !important;
+        align-self: center;
+    }
+}
+
+@media screen and (max-width: 1315px) {
+    .main-header {
+        font-size: 1.5em !important;
+        margin: 0 7px !important;
+        align-self: center;
+    }
+}
+
+@media screen and (max-width: 1000px) {
+    .main-header {
+        font-size: 1.2em !important;
+        margin: 0 7px !important;
+        align-self: center;
     }
 }
