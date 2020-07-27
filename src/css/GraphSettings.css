@@ -24,6 +24,11 @@
 
 .button-left {
     margin-left: 4px !important;
+    max-height: 40px;
+}
+
+.button-right {
+    max-height: 40px;
 }
 
 .settings-button {
@@ -66,7 +71,7 @@
 
 .search-input::placeholder {
     color: rgba(169, 169, 169, 0.75);
-    font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
+    font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 
 @media screen and (max-width: 1740px) {
@@ -83,5 +88,47 @@
     .search .search-input {
         border-top-left-radius: 5px;
         border-bottom-left-radius: 5px;
+    }
+}
+
+@media screen and (max-width: 750px) {
+    .graph-settings-pane {
+        grid-template-rows: 30px 40px 40px;
+        grid-template-columns: repeat(10, 1fr);
+        margin: 0 0 4px 0 !important;
+    }
+
+    .calculate-button {
+        grid-row: 1 / 2;
+        grid-column: 1 / 5;
+    }
+
+    .log-button {
+        grid-row: 1 / 2;
+        grid-column: 5 / 11;
+    }
+
+    .search-node-label {
+        grid-row: 2 / 3;
+        grid-column: 1 / 11;
+        font-size: 0.9em !important;
+    }
+
+    .search-link-label {
+        grid-row: 3 / 4;
+        grid-column: 1 / 11;
+        font-size: 0.9em !important;
+    }
+
+    .settings-button {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        font-size: 0.9em !important;
+    }
+
+    .button-left, .button-right {
+        height: 40px;
+        width: 22px;
+        padding: 0 !important;
     }
 }

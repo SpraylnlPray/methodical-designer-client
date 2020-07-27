@@ -2,7 +2,7 @@ import React, { useEffect, useReducer } from 'react';
 import '../css/NodeForm.css';
 import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, NODES_WITH_TAGS } from '../queries/LocalQueries';
-import { Form } from 'semantic-ui-react';
+import { Form, Button } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
@@ -133,10 +133,10 @@ const EditNode = ( { activeItem, client } ) => {
 					name='unreliable'
 				/>
 				<div className='edit-button-area edit-button-area-node'>
-					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
-					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+					<Button className='node-edit-button' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
+					<Button className='node-edit-button' color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Button>
 					{ isCollapsable() &&
-					<Form.Button color='teal' onClick={ handleCollapse }>{ collapseButtonText() }</Form.Button>
+					<Button className='node-edit-button' color='teal' onClick={ handleCollapse }>{ collapseButtonText() }</Button>
 					}
 				</div>
 			</Form>

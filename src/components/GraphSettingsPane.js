@@ -135,7 +135,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 				Re-calculate Graph
 			</Button>
 			<Button
-				className='graph-settings-pane-margin settings-button'
+				className='graph-settings-pane-margin settings-button log-button'
 				color='blue'
 				onClick={ handleLog }>
 				Log screen dimension
@@ -155,7 +155,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 				<Button className='button-left' icon onClick={ handlePrevNode }>
 					<Icon name='long arrow alternate left'/>
 				</Button>
-				<Button icon onClick={ handleNextNode }>
+				<Button className='button-right' icon onClick={ handleNextNode }>
 					<Icon name='long arrow alternate right'/>
 				</Button>
 			</div>

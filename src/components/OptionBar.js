@@ -40,7 +40,7 @@ const OptionBar = ( { activeItem, setVisible } ) => {
 				onClick={ e => handleClick( e ) }>
 				Create Link
 			</Button>
-			<Button icon onClick={ handleHide }>
+			<Button className='hide-button' icon onClick={ handleHide }>
 				<Icon name='hide'/>
 			</Button>
 		</div>

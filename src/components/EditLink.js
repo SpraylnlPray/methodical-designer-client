@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
 import { EDITING_RIGHTS, LINKS_DATA, NODES_DATA } from '../queries/LocalQueries';
-import { Form } from 'semantic-ui-react';
+import { Form, Button } from 'semantic-ui-react';
 import Status from './Status';
 import { addLogMessage, deepCopy, enteredRequired, setActiveItem } from '../utils';
 import { inputReducer } from '../InputReducer';
@@ -222,8 +222,8 @@ const EditLink = ( { activeItem, client } ) => {
 					name='optional'
 				/>
 				<div className='edit-button-area edit-button-area-link'>
-					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
-					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
+					<Button className='edit-button-link' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
+					<Button className='edit-button-link' color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Button>
 				</div>
 			</Form>
 			<Status data={ updateData } error={ updateError } loading={ updateLoading }/>
