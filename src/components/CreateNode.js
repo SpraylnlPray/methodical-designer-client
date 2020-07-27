@@ -1,6 +1,6 @@
 import React, { useReducer } from 'react';
 import '../css/NodeForm.css';
-import { Form } from 'semantic-ui-react';
+import { Form, Button } from 'semantic-ui-react';
 import Status from './Status';
 import { inputReducer } from '../InputReducer';
 import { useMutation, useQuery } from '@apollo/client';
@@ -8,7 +8,6 @@ import { CREATE_LOCAL_NODE } from '../queries/LocalMutations';
 import { addLogMessage, enteredRequired } from '../utils';
 import { typeOptions } from '../nodeOptions';
 import { EDITING_RIGHTS } from '../queries/LocalQueries';
-import Button from 'semantic-ui-react/dist/commonjs/elements/Button';
 
 function CreateNode( { client } ) {
 	const { data: editingData } = useQuery( EDITING_RIGHTS );
@@ -100,8 +99,8 @@ function CreateNode( { client } ) {
 					checked={ store.props['unreliable'] }
 					name='unreliable'
 				/>
+				<Button className='save-button-node' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
 			</Form>
-			<Button className='save-button' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</div>
 	);

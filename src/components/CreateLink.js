@@ -239,8 +239,8 @@ function CreateLink( { client } ) {
 					name='optional'
 				/>
 				{/* if the user doesn't have editing rights, it should be disabled */ }
+				<Button className='save-button-link' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
 			</Form>
-			<Button className='save-button' color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Button>
 			<Status data={ data } error={ error } loading={ loading }/>
 		</div>
 	);

@@ -221,7 +221,7 @@ const EditLink = ( { activeItem, client } ) => {
 					checked={ store.props['optional'] }
 					name='optional'
 				/>
-				<div className='edit-button-area'>
+				<div className='edit-button-area edit-button-area-link'>
 					<Form.Button color='green' disabled={ !editingData.hasEditRights } onClick={ handleSubmit }>Save!</Form.Button>
 					<Form.Button color='red' disabled={ !editingData.hasEditRights } onClick={ handleDelete }>Delete</Form.Button>
 				</div>
