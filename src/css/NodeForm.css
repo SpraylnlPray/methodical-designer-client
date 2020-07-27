@@ -59,6 +59,8 @@
         font-size: 0.9em !important;
     }
     .node-form {
+        overflow: auto;
+        max-height: 160px;
         margin: 2px !important;
     }
     .save-button-node {

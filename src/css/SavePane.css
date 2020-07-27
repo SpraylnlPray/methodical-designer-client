@@ -45,4 +45,12 @@
     .save-button, .discard-button {
         font-size: 0.75rem !important;
     }
+
+    .content > p {
+        display: none;
+    }
+
+    .content {
+        font-size: 0.9em !important;
+    }
 }
