@@ -2,7 +2,7 @@ import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
-import { CollapsableRule, FlowerRule2, NonCollapsableRule } from './Rules';
+import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
 import { MAX_NODE_INDEX, NODE_SEARCH_INDEX, NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
@@ -280,7 +280,7 @@ export const placeNodes = ( nodesCopy, client ) => {
 
 	for ( let collapsable of collapsables ) {
 		const next = [].concat( collapsable.children );
-		FlowerRule2( next, client );
+		FlowerRule( next, client );
 	}
 
 	for ( let node of nodesCopy ) {

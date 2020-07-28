@@ -15,8 +15,8 @@ export const CollapsableRule = ( node, allCollapsables, client, minDist = 1000 )
 			// go from 0/0 and check if the coordinates are already taken by another node
 			// if so, go in steps of minDist and check again
 			loop1:
-				for ( let y = 0, i = 0; i <= otherCollapsables.length / 2; i++, y += minDist ) {
-					for ( let x = 0, j = 0; j <= otherCollapsables.length / 2; j++, x += minDist ) {
+				for ( let y = 0, i = 0; i <= (otherCollapsables.length / 2) + 1; i++, y += minDist ) {
+					for ( let x = 0, j = 0; j <= (otherCollapsables.length / 2) + 1; j++, x += minDist ) {
 						newCoords = { x, y };
 						if ( !coordsExist( newCoords, existingCoords ) ) {
 							node.position = newCoords;
@@ -70,7 +70,7 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, client, minDistToE
 						findParents( node, node, nodes, toCheck, checked, client );
 						assignChildren( nodes );
 						const next = [].concat( node.children );
-						FlowerRule2( next, client );
+						FlowerRule( next, client );
 						for ( let node of nodes ) {
 							convertToVisCoords( node );
 						}
@@ -89,7 +89,7 @@ const handleNodesWithoutCoords = ( nodesWithoutCoords, nodes, client, minDistToE
 	}
 };
 
-export const FlowerRule2 = ( next, client, distanceToOther = 350, minDist = 150 ) => {
+export const FlowerRule = ( next, client, distanceToOther = 350, minDist = 150 ) => {
 	try {
 		const nodeToCalculate = next.shift();
 		if ( nodeToCalculate ) {
@@ -156,7 +156,7 @@ export const FlowerRule2 = ( next, client, distanceToOther = 350, minDist = 150 
 					next.push( childNode );
 				}
 			}
-			FlowerRule2( next, client );
+			FlowerRule( next, client );
 		}
 	}
 	catch ( e ) {
