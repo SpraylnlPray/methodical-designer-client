@@ -11,12 +11,14 @@ export const modifyConnectedLink = ( link, nodeID ) => {
 	}
 	// if the x node has been deleted, set the x id equal to the y id
 	else if ( link.x.id === nodeID ) {
+		link.edited = true;
 		link.x.id = link.y.id;
 		// for displaying
 		link.from = link.y.id;
 	}
 	// and vice versa
 	else if ( link.y.id === nodeID ) {
+		link.edited = true;
 		link.y.id = link.x.id;
 		link.to = link.x.id;
 	}
