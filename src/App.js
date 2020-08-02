@@ -41,7 +41,7 @@ function App() {
 			<EditorPane/>
 			<LogStream/>
 			<div className='version'>
-				v2.2b
+				v2.2
 			</div>
 		</div>
 	);
