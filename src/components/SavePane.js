@@ -109,7 +109,6 @@ const SavePane = ( {
 						Promise.all( createLinkEndAndSeqPromises )
 							.then( () => {
 								addLogMessage( client, `finished sequences and link ends, will now handle edited links` );
-								debugger
 								for ( let link of editedLinks ) {
 									const { id, name: label, linkType, x: { id: x_id }, y: { id: y_id }, story, optional } = link;
 									const variables = { id, props: { story, optional, label, linkType, x_id, y_id } };
