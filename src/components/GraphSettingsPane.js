@@ -142,7 +142,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			</Button>
 			<div className='search-node-label search'>
 				<label htmlFor="search-node-label" className='search-label'>
-					<div className='label-string'>Search Node by Label:</div>
+					<div className='label-string'>Search Nodes by Label:</div>
 				</label>
 				<input
 					type='text'
@@ -161,7 +161,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			</div>
 			<div className='search-link-label search'>
 				<label htmlFor="search-link-label" className='search-label'>
-					<div className='label-string'>Search Link by Label:</div>
+					<div className='label-string'>Filter Links by Label:</div>
 				</label>
 				<input
 					type='text'

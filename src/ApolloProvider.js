@@ -1,7 +1,11 @@
 import React from 'react';
 import App from './App';
 import { ApolloClient, ApolloProvider, gql, HttpLink, InMemoryCache } from '@apollo/client';
-import { addLogMessage, deepCopy, getDuplicates, getMatchingIDs, setCameraPos } from './utils';
+import {
+	addLogMessage, deepCopy, getDuplicates, getMatchingIDs, readFromCache, readLinksFromCache, readNodesFromCache, setCameraPos,
+	writeLinksToCache,
+	writeNodesToCache, writeToCache,
+} from './utils';
 import {
 	snap, setLinkDisplayProps, setMultipleLinksProps, findAndHandleMultipleLinks, modifyConnectedLink, updateLink, assembleNewLink,
 } from './Graph/LinkUtils';
@@ -171,16 +175,10 @@ const client = new ApolloClient( {
 						addLogMessage( client, 'Error when allocating nodes: ' + e.message );
 					}
 
-					cache.writeQuery( {
-						query: NODES_WITH_TAGS,
-						data: { Nodes: nodesCopy },
-					} );
+					writeNodesToCache( client, cache, NODES_WITH_TAGS, { Nodes: nodesCopy }, 'setNodes' );
 					setTimeout( () => {
 						let camCoords = { __typename: 'SetCameraPos', type: 'fit', x: 0, y: 0 };
-						cache.writeQuery( {
-							query: CAMERA_POS,
-							data: { setCameraPos: camCoords },
-						} );
+						writeToCache( client, cache, CAMERA_POS, { setCameraPos: camCoords }, 'Error when setting camera pos in setNodes' );
 					}, 500 );
 				}
 				catch ( e ) {
@@ -205,29 +203,21 @@ const client = new ApolloClient( {
 						findAndHandleMultipleLinks( link, linksCopy );
 					}
 
-					try {
-						cache.writeQuery( {
-							query: LINKS_WITH_TAGS,
-							data: { Links: linksCopy },
-						} );
-					}
-					catch ( e ) {
-						addLogMessage( client, 'Error when writing links to cache: ' + e.message );
-					}
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: linksCopy }, 'setLinks' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in setLinks: ' + e.message );
 				}
 			},
 
-			addNode: ( _root, variables, { cache } ) => {
+			addNode: ( _root, variables, { client, cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_DATA, 'addNode' );
 					const newNode = assembleNewNode( variables );
 					setNodeImage( newNode );
 
 					// get the last editor action with a 'click' type and its coordinates
-					let { lastEditorActions } = cache.readQuery( { query: LAST_EDITOR_ACTIONS } );
+					let { lastEditorActions } = readFromCache( client, cache, LAST_EDITOR_ACTIONS, 'Error when reading editor actions from cache in addNode' );
 					for ( let action of lastEditorActions ) {
 						if ( action.type === 'click' || action.type === 'drag' || action.type === 'zoom' ) {
 							newNode.x = action.position.x;
@@ -238,19 +228,16 @@ const client = new ApolloClient( {
 					newNode.listIndex = Nodes.length;
 
 					const newNodes = Nodes.concat( newNode );
-					cache.writeQuery( {
-						query: NODES_WITH_TAGS,
-						data: { Nodes: newNodes },
-					} );
+					writeNodesToCache( client, cache, NODES_WITH_TAGS, { Nodes: newNodes }, 'addNode' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in addNode: ' + e.message );
 				}
 			},
-			addLink: ( _root, variables, { cache } ) => {
+			addLink: ( _root, variables, { client, cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: EDITOR_NODE_DATA } );
-					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
+					const { Nodes } = readNodesFromCache( client, cache, EDITOR_NODE_DATA, 'addLink' );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'addLink' );
 					let nodesCopy = deepCopy( Nodes );
 					let linksCopy = deepCopy( Links );
 					const newLink = assembleNewLink( variables );
@@ -271,23 +258,17 @@ const client = new ApolloClient( {
 					// get link IDs that are in the array multiple times
 					let multipleLinkIDs = getDuplicates( connectedLinkIDs );
 					setMultipleLinksProps( linksCopy, multipleLinkIDs );
-					cache.writeQuery( {
-						query: EDITOR_NODE_DATA,
-						data: { Nodes: nodesCopy },
-					} );
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: linksCopy },
-					} );
+					writeNodesToCache( client, cache, EDITOR_NODE_DATA, { Nodes: nodesCopy }, 'addLink' );
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: linksCopy }, 'addLink' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in addLink: ' + e.message );
 				}
 			},
 
-			updateNode: ( _root, variables, { cache } ) => {
+			updateNode: ( _root, variables, { client, cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_WITH_TAGS } );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_WITH_TAGS, 'updateNode' );
 					const newNodes = Nodes.filter( node => node.id !== variables.id );
 
 					let nodeToEdit = Nodes.find( node => node.id === variables.id );
@@ -300,19 +281,16 @@ const client = new ApolloClient( {
 
 					const ret = newNodes.concat( nodeToEdit );
 					ret.sort( ( node1, node2 ) => node1.listIndex > node2.listIndex ? 1 : node1.listIndex < node2.listIndex ? -1 : 0 );
-					cache.writeQuery( {
-						query: NODES_WITH_TAGS,
-						data: { Nodes: ret },
-					} );
+					writeNodesToCache( client, cache, NODES_WITH_TAGS, { Nodes: ret }, 'updateNode' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in updateNode: ' + e.message );
 				}
 			},
-			updateLink: ( _root, variables, { cache } ) => {
+			updateLink: ( _root, variables, { client, cache } ) => {
 				try {
-					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
-					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'updateLink' );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_DATA, 'updateLink' );
 					const nodesCopy = deepCopy( Nodes );
 					let linkToEdit = Links.find( link => link.id === variables.id );
 					// remove the link temporarily
@@ -345,15 +323,8 @@ const client = new ApolloClient( {
 					addNodeToConnTo( newYNode, newXNode );
 
 					newLinks = newLinks.concat( linkToEdit );
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: newLinks },
-					} );
-
-					cache.writeQuery( {
-						query: NODES_DATA,
-						data: { Nodes: nodesCopy },
-					} );
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: newLinks }, 'updateLink' );
+					writeNodesToCache( client, cache, NODES_DATA, { Nodes: nodesCopy }, 'updateLink' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in updateLink: ' + e.message );
@@ -362,8 +333,8 @@ const client = new ApolloClient( {
 
 			deleteNode: ( _root, variables, { cache } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
-					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_DATA, 'deleteNode' );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'deleteNode' );
 
 					let linksCopy = deepCopy( Links );
 					const nodesCopy = deepCopy( Nodes );
@@ -387,15 +358,8 @@ const client = new ApolloClient( {
 						}
 					}
 
-					cache.writeQuery( {
-						query: NODES_DATA,
-						data: { Nodes: nodesCopy },
-					} );
-
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: linksCopy },
-					} );
+					writeNodesToCache( client, cache, NODES_DATA, { Nodes: nodesCopy }, 'updateLink' );
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: linksCopy }, 'updateLink' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in deleteNode: ' + e.message );
@@ -403,8 +367,8 @@ const client = new ApolloClient( {
 			},
 			deleteLink: ( _root, variables, { cache } ) => {
 				try {
-					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
-					const { Nodes } = cache.readQuery( { query: NODES_DATA } );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'deleteLink' );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_DATA, 'deleteLink' );
 					const newLinks = Links.filter( link => link.id !== variables.id );
 					const linksCopy = deepCopy( newLinks );
 					let linkToDelete = Links.find( link => link.id === variables.id );
@@ -427,15 +391,8 @@ const client = new ApolloClient( {
 
 					const newNodes = Nodes.filter( aNode => aNode.id !== xNode.id && aNode.id !== yNode.id );
 
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: ret },
-					} );
-
-					cache.writeQuery( {
-						query: NODES_DATA,
-						data: { Nodes: newNodes.concat( xNode, yNode ) },
-					} );
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: ret }, 'deleteLink' );
+					writeNodesToCache( client, cache, NODES_DATA, { Nodes: newNodes.concat( xNode, yNode ) }, 'deleteLink' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in deleteLink: ' + e.message );
@@ -444,8 +401,8 @@ const client = new ApolloClient( {
 
 			collapseNode: ( _root, variables, { cache, client } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_COLLAPSE } );
-					const { Links } = cache.readQuery( { query: LINKS_WITH_TAGS } );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_COLLAPSE, 'deleteLink' );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'deleteLink' );
 
 					let nodesCopy = deepCopy( Nodes );
 					let linksCopy = deepCopy( Links );
@@ -473,25 +430,18 @@ const client = new ApolloClient( {
 							};
 						}
 					}
-
-					cache.writeQuery( {
-						query: LINKS_WITH_TAGS,
-						data: { Links: linksCopy },
-					} );
+					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: linksCopy }, 'deleteLink' );
 					const ret = nodesCopy.concat( collapsable );
 					ret.sort( ( node1, node2 ) => node1.listIndex > node2.listIndex ? 1 : node1.listIndex < node2.listIndex ? -1 : 0 );
-					cache.writeQuery( {
-						query: NODES_COLLAPSE,
-						data: { Nodes: ret },
-					} );
+					writeNodesToCache( client, cache, NODES_COLLAPSE, { Nodes: ret }, 'deleteLink' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in collapseNode: ' + e.message );
 				}
 			},
 			recalculateGraph: ( _root, variables, { cache } ) => {
-				const { Nodes } = cache.readQuery( { query: CALC_NODE_POSITION } );
-				const { Links } = cache.readQuery( { query: LINKS_CALCULATION } );
+				const { Nodes } = readNodesFromCache( client, cache, CALC_NODE_POSITION, 'recalculateGraph' );
+				const { Links } = readLinksFromCache( client, cache, LINKS_CALCULATION, 'recalculateGraph' );
 				const nodesCopy = deepCopy( Nodes );
 				const linksCopy = deepCopy( Links );
 				for ( let node of nodesCopy ) {
@@ -517,28 +467,19 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when resetting calculation status of links: ' + e.message );
 				}
 
-				cache.writeQuery( {
-					query: CALC_NODE_POSITION,
-					data: { Nodes: nodesCopy },
-				} );
-				cache.writeQuery( {
-					query: LINKS_CALCULATION,
-					data: { Links: linksCopy },
-				} );
+				writeNodesToCache( client, cache, CALC_NODE_POSITION, { Nodes: nodesCopy }, 'recalculateGraph' );
+				writeLinksToCache( client, cache, LINKS_CALCULATION, { Links: linksCopy }, 'recalculateGraph' );
 			},
 			moveNode: ( _root, variables, { cache, client } ) => {
 				try {
 					const { id, x, y } = variables;
-					const { Nodes } = cache.readQuery( { query: MOVE_NODE_DATA } );
+					const { Nodes } = readNodesFromCache( client, cache, MOVE_NODE_DATA, 'moveNode' );
 					const nodesCopy = deepCopy( Nodes );
 					const movedNode = nodesCopy.find( aNode => aNode.id === id );
 					movedNode.x = x;
 					movedNode.y = y;
 					movedNode.moved = true;
-					cache.writeQuery( {
-						query: MOVE_NODE_DATA,
-						data: { Nodes: nodesCopy },
-					} );
+					writeNodesToCache( client, cache, MOVE_NODE_DATA, { Nodes: nodesCopy }, 'moveNode' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error when moving node: ' + e.message );
@@ -548,10 +489,7 @@ const client = new ApolloClient( {
 			setNodeLabelFilter: ( _root, variables, { cache, client } ) => {
 				try {
 					const { string } = variables;
-					cache.writeQuery( {
-						query: SEARCH_NODE_LABEL_FILTER,
-						data: { searchNodeLabelFilter: string },
-					} );
+					writeToCache( client, cache, SEARCH_NODE_LABEL_FILTER, { searchNodeLabelFilter: string }, 'Error when writing nodeLabelFilter to cache in setNodeLabelFilter' );
 					return string;
 				}
 				catch ( e ) {
@@ -560,7 +498,7 @@ const client = new ApolloClient( {
 			},
 			searchNodeByLabel: ( _root, variables, { cache, client } ) => {
 				try {
-					const { Nodes } = cache.readQuery( { query: NODES_SEARCH_DATA } );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_SEARCH_DATA, 'searchNodeByLabel' );
 					const { searchString } = variables;
 					const nodesCopy = deepCopy( Nodes );
 
@@ -600,10 +538,7 @@ const client = new ApolloClient( {
 						} );
 					}
 
-					cache.writeQuery( {
-						query: NODES_SEARCH_DATA,
-						data: { Nodes: nodesCopy },
-					} );
+					writeNodesToCache( client, cache, NODES_SEARCH_DATA, { Nodes: nodesCopy }, 'searchNodeByLabel' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error when searching for node by label: ' + e.message );
@@ -613,10 +548,7 @@ const client = new ApolloClient( {
 			setLinkLabelFilter: ( _root, variables, { cache, client } ) => {
 				try {
 					const { string } = variables;
-					cache.writeQuery( {
-						query: SEARCH_LINK_LABEL_FILTER,
-						data: { searchLinkLabelFilter: string },
-					} );
+					writeToCache( client, cache, SEARCH_LINK_LABEL_FILTER, { searchLinkLabelFilter: string }, 'Error when writing LinkLabelFilter to cache in setLinkLabelFilter' );
 					return string;
 				}
 				catch ( e ) {
@@ -625,7 +557,7 @@ const client = new ApolloClient( {
 			},
 			searchLinkByLabel: ( _root, variables, { cache, client } ) => {
 				try {
-					const { Links } = cache.readQuery( { query: LINKS_HIDE_DATA } );
+					const { Links } = readLinksFromCache( client, cache, LINKS_HIDE_DATA, 'searchLinkByLabel' );
 					const linksCopy = deepCopy( Links );
 					const { searchString } = variables;
 					if ( searchString.length > 0 ) {
@@ -654,10 +586,7 @@ const client = new ApolloClient( {
 						} );
 					}
 
-					cache.writeQuery( {
-						query: LINKS_HIDE_DATA,
-						data: { Links: linksCopy },
-					} );
+					writeLinksToCache( client, cache, LINKS_HIDE_DATA, { Links: linksCopy }, 'searchLinkByLabel' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error when searching link by label: ' + e.message );
@@ -665,23 +594,17 @@ const client = new ApolloClient( {
 			},
 
 			setCameraNodeIndex: ( _root, variables, { cache, client } ) => {
-				try {
-					cache.writeQuery( {
-						query: NODE_SEARCH_INDEX,
-						data: { nodeSearchIndex: variables.index },
-					} );
-				}
-				catch ( e ) {
-					addLogMessage( client, 'Error when setting camera node index: ' + e.message );
-				}
+				writeToCache( client, cache, NODE_SEARCH_INDEX, { nodeSearchIndex: variables.index }, 'Error when writing nodeSearchIndex to cache in setCameraNodeIndex' );
 			},
 			setCameraPos: ( _root, variables, { cache, client } ) => {
 				try {
 					const { x, y } = variables;
-					cache.writeQuery( {
-						query: CAMERA_POS,
-						data: { setCameraPos: { x, y, type: 'select', __typename: 'SetCameraPos' } },
-					} );
+					writeToCache( client, cache, CAMERA_POS, {
+						x,
+						y,
+						type: 'select',
+						__typename: 'SetCameraPos',
+					}, 'Error when writing cameraPos to cache in setCameraPos' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error when setting camera pos: ' + e.message );
@@ -691,7 +614,7 @@ const client = new ApolloClient( {
 			addEditorAction: ( _root, variables, { cache, client } ) => {
 				try {
 					const { type, itemID, x, y } = variables;
-					let { lastEditorActions } = cache.readQuery( { query: LAST_EDITOR_ACTIONS } );
+					let { lastEditorActions } = readFromCache( client, cache, LAST_EDITOR_ACTIONS, 'Error when reading last editor actions from cache in addEditorAction' );
 					if ( !lastEditorActions ) {
 						lastEditorActions = [];
 					}
@@ -714,10 +637,7 @@ const client = new ApolloClient( {
 					if ( clicksCopy.length >= 11 ) {
 						clicksCopy.pop();
 					}
-					cache.writeQuery( {
-						query: LAST_EDITOR_ACTIONS,
-						data: { lastEditorActions: clicksCopy },
-					} );
+					writeToCache( client, cache, LAST_EDITOR_ACTIONS, { lastEditorActions: clicksCopy }, 'Error when writing lastEditorActions in addEditorAction' );
 				}
 				catch ( e ) {
 					addLogMessage( client, 'Error in addEditorAction: ' + e.message );

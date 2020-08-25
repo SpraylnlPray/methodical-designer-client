@@ -14,7 +14,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 	const [ negativeRequest, setNegativeRequest ] = useState( false );
 
 	const [ runFreeRights ] = useMutation( FREE_EDITING_RIGHTS, {
-		update( cache, { data: { FreeEditRights } } ) {
+		update: ( cache, { data: { FreeEditRights } } ) => {
 			cache.writeQuery( {
 				query: EDITING_RIGHTS,
 				// inverted because operation will return true if freeing worked
@@ -25,7 +25,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 	} );
 
 	const [ runRequestRights ] = useMutation( REQUEST_EDITING_RIGHTS, {
-		update( cache, { data: { RequestEditRights } } ) {
+		update: ( cache, { data: { RequestEditRights } } ) => {
 			if ( RequestEditRights.success ) {
 				getNodes();
 				getLinks();

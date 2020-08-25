@@ -13,15 +13,22 @@
     background-color: white;
 }
 
-.log-header {
+.header-container {
+    display: flex;
     height: 30px;
-    font-size: 15px !important;
-    display: flex !important;
     align-items: center;
     background-color: rgb(224, 225, 226);
     color: rgba(0, 0, 0, 0.6);
+}
+
+.log-header {
+    font-size: 15px !important;
+    height: 30px;
+    display: flex !important;
+    align-items: center;
     padding: 0 0 0 20px !important;
-    width: 100%;
+    margin: 0 !important;
+    width: 94%;
     border-bottom-right-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
 }
@@ -31,4 +38,13 @@
     line-height: 1.4;
     list-style-type: square;
     padding-left: 20px;
+}
+
+.trash-custom {
+    margin: 0 !important;
+    padding: 7px !important;
+}
+
+.ui.button:not(.icon) > .icon:not(.button):not(.dropdown) {
+    margin: 0 !important;
 }

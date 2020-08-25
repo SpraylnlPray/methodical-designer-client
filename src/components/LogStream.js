@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import '../css/LogStream.css';
-import { useQuery } from '@apollo/client';
-import { Button } from 'semantic-ui-react';
+import { useApolloClient, useQuery } from '@apollo/client';
+import { Button, Icon } from 'semantic-ui-react';
 import { LOG_MESSAGES } from '../queries/LocalQueries';
 
 function LogStream() {
+	const client = useApolloClient();
 	const [ visible, setVisible ] = useState( false );
 	const { data } = useQuery( LOG_MESSAGES, {
 		// adding a log message doesn't make sense here
@@ -33,11 +34,26 @@ function LogStream() {
 		e.stopPropagation();
 	};
 
+	const handleClearClick = ( e ) => {
+		e.stopPropagation();
+		client.writeQuery( {
+			query: LOG_MESSAGES,
+			data: {
+				logMessages: [],
+			},
+		} );
+	};
+
 	useEffect( scrollToBottom, [ messageList ] );
 
 	return (
 		<div className='log-container'>
-			<Button onClick={ handleHeaderClick } className='log-header'>LogStream</Button>
+			<div className='header-container'>
+				<Button className='log-header' onClick={ handleHeaderClick }>LogStream</Button>
+				<Button className='trash-custom' onClick={ handleClearClick }>
+					<Icon name='trash alternate'/>
+				</Button>
+			</div>
 			{ visible &&
 			<div>
 				<ul className='log-stream overflow-managed' onClick={ handleBodyClick }>

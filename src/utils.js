@@ -66,7 +66,7 @@ const options = { keys: [ 'label' ], findAllMatches: true, includeScore: true };
 export const getMatchingIDs = ( nodesCopy, searchString ) => {
 	const fuse = new Fuse( nodesCopy, options );
 	const results = fuse.search( searchString );
-	const goodResults = results.filter( aResult => aResult.score < 0.6 );
+	const goodResults = results.filter( aResult => aResult.score < 0.8 );
 	const foundIDs = goodResults.map( aResult => aResult.item.id );
 	return foundIDs;
 };
@@ -78,3 +78,56 @@ export const setCameraPos = ( cache, camCoords ) => {
 	} );
 };
 
+export const writeNodesToCache = ( client, cache, query, data, fnctName ) => {
+	try {
+		cache.writeQuery( { query, data } );
+	}
+	catch ( e ) {
+		addLogMessage( client, 'Error when writing nodes to cache in ' + fnctName + ': ' + e.message );
+	}
+};
+
+export const writeLinksToCache = (client, cache, query, data, fnctName) => {
+	try {
+		cache.writeQuery( { query, data } );
+	}
+	catch ( e ) {
+		addLogMessage( client, 'Error when writing links to cache in ' + fnctName + ': ' + e.message );
+	}
+}
+
+export const writeToCache = ( client, cache, query, data, errorMsg ) => {
+	try {
+		cache.writeQuery( { query, data } );
+	}
+	catch ( e ) {
+		addLogMessage( client, errorMsg + ': ' + e.message );
+	}
+};
+
+export const readNodesFromCache = ( client, cache, query, fnctName ) => {
+	try {
+		return cache.readQuery( { query } );
+	}
+	catch ( e ) {
+		addLogMessage( client, 'Error when reading nodes from cache in ' + fnctName + ': ' + e.message );
+	}
+};
+
+export const readLinksFromCache = ( client, cache, query, fnctName ) => {
+	try {
+		return cache.readQuery( { query } );
+	}
+	catch ( e ) {
+		addLogMessage( client, 'Error when reading links from cache in ' + fnctName + ': ' + e.message );
+	}
+}
+
+export const readFromCache = ( client, cache, query, errorMsg ) => {
+	try {
+		return cache.readQuery( { query } );
+	}
+	catch ( e ) {
+		addLogMessage( client, errorMsg + ': ' + e.message );
+	}
+};
