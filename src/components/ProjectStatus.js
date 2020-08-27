@@ -3,7 +3,7 @@ import { useApolloClient, useMutation } from '@apollo/client';
 import { Message, Button } from 'semantic-ui-react';
 import { FREE_EDITING_RIGHTS, REQUEST_EDITING_RIGHTS } from '../queries/ServerMutations';
 import { EDITING_RIGHTS } from '../queries/LocalQueries';
-import { addLogMessage } from '../utils';
+import { addLogMessage, writeToCache } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 import '../css/ProjectStatus.css';
 
@@ -15,11 +15,9 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 
 	const [ runFreeRights ] = useMutation( FREE_EDITING_RIGHTS, {
 		update: ( cache, { data: { FreeEditRights } } ) => {
-			cache.writeQuery( {
-				query: EDITING_RIGHTS,
-				// inverted because operation will return true if freeing worked
-				data: { hasEditRights: !FreeEditRights.success },
-			} );
+			// inverted because operation will return true if freeing worked
+			writeToCache( client, cache, EDITING_RIGHTS, { hasEditRights: !FreeEditRights.success },
+				'Error when writing editing rights to the cache in runFreeRights in project status' );
 		},
 		onError: err => addLogMessage( client, 'Error when freeing rights: ' + err.message ),
 	} );
@@ -56,6 +54,12 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 	const handleRequestEditRights = ( e ) => {
 		e.stopPropagation();
 		runRequestRights()
+			.then( ( { data } ) => {
+				const { RequestEditRights } = data;
+				if ( !RequestEditRights.success ) {
+					addLogMessage( client, 'Error when requesting rights: ' + RequestEditRights.message.toString() );
+				}
+			} )
 			.catch( err => addLogMessage( client, `Failed when requesting rights: ` + err.message ) );
 	};
 
