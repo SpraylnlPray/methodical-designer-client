@@ -48,3 +48,19 @@
 .ui.button:not(.icon) > .icon:not(.button):not(.dropdown) {
     margin: 0 !important;
 }
+
+.blinking-blue {
+    animation: blinkingHeader 1.3s infinite;
+}
+
+@keyframes blinkingHeader {
+    0% {
+        background-color: rgb(224, 225, 226);
+    }
+    50% {
+        background-color: rgb(147, 181, 255);
+    }
+    100% {
+        background-color: rgb(224, 225, 226);
+    }
+}

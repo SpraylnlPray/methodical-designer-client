@@ -132,6 +132,7 @@
     grid-column: left-border / after-button;
 }
 
+
 @media screen and (max-width: 750px) {
     .main-grid {
         display: grid;
@@ -164,13 +165,12 @@
     }
 
     .unhide-button {
+        display: none;
         grid-row: 2 / 3;
         grid-column: 2 / 3;
     }
 
     .hide-button {
-        height: 30px;
-        width: 30px;
-        padding: 0 !important;
+        display: none !important;
     }
 }

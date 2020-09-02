@@ -23,6 +23,9 @@ export const addLogMessage = ( client, msg ) => {
 			logMessages: newMessages,
 		},
 	} );
+
+	document.getElementById( 'log-header' )
+		.classList.add( 'blinking-blue' );
 };
 
 // check if the user entered a value for the required fields

@@ -25,17 +25,11 @@ function LogStream() {
 		}
 	};
 
-	const handleHeaderClick = ( e ) => {
-		e.stopPropagation();
+	const handleHeaderClick = () => {
 		setVisible( !visible );
 	};
 
-	const handleBodyClick = ( e ) => {
-		e.stopPropagation();
-	};
-
-	const handleClearClick = ( e ) => {
-		e.stopPropagation();
+	const handleClearClick = () => {
 		client.writeQuery( {
 			query: LOG_MESSAGES,
 			data: {
@@ -44,19 +38,25 @@ function LogStream() {
 		} );
 	};
 
+	const handleDismiss = ( e ) => {
+		e.stopPropagation();
+		document.getElementById( 'log-header' )
+			.classList.remove( 'blinking-blue' );
+	};
+
 	useEffect( scrollToBottom, [ messageList ] );
 
 	return (
-		<div className='log-container'>
+		<div className='log-container' onClick={ handleDismiss }>
 			<div className='header-container'>
-				<Button className='log-header' onClick={ handleHeaderClick }>LogStream</Button>
+				<Button id='log-header' className='log-header' onClick={ handleHeaderClick }>LogStream</Button>
 				<Button className='trash-custom' onClick={ handleClearClick }>
 					<Icon name='trash alternate'/>
 				</Button>
 			</div>
 			{ visible &&
 			<div>
-				<ul className='log-stream overflow-managed' onClick={ handleBodyClick }>
+				<ul className='log-stream overflow-managed'>
 					{ messageList }
 					<div ref={ messagesEndRef }/>
 				</ul>
