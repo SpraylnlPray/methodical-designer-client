@@ -2,7 +2,7 @@ import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
-import { CollapsableRule, FlowerRule, NonCollapsableRule } from './Rules';
+import {  FlowerRule, NonCollapsableRule, CollaspableRule } from './Rules';
 import { MAX_NODE_INDEX, NODE_SEARCH_INDEX, NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
@@ -274,8 +274,9 @@ export const placeNodes = ( nodesCopy, client ) => {
 	}
 
 	assignChildren( nodesCopy );
+	const limit = calculateCollapsableBoundaries( collapsables );
 	for ( let collapsable of collapsables ) {
-		CollapsableRule( collapsable, collapsables, client );
+		CollaspableRule( collapsable, collapsables, client, limit );
 	}
 
 	for ( let collapsable of collapsables ) {
@@ -371,3 +372,37 @@ export const divideVec = ( vec, factor ) => {
 	newVec.y = vec.y / factor;
 	return newVec;
 };
+
+export const isPrime = ( num ) => {
+	if ( num < 2 ) {
+		return false;
+	}
+	for ( let i = 2; i < num; i++ ) {
+		if ( !( num % i ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+export const calculateCollapsableBoundaries = ( allCollapsables ) => {
+	let elementCountUsed = allCollapsables.length;
+	if ( isPrime( allCollapsables.length ) ) {
+		elementCountUsed -= 1;
+	}
+
+	let limit = 0;
+	for ( let i = 2; i < elementCountUsed / 2; i++ ) {
+		limit = Math.floor( elementCountUsed / i );
+		if ( isPrime( limit ) ) {
+			if ( limit < elementCountUsed / 2 ) {
+				return limit;
+			}
+		}
+		else {
+			if ( limit <= elementCountUsed / 3 ) {
+				return limit;
+			} 
+		}				
+	}
+}

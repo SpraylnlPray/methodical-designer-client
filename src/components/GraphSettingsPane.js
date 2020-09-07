@@ -48,6 +48,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 		const { value } = e.target;
 		e.stopPropagation();
 		e.preventDefault();
+
 		runSetNodeLabelFilter( { variables: { string: value } } )
 			.then( ( { data } ) => runSearchNodeLabel( { variables: { searchString: data.setNodeLabelFilter } } )
 				.catch( e => addLogMessage( client, 'Error when running search node label: ' + e.message ) ) )

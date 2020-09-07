@@ -1,22 +1,21 @@
 import {
 	isCollapsable, rotateVector, toRad,
 	coordsExist, getExistingCoordinatesFor, clamp, calcDistance, findParents, addVertex, normalizeCoords, assignChildren,
-	convertToVisCoords,
+	convertToVisCoords
 } from './NodeUtils';
 import { addLogMessage, normalizeVector } from '../utils';
 
-export const CollapsableRule = ( node, allCollapsables, client, minDist = 1000 ) => {
+export const CollaspableRule = ( node, allCollapsables, client, limit, minDist = 1000 ) => {
 	try {
 		if ( isCollapsable( node ) ) {
 			const otherCollapsables = allCollapsables.filter( aNode => aNode.id !== node.id && isCollapsable( aNode ) && !aNode.deleted );
 			// get the coordinates of all other collapsables
 			const existingCoords = getExistingCoordinatesFor( otherCollapsables );
 			let newCoords = {};
-			// go from 0/0 and check if the coordinates are already taken by another node
-			// if so, go in steps of minDist and check again
+
 			loop1:
-				for ( let y = 0, i = 0; i <= (otherCollapsables.length / 2) + 1; i++, y += minDist ) {
-					for ( let x = 0, j = 0; j <= (otherCollapsables.length / 2) + 1; j++, x += minDist ) {
+				for ( let y = 0, i = 0; i <= limit; i++, y += minDist ) {
+					for ( let x = 0, j = 0; j <= limit; j++, x += minDist ) {
 						newCoords = { x, y };
 						if ( !coordsExist( newCoords, existingCoords ) ) {
 							node.position = newCoords;
@@ -27,9 +26,9 @@ export const CollapsableRule = ( node, allCollapsables, client, minDist = 1000 )
 		}
 	}
 	catch ( e ) {
-		addLogMessage( client, 'Error in CollapsableRule: ' + e.message );
+		addLogMessage( client, 'Error in CollapsableRuleNew: ' + e.message );
 	}
-};
+}
 
 export const NonCollapsableRule = ( _, nodes, client, minDistToEachOther = 500 ) => {
 	try {

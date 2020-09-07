@@ -36,7 +36,7 @@ const EditorPane = ( { editingData } ) => {
 			const { x, y } = setCameraPos;
 			network.moveTo( {
 				position: { x, y },
-				scale: 1,
+				scale: 1.3,
 				animation: {
 					duration: 300,
 					easingFunction: 'easeInOutQuad',
@@ -117,7 +117,6 @@ const EditorPane = ( { editingData } ) => {
 	}
 
 	// stopping events in the events object above is not possible
-	// so we handle the logic there, and stop the propagation here before it can get to the app level
 	const handleClick = ( e ) => {
 		e.stopPropagation();
 	};

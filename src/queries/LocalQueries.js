@@ -24,6 +24,7 @@ export const NODES_DATA = gql`
       story
       synchronous
       unreliable
+      needsCalculation
       x
       y
       deleted
@@ -249,6 +250,7 @@ export const CALC_NODE_POSITION = gql`
       nodeType
       needsCalculation
       moved
+      deleted
       x
       y
       connectedTo {

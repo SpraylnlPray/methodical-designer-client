@@ -26,6 +26,7 @@ const InteractionPane = ( { client } ) => {
 				<InputPane
 					client={ client }
 					activeItem={ activeItem }
+					className={'input-pane'}
 				/>
 			</div>
 		);

@@ -185,7 +185,7 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error in setNodes: ' + e.message );
 				}
 			},
-			setLinks: ( _root, variables, { cache } ) => {
+			setLinks: ( _root, variables, { cache, client } ) => {
 				try {
 					const linksCopy = deepCopy( variables.links );
 					for ( let link of linksCopy ) {
@@ -300,7 +300,6 @@ const client = new ApolloClient( {
 					const oldYNode = nodesCopy.find( aNode => aNode.id === linkToEdit.y.id );
 					const oldType = linkToEdit.linkType;
 					// update link
-					// debugger
 					linkToEdit = updateLink( variables, linkToEdit );
 					// get new nodeIDs
 					const newXNode = nodesCopy.find( aNode => aNode.id === linkToEdit.x.id );
@@ -309,18 +308,18 @@ const client = new ApolloClient( {
 
 					if ( oldXNode.id !== newXNode.id || oldYNode.id !== newYNode.id || newType !== oldType ) {
 						linkToEdit.needsCalculation = true;
+						// on the old nodes, remove the link from links and remove the respective other node form connectedTo
+						removeLinkFromLinks( oldXNode, linkToEdit );
+						removeNodeFromConnTo( oldXNode, oldYNode );
+						// on the new nodes, add the link to links and add the respective other node to connectedTo
+						addLinkToLinks( newXNode, linkToEdit );
+						addNodeToConnTo( newXNode, newYNode );
+						// and vice versa for the other node
+						removeLinkFromLinks( oldYNode, linkToEdit );
+						removeNodeFromConnTo( oldYNode, oldXNode );
+						addLinkToLinks( newYNode, linkToEdit );
+						addNodeToConnTo( newYNode, newXNode );
 					}
-					// on the old nodes, remove the link from links and remove the respective other node form connectedTo
-					removeLinkFromLinks( oldXNode, linkToEdit );
-					removeNodeFromConnTo( oldXNode, oldYNode );
-					// on the new nodes, add the link to links and add the respective other node to connectedTo
-					addLinkToLinks( newXNode, linkToEdit );
-					addNodeToConnTo( newXNode, newYNode );
-					// and vice versa for the other node
-					removeLinkFromLinks( oldYNode, linkToEdit );
-					removeNodeFromConnTo( oldYNode, oldXNode );
-					addLinkToLinks( newYNode, linkToEdit );
-					addNodeToConnTo( newYNode, newXNode );
 
 					newLinks = newLinks.concat( linkToEdit );
 					writeLinksToCache( client, cache, LINKS_WITH_TAGS, { Links: newLinks }, 'updateLink' );
@@ -343,6 +342,7 @@ const client = new ApolloClient( {
 						if ( node.id === variables.id ) {
 							// mark the node as deleted
 							node.deleted = true;
+							node.needsCalculation = true;
 							// and save all connected link IDs
 							for ( let link of node.Links ) {
 								connectedLinkIDs.push( link.id );
@@ -401,8 +401,8 @@ const client = new ApolloClient( {
 
 			collapseNode: ( _root, variables, { cache, client } ) => {
 				try {
-					const { Nodes } = readNodesFromCache( client, cache, NODES_COLLAPSE, 'deleteLink' );
-					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'deleteLink' );
+					const { Nodes } = readNodesFromCache( client, cache, NODES_COLLAPSE, 'collapseNode' );
+					const { Links } = readLinksFromCache( client, cache, LINKS_WITH_TAGS, 'collapseNode' );
 
 					let nodesCopy = deepCopy( Nodes );
 					let linksCopy = deepCopy( Links );
@@ -458,13 +458,8 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when allocating nodes: ' + e.message );
 				}
 
-				try {
-					for ( let link of linksCopy ) {
-						link.needsCalculation = false;
-					}
-				}
-				catch ( e ) {
-					addLogMessage( client, 'Error when resetting calculation status of links: ' + e.message );
+				for ( let link of linksCopy ) {
+					link.needsCalculation = false;
 				}
 
 				writeNodesToCache( client, cache, CALC_NODE_POSITION, { Nodes: nodesCopy }, 'recalculateGraph' );
@@ -496,6 +491,7 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error when setting node label filter: ' + e.message );
 				}
 			},
+			// This could be removed and the code could go into setNodeLabelFilter
 			searchNodeByLabel: ( _root, variables, { cache, client } ) => {
 				try {
 					const { Nodes } = readNodesFromCache( client, cache, NODES_SEARCH_DATA, 'searchNodeByLabel' );
@@ -635,7 +631,7 @@ const client = new ApolloClient( {
 						// otherwise add the new action to the array
 						clicksCopy.unshift( { __typename: 'EditorAction', type, itemID, position: { x, y } } );
 					}
-					// do not save more than 10 clicks
+					// do not save more than 10 actions
 					if ( clicksCopy.length >= 11 ) {
 						clicksCopy.pop();
 					}
