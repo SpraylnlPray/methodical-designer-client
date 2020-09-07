@@ -290,18 +290,25 @@ export const placeNodes = ( nodesCopy, client ) => {
 
 	NonCollapsableRule( {}, nodesCopy, client );
 
-	// for ( let node of nodesCopy ) {
-	// 	const connectedNodes = getConnectedNodes( node );
-	// 	for ( let connNode of connectedNodes ) {
-	// 		if ( haveSameXCoords( node, connNode ) ) {
-	// 			node.x += 0.0001;
-	// 		}
-	// 		if (haveSameYCoords( node, connNode ) ) {
-	// 			node.y += 0.0001;
-	// 		}
-	// 	}
-	// }	
+	fixVisLabel( nodesCopy );
+
 };
+
+const fixVisLabel = ( nodesCopy ) => {
+	for ( let node of nodesCopy ) {
+		const connectedNodes = getConnectedNodes( node );
+		const connectedIDs = connectedNodes.map( aNode => aNode.id );
+		for ( let connNodeID of connectedIDs ) {
+			const connNode = nodesCopy.find( aNode => aNode.id === connNodeID );
+			if ( haveSameXCoords( node, connNode ) ) {
+				node.x += 1;
+			}
+			if (haveSameYCoords( node, connNode ) ) {
+				node.y += 1;
+			}
+		}
+	}	
+}
 
 const haveSameXCoords = ( node1, node2 ) => {
 	return ( node1.x === node2.x )
@@ -329,7 +336,7 @@ export const convertToVisCoords = ( node ) => {
 
 const getConnectedNodes = ( node, nodes, center ) => {
 	const connectedNodes = node.connectedTo.filter( aNode => {
-		return !isCollapsable( aNode ) && aNode.id !== center.id;
+		return !isCollapsable( aNode ) && aNode.id !== center?.id;
 	} );
 	return connectedNodes;
 };
@@ -406,7 +413,6 @@ export const isPrime = ( num ) => {
 }
 
 export const calculateCollapsableBoundaries = ( allCollapsables ) => {
-	debugger
 	let elementCountUsed = allCollapsables.length;
 	if ( isPrime( elementCountUsed ) ) {
 		elementCountUsed -= 1;
