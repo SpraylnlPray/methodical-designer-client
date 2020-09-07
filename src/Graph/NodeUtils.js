@@ -2,7 +2,7 @@ import { NodeImages } from './Images';
 import { NodeShapes } from './Shapes';
 import { NodeColors } from './Colors';
 import { addLogMessage, deepCopy, generateLocalUUID } from '../utils';
-import {  FlowerRule, NonCollapsableRule, CollaspableRule } from './Rules';
+import { FlowerRule, NonCollapsableRule, CollaspableRule } from './Rules';
 import { MAX_NODE_INDEX, NODE_SEARCH_INDEX, NODES_BASE_DATA } from '../queries/LocalQueries';
 
 export const areBothHidden = ( node1, node2 ) => {
@@ -14,13 +14,13 @@ export const isHidden = ( node ) => {
 };
 
 export const setNodeImage = ( node ) => {
-	if ( NodeImages[node.nodeType] ) {
-		node.image = NodeImages[node.nodeType];
+	if ( NodeImages[ node.nodeType ] ) {
+		node.image = NodeImages[ node.nodeType ];
 		node.shape = 'image';
 	}
 	else {
-		node.shape = NodeShapes[node.nodeType];
-		node.color = NodeColors[node.nodeType];
+		node.shape = NodeShapes[ node.nodeType ];
+		node.color = NodeColors[ node.nodeType ];
 	}
 };
 
@@ -151,7 +151,7 @@ export const updateNode = ( node, variables ) => {
 			// collapse shouldn't count as a change that needs to be saved
 			node.edited = true;
 		}
-		node[prop] = props[prop];
+		node[ prop ] = props[ prop ];
 	}
 	setNodeImage( node );
 	return node;
@@ -289,7 +289,27 @@ export const placeNodes = ( nodesCopy, client ) => {
 	}
 
 	NonCollapsableRule( {}, nodesCopy, client );
+
+	// for ( let node of nodesCopy ) {
+	// 	const connectedNodes = getConnectedNodes( node );
+	// 	for ( let connNode of connectedNodes ) {
+	// 		if ( haveSameXCoords( node, connNode ) ) {
+	// 			node.x += 0.0001;
+	// 		}
+	// 		if (haveSameYCoords( node, connNode ) ) {
+	// 			node.y += 0.0001;
+	// 		}
+	// 	}
+	// }	
 };
+
+const haveSameXCoords = ( node1, node2 ) => {
+	return ( node1.x === node2.x )
+}
+
+const haveSameYCoords = ( node1, node2 ) => {
+	return ( node1.y === node2.y )
+}
 
 export const normalizeCoords = ( node ) => {
 	if ( hasCoordinates( node ) ) {
@@ -386,8 +406,9 @@ export const isPrime = ( num ) => {
 }
 
 export const calculateCollapsableBoundaries = ( allCollapsables ) => {
+	debugger
 	let elementCountUsed = allCollapsables.length;
-	if ( isPrime( allCollapsables.length ) ) {
+	if ( isPrime( elementCountUsed ) ) {
 		elementCountUsed -= 1;
 	}
 
@@ -402,7 +423,8 @@ export const calculateCollapsableBoundaries = ( allCollapsables ) => {
 		else {
 			if ( limit <= elementCountUsed / 3 ) {
 				return limit;
-			} 
-		}				
+			}
+		}
 	}
+	return 3;
 }
