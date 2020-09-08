@@ -14,4 +14,5 @@ export const typeOptions = [
 	{ 'text': 'Invariant', 'value': 'Invariant', image: NodeImages.Invariant },
 	{ 'text': 'Architectural Decision Record', 'value': 'ArchitecturalDecisionRecord', image: NodeImages.ArchitecturalDecisionRecord },
 	{ 'text': 'Definition', 'value': 'Definition', image: NodeImages.Definition },
+	{ 'text': 'Team', 'value': 'Team', image: NodeImages.Team },
 ];

@@ -4,6 +4,7 @@ export const typeOptions = [
 	{ 'text': 'Read', 'value': 'Read' },
 	{ 'text': 'Mutate', 'value': 'Mutate' },
 	{ 'text': 'Generic', 'value': 'Generic' },
+	{ 'text': 'Responsibility', 'value': 'Responsibility' },
 ];
 
 export const arrowOptions = [

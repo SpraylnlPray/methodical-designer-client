@@ -11,6 +11,7 @@ import adrImg from '../images/md-icon-adr-base.png';
 import definitionImg from '../images/md-icon-definition-base.png';
 import domainImg from '../images/md-icon-domain-base.png';
 import containerImg from '../images/md-icon-container-base.png';
+import teamImg from '../images/md-icon-team-base.png';
 
 export const NodeImages = {
 	API: apiImg,
@@ -26,4 +27,5 @@ export const NodeImages = {
 	Invariant: invariantImg,
 	ArchitecturalDecisionRecord: adrImg,
 	Definition: definitionImg,
+	Team: teamImg,
 }
