@@ -2,6 +2,15 @@
     margin: 5px;
 }
 
+.ui.selection.dropdown .menu>.item > span {
+    display: block;
+}
+
+.ui.selection.dropdown .menu>.item {
+    display: flex;
+    align-items: center;
+}
+
 .node-form-grid {
     padding: 3px 5px 3px 5px;
     display: grid;

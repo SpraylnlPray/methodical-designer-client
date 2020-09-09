@@ -104,9 +104,6 @@ const EditorPane = ( { editingData } ) => {
 					.catch( error => addLogMessage( client, 'Error when adding editor click: ' + error.message ) );
 			}
 		},
-		oncontext: function asdf(e) {
-			addLogMessage(client, "ASDF");
-		}
 	};
 
 	if ( nodeData && linkData ) {

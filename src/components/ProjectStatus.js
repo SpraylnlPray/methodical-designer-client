@@ -78,7 +78,7 @@ const ProjectStatus = ( { props, hasUnsavedLocalChanges, editingData } ) => {
 			return (
 				<div className='rights-pane'>
 					<Message warning className='rights-message'>
-						<Message.Header>No Edit Rights</Message.Header>
+						<Message.Header>No Editing Rights</Message.Header>
 						<Message.Content className='rights-info'>{ contentText }</Message.Content>
 					</Message>
 					<Button color='teal' className='rights-button' onClick={ handleRequestEditRights }>Request Now</Button>
