@@ -86,7 +86,7 @@ const EditLink = ( { activeItem, client } ) => {
 		setActiveItem( client, 'app', 'app' );
 	};
 
-	const isPartOf = store.required['type'] === 'PartOf';
+	const isPartOf = store.required['linkType'] === 'PartOf';
 
 	return (
 		<div className='link-form'>

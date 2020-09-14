@@ -31,13 +31,14 @@ export const VecDist = ( p1, p2 ) => {
 };
 
 export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy ) => {
+	debugger
 	let nodesWithoutCollapsable = nodesCopy.filter( node => node.id !== collapsable.id );
 
 	// get all nodes connected to the collapsable via a part-of link
 	const connectedNodeIDs = [];
 	for ( let link of links ) {
 		// if the x/parent node is the collapsable, save the y ID
-		if ( link.x.id === collapsable.id && link.linkType === 'PartOf' ) {
+		if ( link.x.id === collapsable.id && link.linkType === 'PartOf' && link.y.id !== sourceNode.id ) {
 			connectedNodeIDs.push( link.y.id );
 		}
 	}
@@ -52,7 +53,7 @@ export const handleConnectedNodes = ( collapsable, sourceNode, links, nodesCopy 
 			}
 			// if the adapted node is a collapsable itself, it should also hide its respective children
 			if ( isCollapsable( node ) ) {
-				handleConnectedNodes( node, collapsable, links, nodesCopy );
+				handleConnectedNodes( node, sourceNode, links, nodesCopy );
 			}
 		}
 	} );
