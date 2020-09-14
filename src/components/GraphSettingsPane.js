@@ -135,12 +135,12 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 				onClick={ handleClick }>
 				Re-calculate Graph
 			</Button>
-			<Button
+			{/* <Button
 				className='graph-settings-pane-margin settings-button log-button'
 				color='blue'
 				onClick={ handleLog }>
 				Log screen dimension
-			</Button>
+			</Button> */}
 			<div className='search-node-label search'>
 				<label htmlFor="search-node-label" className='search-label'>
 					<div className='label-string'>Search Nodes by Label:</div>
