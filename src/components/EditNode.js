@@ -99,6 +99,7 @@ const EditNode = ( { activeItem, client } ) => {
 					value={ store.required['label'] }
 				/>
 				<Form.Select
+				  search
 					className='node-type'
 					fluid
 					label='Type'

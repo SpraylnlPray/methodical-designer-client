@@ -304,11 +304,11 @@ const fixVisLabel = ( nodesCopy ) => {
 			if ( haveSameXCoords( node, connNode ) ) {
 				node.x += 1;
 			}
-			if (haveSameYCoords( node, connNode ) ) {
+			if ( haveSameYCoords( node, connNode ) ) {
 				node.y += 1;
 			}
 		}
-	}	
+	}
 }
 
 const haveSameXCoords = ( node1, node2 ) => {

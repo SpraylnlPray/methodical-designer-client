@@ -103,7 +103,7 @@
 
 .main-grid {
     display: grid;
-    grid-template-rows: [top-border] 1fr [to-main-area] 14fr [bottom-limit] 10px [bottom-border];
+    grid-template-rows: [top-border] 1fr [to-main-area] 0.25fr [after-button] 14fr [bottom-limit] 10px [bottom-border];
     grid-template-columns: [left-border] 0.25fr [after-button] 5fr [to-main-area] 12fr [right-border];
 }
 

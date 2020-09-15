@@ -5,7 +5,7 @@ import {
 } from './NodeUtils';
 import { addLogMessage, normalizeVector } from '../utils';
 
-export const CollaspableRule = ( node, allCollapsables, client, limit, minDist = 1000 ) => {
+export const CollaspableRule = ( node, allCollapsables, client, limit, minDist = 800 ) => {
 	try {
 		if ( isCollapsable( node ) ) {
 			const otherCollapsables = allCollapsables.filter( aNode => aNode.id !== node.id && !aNode.deleted );
@@ -100,9 +100,9 @@ export const FlowerRule = ( next, client, distanceToOther = 350, minDist = 150 )
 					// all nodes connected to a collapsable, can be distributed 360° around it.
 					// to get a uniform distribution we need to divide this angle by the amount of connected nodes
 					let deltaAngle = 360 / parent.children.length;
-					// if there are just 2 nodes, reduce the angle as a connection between them might cover up labels
-					if ( parent.children.length === 2 ) {
-						deltaAngle = deltaAngle * 2 / 3;
+					// if number of nodes is a multiple of 2, reduce the angle as a connections between them might cover up labels
+					if ( parent.children.length % 2 === 0 ) {
+						deltaAngle = deltaAngle * 3 / 5;
 					}
 					const deltaRad = toRad( deltaAngle );
 					const index = parent.children.indexOf( nodeToCalculate );
