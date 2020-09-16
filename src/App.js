@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import InteractionPane from './components/InteractionPane';
 import EditorPane from './components/EditorPane';
 import HeaderArea from './components/HeaderArea';
@@ -34,12 +34,23 @@ function App() {
 		},
 	} );
 
+	useEffect( () => {
+		setWindowSize();
+	}, [] );
+
+	const setWindowSize = () => {
+		const w = Math.max( document.documentElement.clientWidth, window.innerWidth || 0 );
+		const h = Math.max( document.documentElement.clientHeight, window.innerHeight || 0 );
+		document.getElementById( 'root' ).style.height = h.toString() + 'px';
+		document.getElementById( 'root' ).style.width = w.toString() + 'px';
+	}
+
 	return (
-		<div className='bordered app margin-base main-grid' onClick={ handleClick }>
-			<HeaderArea client={ client }/>
-			<InteractionPane client={ client }/>
-			<EditorPane/>
-			<LogStream/>
+		<div className='bordered app margin-base main-grid' onClick={handleClick}>
+			<HeaderArea client={client} />
+			<InteractionPane client={client} />
+			<EditorPane />
+			<LogStream />
 			<div className='version'>
 				v2.21
 			</div>

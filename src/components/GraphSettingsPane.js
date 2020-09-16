@@ -109,30 +109,32 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 		try {
 			// find the node the camera should center
 			const { Nodes } = client.readQuery( { query: NODES_SEARCH_DATA } );
-			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex );
-			const { x, y } = nodeToCenter;
-			runSetCameraCoords( { variables: { x, y } } )
-				.catch( e => addLogMessage( client, 'Error when running set camera coords: ' + e.message ) );
+			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex )
+			if ( nodeToCenter ) {
+				const { x, y } = nodeToCenter;
+				runSetCameraCoords( { variables: { x, y } } )
+					.catch( e => addLogMessage( client, 'Error when running set camera coords: ' + e.message ) );
+			}
 		}
 		catch ( e ) {
 			addLogMessage( client, 'Error when setting camera coords: ' + e.message );
 		}
 	};
 
-	const handleLog = ( e ) => {
-		e.stopPropagation();
-		const width = window.innerWidth;
-		const height = window.innerHeight;
-		addLogMessage( client, 'inner width: ' + width + ' inner height: ' + height );
-	};
+	// const handleLog = ( e ) => {
+	// 	e.stopPropagation();
+	// 	const width = window.innerWidth;
+	// 	const height = window.innerHeight;
+	// 	addLogMessage( client, 'inner width: ' + width + ' inner height: ' + height );
+	// };
 
 	return (
 		<div className='graph-settings-pane'>
 			<Button
 				className='graph-settings-pane-margin calculate-button settings-button'
-				disabled={ isButtonDisabled() }
+				disabled={isButtonDisabled()}
 				color='blue'
-				onClick={ handleClick }>
+				onClick={handleClick}>
 				Re-calculate Graph
 			</Button>
 			{/* <Button
@@ -150,14 +152,14 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					id="search-node-label"
 					className='search-input'
 					placeholder='Search...'
-					onChange={ handleNodeSearchChange }
-					value={ nodeLabelSearchString.searchNodeLabelFilter }
+					onChange={handleNodeSearchChange}
+					value={nodeLabelSearchString.searchNodeLabelFilter}
 				/>
-				<Button className='button-left' icon onClick={ handlePrevNode }>
-					<Icon name='long arrow alternate left'/>
+				<Button className='button-left' icon onClick={handlePrevNode}>
+					<Icon name='long arrow alternate left' />
 				</Button>
-				<Button className='button-right' icon onClick={ handleNextNode }>
-					<Icon name='long arrow alternate right'/>
+				<Button className='button-right' icon onClick={handleNextNode}>
+					<Icon name='long arrow alternate right' />
 				</Button>
 			</div>
 			<div className='search-link-label search'>
@@ -169,8 +171,8 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					id="search-link-label"
 					className='search-input'
 					placeholder='Search...'
-					onChange={ handleLinkSearchChange }
-					value={ linkLabelSearchString.searchLinkLabelFilter }
+					onChange={handleLinkSearchChange}
+					value={linkLabelSearchString.searchLinkLabelFilter}
 				/>
 			</div>
 		</div>
