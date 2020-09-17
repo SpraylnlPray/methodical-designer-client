@@ -34,6 +34,14 @@ const EditorPane = ( { editingData } ) => {
 		const { setCameraPos } = cameraPosData;
 		debugger
 		if ( setCameraPos.type === 'select' ) {
+			Object.values(network.body.nodes).forEach(aNode => {
+				if (aNode.id === setCameraPos.itemId) {
+					aNode.selected = true;
+				}
+				else {
+					aNode.selected = false;
+				}
+			})
 			const { x, y } = setCameraPos;
 			network.moveTo( {
 				position: { x, y },
@@ -63,13 +71,13 @@ const EditorPane = ( { editingData } ) => {
 		select: function handleEditorSelect( event ) {
 			const { nodes, edges } = event;
 			if ( nodes.length > 0 ) {
-				setActiveItem( client, nodes[0], 'node' );
-				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: ''} } )
+				setActiveItem( client, nodes[ 0 ], 'node' );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[ 0 ], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting node: ' + error.message ) );
 			}
 			else if ( edges.length > 0 ) {
-				setActiveItem( client, edges[0], 'link' );
-				runAddEditorAction( { variables: { type: 'link', itemID: edges[0], x: '', y: '' } } )
+				setActiveItem( client, edges[ 0 ], 'link' );
+				runAddEditorAction( { variables: { type: 'link', itemID: edges[ 0 ], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting link: ' + error.message ) );
 			}
 		},
@@ -81,8 +89,8 @@ const EditorPane = ( { editingData } ) => {
 		dragStart: function handleDragStart( event ) {
 			const { nodes } = event;
 			if ( nodes.length > 0 ) {
-				setActiveItem( client, nodes[0], 'node' );
-				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: '' } } )
+				setActiveItem( client, nodes[ 0 ], 'node' );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[ 0 ], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 		},
@@ -93,7 +101,7 @@ const EditorPane = ( { editingData } ) => {
 					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 			else if ( nodes.length > 0 ) {
-				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } )
+				moveNode( { variables: { id: nodes[ 0 ], x: pointer.canvas.x, y: pointer.canvas.y } } )
 					.catch( error => addLogMessage( client, 'Error when moving node: ' + error.message ) );
 			}
 		},
@@ -155,14 +163,14 @@ const EditorPane = ( { editingData } ) => {
 	};
 
 	return (
-		<div className='bordered editor-pane margin-base' id='editor-pane' onClick={ handleClick } onKeyDown={ handleKeyDown }>
+		<div className='bordered editor-pane margin-base' id='editor-pane' onClick={handleClick} onKeyDown={handleKeyDown}>
 			<Graph
-				graph={ graph }
-				options={ options }
-				events={ events }
-				getNetwork={ network => {
+				graph={graph}
+				options={options}
+				events={events}
+				getNetwork={network => {
 					setNetwork( network );
-				} }
+				}}
 			/>
 		</div>
 	);

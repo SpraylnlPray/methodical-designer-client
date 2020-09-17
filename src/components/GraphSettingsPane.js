@@ -69,9 +69,11 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 
 	const handleNextNode = ( e ) => {
 		try {
+			debugger
 			e.stopPropagation();
 			const { maxNodeIndex } = client.readQuery( { query: MAX_NODE_INDEX } );
 			let { nodeSearchIndex } = client.readQuery( { query: NODE_SEARCH_INDEX } );
+			if ( nodeSearchIndex === "" ) return;
 			nodeSearchIndex += 1;
 			if ( nodeSearchIndex > maxNodeIndex ) {
 				nodeSearchIndex = 0;
@@ -88,9 +90,11 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 
 	const handlePrevNode = ( e ) => {
 		try {
+			debugger
 			e.stopPropagation();
 			const { maxNodeIndex } = client.readQuery( { query: MAX_NODE_INDEX } );
 			let { nodeSearchIndex } = client.readQuery( { query: NODE_SEARCH_INDEX } );
+			if ( nodeSearchIndex === "" ) return;
 			nodeSearchIndex -= 1;
 			if ( nodeSearchIndex < 0 ) {
 				nodeSearchIndex = maxNodeIndex;
@@ -111,8 +115,8 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			const { Nodes } = client.readQuery( { query: NODES_SEARCH_DATA } );
 			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex )
 			if ( nodeToCenter ) {
-				const { x, y } = nodeToCenter;
-				runSetCameraPos( { variables: { x, y } } )
+				const { x, y, id } = nodeToCenter;
+				runSetCameraPos( { variables: { x, y, id } } )
 					.catch( e => addLogMessage( client, 'Error when running set camera coords: ' + e.message ) );
 			}
 		}

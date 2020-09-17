@@ -31,7 +31,7 @@ export const addLogMessage = ( client, msg ) => {
 // check if the user entered a value for the required fields
 export const enteredRequired = ( requiredFields ) => {
 	for ( let key of Object.keys( requiredFields ) ) {
-		if ( requiredFields[key].length <= 0 ) {
+		if ( requiredFields[ key ].length <= 0 ) {
 			return false;
 		}
 	}
@@ -39,15 +39,15 @@ export const enteredRequired = ( requiredFields ) => {
 };
 
 export const generateLocalUUID = () => {
-	return ([ 1e7 ] + -1e3 + -4e3 + -8e3 + -1e11).replace( /[018]/g, c =>
+	return ( [ 1e7 ] + -1e3 + -4e3 + -8e3 + -1e11 ).replace( /[018]/g, c =>
 		// eslint-disable-next-line
-		(c ^ crypto.getRandomValues( new Uint8Array( 1 ) )[0] & 15 >> c / 4).toString( 16 ) );
+		( c ^ crypto.getRandomValues( new Uint8Array( 1 ) )[ 0 ] & 15 >> c / 4 ).toString( 16 ) );
 };
 
 export const deepCopy = obj => JSON.parse( JSON.stringify( obj ) );
 
 export const getDuplicates = ( list ) => {
-	let newList = list.reduce( function( acc, el, i, arr ) {
+	let newList = list.reduce( function ( acc, el, i, arr ) {
 		if ( arr.indexOf( el ) !== i && acc.indexOf( el ) < 0 ) {
 			acc.push( el );
 		}
@@ -69,15 +69,15 @@ const options = { keys: [ 'label' ], findAllMatches: true, includeScore: true };
 export const getMatchingIDs = ( nodesCopy, searchString ) => {
 	const fuse = new Fuse( nodesCopy, options );
 	const results = fuse.search( searchString );
-	const goodResults = results.filter( aResult => aResult.score < 0.8 );
+	const goodResults = results.filter( aResult => aResult.score < 0.4 );
 	const foundIDs = goodResults.map( aResult => aResult.item.id );
 	return foundIDs;
 };
 
-export const setCameraPos = ( cache, camCoords ) => {
+export const setCameraPos = ( cache, camData ) => {
 	cache.writeQuery( {
 		query: CAMERA_POS,
-		data: { setCameraPos: camCoords },
+		data: { setCameraPos: camData },
 	} );
 };
 
@@ -90,7 +90,7 @@ export const writeNodesToCache = ( client, cache, query, data, fnctName ) => {
 	}
 };
 
-export const writeLinksToCache = (client, cache, query, data, fnctName) => {
+export const writeLinksToCache = ( client, cache, query, data, fnctName ) => {
 	try {
 		cache.writeQuery( { query, data } );
 	}

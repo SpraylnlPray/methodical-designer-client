@@ -308,6 +308,7 @@ export const MAX_NODE_INDEX = gql`
 export const CAMERA_POS = gql`
   query {
     setCameraPos @client {
+      itemId
       type
       x
       y

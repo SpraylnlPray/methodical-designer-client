@@ -24,6 +24,11 @@ const options = {
 			minimum: 25,
 			maximum: 50,
 		},
+		chosen: {
+			label: function ( values, id, selected, hovering ) {
+				values.color = '#4DC4FF';
+			}
+		}
 	},
 	height: '100%',
 	autoResize: true,

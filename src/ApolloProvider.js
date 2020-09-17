@@ -177,7 +177,7 @@ const client = new ApolloClient( {
 
 					writeNodesToCache( client, cache, NODES_WITH_TAGS, { Nodes: nodesCopy }, 'setNodes' );
 					setTimeout( () => {
-						let camCoords = { __typename: 'SetCameraPos', type: 'fit', x: 0, y: 0 };
+						let camCoords = { __typename: 'SetCameraPos', type: 'fit', x: 0, y: 0, itemId: '' };
 						writeToCache( client, cache, CAMERA_POS, { setCameraPos: camCoords }, 'Error when setting camera pos in setNodes' );
 					}, 500 );
 				}
@@ -497,10 +497,10 @@ const client = new ApolloClient( {
 					const { Nodes } = readNodesFromCache( client, cache, NODES_SEARCH_DATA, 'searchNodeByLabel' );
 					const { searchString } = variables;
 					const nodesCopy = deepCopy( Nodes );
-
+					
 					if ( searchString.length > 0 ) {
 						let setCamCoords = false;
-						let camCoords = { __typename: 'SetCameraPos', type: 'select', x: 0, y: 0 };
+						let camData = { __typename: 'SetCameraPos', type: 'select', x: 0, y: 0, itemId: '' };
 						const foundIDs = getMatchingIDs( nodesCopy, searchString );
 						for ( let node of nodesCopy ) {
 							// if the label of a node does not contains the search string
@@ -511,8 +511,9 @@ const client = new ApolloClient( {
 								// if the camera coordinates have not been set yet
 								if ( searchIndex === 0 && !setCamCoords ) {
 									setCamCoords = true;
-									camCoords.x = node.x;
-									camCoords.y = node.y;
+									camData.x = node.x;
+									camData.y = node.y;
+									camData.itemId = node.id;
 								}
 							}
 							// if the label doesn't contain the search string remove the searchIndex prop
@@ -522,7 +523,7 @@ const client = new ApolloClient( {
 						}
 						setMaxNodeIndex( cache, foundIDs );
 						setNodeSearchIndex( cache, 0 );
-						setCameraPos( cache, camCoords );
+						setCameraPos( cache, camData );
 					}
 
 					else {
@@ -594,12 +595,13 @@ const client = new ApolloClient( {
 			},
 			setCameraPos: ( _root, variables, { cache, client } ) => {
 				try {
-					const { x, y, type = 'select' } = variables;
+					const { x, y, type = 'select', itemId = '' } = variables;
 					writeToCache( client, cache, CAMERA_POS, {
 						setCameraPos: {
 							x,
 							y,
 							type,
+							itemId,
 							__typename: 'SetCameraPos',
 						},
 					}, 'Error when writing cameraPos to cache in setCameraPos' );
@@ -656,6 +658,7 @@ cache.writeQuery( {
       nodeSearchIndex
       linkSearchIndex
       setCameraPos {
+				itemId
         type
         x
         y
@@ -676,7 +679,8 @@ cache.writeQuery( {
 		nodeSearchIndex: '',
 		linkSearchIndex: '',
 		setCameraPos: {
-			// can be 'fit' or 'select', init is in the beginning to use 'fit' from vis, 'select' when user searches
+			itemId: '',
+			// can be 'fit' or 'select', 'select' when user searches
 			type: '',
 			x: 0,
 			y: 0,

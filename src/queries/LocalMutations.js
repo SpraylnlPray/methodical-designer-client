@@ -92,8 +92,8 @@ export const SEARCH_LINK_BY_LABEL = gql`
 `;
 
 export const SET_CAMERA_POS = gql`
-  mutation SetCameraPos($x: Float!, $y: Float!, $type: String) {
-    setCameraPos(x: $x, y: $y, type: $type) @client
+  mutation SetCameraPos($x: Float!, $y: Float!, $type: String, $id: String) {
+    setCameraPos(x: $x, y: $y, type: $type, itemId: $id) @client
   }
 `;
 
