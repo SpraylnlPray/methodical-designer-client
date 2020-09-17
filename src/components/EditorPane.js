@@ -32,6 +32,7 @@ const EditorPane = ( { editingData } ) => {
 
 	useEffect( () => {
 		const { setCameraPos } = cameraPosData;
+		debugger
 		if ( setCameraPos.type === 'select' ) {
 			const { x, y } = setCameraPos;
 			network.moveTo( {

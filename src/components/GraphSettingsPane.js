@@ -21,7 +21,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 	const [ runSetLinkLabelFilter ] = useMutation( SET_LINK_LABEL_FILTER );
 	const [ runSearchNodeLabel ] = useMutation( SEARCH_NODE_BY_LABEL );
 	const [ runSearchLinkLabel ] = useMutation( SEARCH_LINK_BY_LABEL );
-	const [ runSetCameraCoords ] = useMutation( SET_CAMERA_POS );
+	const [ runSetCameraPos ] = useMutation( SET_CAMERA_POS );
 	const [ runSetCameraNodeIndex ] = useMutation( SET_CAMERA_NODE_INDEX );
 
 	const { data: nodeLabelSearchString } = useQuery( SEARCH_NODE_LABEL_FILTER );
@@ -112,7 +112,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex )
 			if ( nodeToCenter ) {
 				const { x, y } = nodeToCenter;
-				runSetCameraCoords( { variables: { x, y } } )
+				runSetCameraPos( { variables: { x, y } } )
 					.catch( e => addLogMessage( client, 'Error when running set camera coords: ' + e.message ) );
 			}
 		}
@@ -128,6 +128,14 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 	// 	addLogMessage( client, 'inner width: ' + width + ' inner height: ' + height );
 	// };
 
+	const handleFit = ( e ) => {
+		e.stopPropagation();
+		let variables = { x: 0, y: 0, type: 'fit' }
+		runSetCameraPos( { variables } )
+			.then( () => runSetCameraPos( { variables: { ...variables, type: '' } } ) )
+			.catch( e => addLogMessage( client, 'Error when setting camera position in handleFit: ' + e.message ) );
+	}
+
 	return (
 		<div className='graph-settings-pane'>
 			<Button
@@ -137,12 +145,12 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 				onClick={handleClick}>
 				Re-calculate Graph
 			</Button>
-			{/* <Button
-				className='graph-settings-pane-margin settings-button log-button'
+			<Button
+				className='graph-settings-pane-margin settings-button fit-button'
 				color='blue'
-				onClick={ handleLog }>
-				Log screen dimension
-			</Button> */}
+				onClick={handleFit}>
+				Zoom Out
+			</Button>
 			<div className='search-node-label search'>
 				<label htmlFor="search-node-label" className='search-label'>
 					<div className='label-string'>Search Nodes by Label:</div>

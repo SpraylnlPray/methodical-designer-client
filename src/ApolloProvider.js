@@ -594,12 +594,12 @@ const client = new ApolloClient( {
 			},
 			setCameraPos: ( _root, variables, { cache, client } ) => {
 				try {
-					const { x, y } = variables;
+					const { x, y, type = 'select' } = variables;
 					writeToCache( client, cache, CAMERA_POS, {
 						setCameraPos: {
 							x,
 							y,
-							type: 'select',
+							type,
 							__typename: 'SetCameraPos',
 						},
 					}, 'Error when writing cameraPos to cache in setCameraPos' );
