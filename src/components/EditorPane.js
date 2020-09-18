@@ -32,7 +32,6 @@ const EditorPane = ( { editingData } ) => {
 
 	useEffect( () => {
 		const { setCameraPos } = cameraPosData;
-		debugger
 		if ( setCameraPos.type === 'select' ) {
 			Object.values( network.body.nodes ).forEach( aNode => {
 				if ( aNode.id === setCameraPos.itemId ) {
@@ -63,22 +62,11 @@ const EditorPane = ( { editingData } ) => {
 		// eslint-disable-next-line
 	}, [ cameraPosData ] );
 
-	const setNodesInactive = () => {
-		Object.values( network.body.nodes ).forEach( aNode => {
-			aNode.selected = false;
-		} )
-	}
-
-	const setNodeActive = ( nodeId ) => {
-		Object.values( network.body.nodes ).forEach( aNode => {
-			if ( aNode.id === nodeId ) {
-				aNode.selected = true;
-			}
-			else {
-				aNode.selected = false;
-			}
-		} )
-	}
+	// const setNodesInactive = () => {
+	// 	Object.values( network.body.nodes ).forEach( aNode => {
+	// 		aNode.selected = false;
+	// 	} )
+	// }
 
 	let graph = {
 		nodes: [],
@@ -93,7 +81,7 @@ const EditorPane = ( { editingData } ) => {
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting node: ' + error.message ) );
 			}
 			else if ( edges.length > 0 ) {
-				setNodesInactive();
+				// setNodesInactive();
 				setActiveItem( client, edges[ 0 ], 'link' );
 				runAddEditorAction( { variables: { type: 'link', itemID: edges[ 0 ], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting link: ' + error.message ) );
@@ -107,7 +95,6 @@ const EditorPane = ( { editingData } ) => {
 		dragStart: function handleDragStart( event ) {
 			const { nodes } = event;
 			if ( nodes.length > 0 ) {
-				setNodeActive( nodes[ 0 ] );
 				setActiveItem( client, nodes[ 0 ], 'node' );
 				runAddEditorAction( { variables: { type: 'node', itemID: nodes[ 0 ], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
@@ -127,7 +114,7 @@ const EditorPane = ( { editingData } ) => {
 		click: function handleEditorClick( event ) {
 			const { nodes, edges, pointer } = event;
 			if ( nodes.length === 0 && edges.length === 0 ) {
-				setNodesInactive();
+				// setNodesInactive();
 				setActiveItem( client, 'app', 'app' );
 				runAddEditorAction( { variables: { type: 'click', itemID: '', x: pointer.canvas.x, y: pointer.canvas.y } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor click: ' + error.message ) );

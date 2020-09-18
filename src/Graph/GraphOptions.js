@@ -1,3 +1,6 @@
+const highlightColor = '#008FD5';
+const white = '#ffffff';
+
 const options = {
 	layout: {
 		improvedLayout: true,
@@ -19,15 +22,30 @@ const options = {
 		},
 	},
 	nodes: {
+		borderWidth: 0,
 		physics: false,
 		widthConstraint: {
 			minimum: 25,
 			maximum: 50,
 		},
 		chosen: {
-			label: function ( values, id, selected, hovering ) {
-				values.color = '#4DC4FF';
+			node: function ( values ) {
+				values.borderWidth = 2;
+				values.borderColor = highlightColor;
+			},
+			label: function ( values ) {
+				values.color = highlightColor;
 			}
+		},
+		color: {
+			border: white,
+			background: white,
+			highlight: {				
+				background: white,
+			}
+		},
+		shapeProperties: {
+			useBorderWithImage: true,
 		}
 	},
 	height: '100%',
