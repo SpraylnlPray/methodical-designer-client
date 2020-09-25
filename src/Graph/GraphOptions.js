@@ -44,9 +44,6 @@ const options = {
 				background: white,
 			}
 		},
-		shapeProperties: {
-			useBorderWithImage: true,
-		}
 	},
 	height: '100%',
 	autoResize: true,

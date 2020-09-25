@@ -62,6 +62,10 @@ export const EDITOR_NODE_DATA = gql`
       hidden
       hiddenBy
       deleted
+      selected
+      shapeProperties {
+        useBorderWithImage
+      }
     }
   }
 `;
@@ -353,5 +357,17 @@ export const SEARCH_LINK_LABEL_FILTER = gql`
 export const LAST_EDITOR_ACTIONS = gql`
   query {
     lastEditorActions @client
+  }
+`;
+
+export const NODE_SELECTED = gql`
+  query {
+    Nodes @client {
+      id
+      selected
+      shapeProperties {
+        useBorderWithImage
+      }
+    }
   }
 `;

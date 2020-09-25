@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import Graph from 'react-graph-vis';
 import { addLogMessage, setActiveItem } from '../utils';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
-import { EDITOR_NODE_DATA, EDITOR_LINK_DATA, ACTIVE_ITEM, CAMERA_POS, NODE_IDS } from '../queries/LocalQueries';
+import { ACTIVE_ITEM, CAMERA_POS, EDITOR_LINK_DATA, EDITOR_NODE_DATA, NODE_IDS } from '../queries/LocalQueries';
 import options from '../Graph/GraphOptions';
-import { ADD_EDITOR_ACTION, CREATE_LOCAL_NODE, MOVE_NODE } from '../queries/LocalMutations';
+import { ADD_EDITOR_ACTION, CREATE_LOCAL_NODE, MOVE_NODE, SET_NODE_SELECTED } from '../queries/LocalMutations';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
 import { createNodeFromClipboard, pasteNodeToClipboard } from '../Graph/NodeUtils';
 
@@ -28,19 +28,18 @@ const EditorPane = ( { editingData } ) => {
 	const [ moveNode ] = useMutation( MOVE_NODE, {
 		onError: error => addLogMessage( client, 'Error when moving node: ' + error.message ),
 	} );
+	const [ setNodeSelected ] = useMutation( SET_NODE_SELECTED );
 	const [ createNode ] = useMutation( CREATE_LOCAL_NODE );
 
 	useEffect( () => {
 		const { setCameraPos } = cameraPosData;
 		if ( setCameraPos.type === 'select' ) {
+			debugger
+			setNodeSelected( { variables: { id: setCameraPos.itemId } } )
+				.catch( error => 'Error when setting node selected in cameraPosData useEffect: ' + error.message );
 			Object.values( network.body.nodes ).forEach( aNode => {
-				if ( aNode.id === setCameraPos.itemId ) {
-					aNode.selected = true;
-				}
-				else {
-					aNode.selected = false;
-				}
-			} )
+				aNode.selected = aNode.id === setCameraPos.itemId;
+			} );
 			const { x, y } = setCameraPos;
 			network.moveTo( {
 				position: { x, y },
@@ -62,12 +61,6 @@ const EditorPane = ( { editingData } ) => {
 		// eslint-disable-next-line
 	}, [ cameraPosData ] );
 
-	// const setNodesInactive = () => {
-	// 	Object.values( network.body.nodes ).forEach( aNode => {
-	// 		aNode.selected = false;
-	// 	} )
-	// }
-
 	let graph = {
 		nodes: [],
 		edges: [],
@@ -76,14 +69,15 @@ const EditorPane = ( { editingData } ) => {
 		select: function handleEditorSelect( event ) {
 			const { nodes, edges } = event;
 			if ( nodes.length > 0 ) {
-				setActiveItem( client, nodes[ 0 ], 'node' );
-				runAddEditorAction( { variables: { type: 'node', itemID: nodes[ 0 ], x: '', y: '' } } )
+				setActiveItem( client, nodes[0], 'node' );
+				setNodeSelected( { variables: { id: nodes[0] } } )
+					.catch( error => addLogMessage( client, 'Error when running setNodeSelected in select event: ' + error.message ) );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting node: ' + error.message ) );
 			}
 			else if ( edges.length > 0 ) {
-				// setNodesInactive();
-				setActiveItem( client, edges[ 0 ], 'link' );
-				runAddEditorAction( { variables: { type: 'link', itemID: edges[ 0 ], x: '', y: '' } } )
+				setActiveItem( client, edges[0], 'link' );
+				runAddEditorAction( { variables: { type: 'link', itemID: edges[0], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor select after selecting link: ' + error.message ) );
 			}
 		},
@@ -95,8 +89,10 @@ const EditorPane = ( { editingData } ) => {
 		dragStart: function handleDragStart( event ) {
 			const { nodes } = event;
 			if ( nodes.length > 0 ) {
-				setActiveItem( client, nodes[ 0 ], 'node' );
-				runAddEditorAction( { variables: { type: 'node', itemID: nodes[ 0 ], x: '', y: '' } } )
+				setActiveItem( client, nodes[0], 'node' );
+				setNodeSelected( { variables: { id: nodes[0] } } )
+					.catch( error => addLogMessage( client, 'Error when running setNodeSelected in dragStart event: ' + error.message ) );
+				runAddEditorAction( { variables: { type: 'node', itemID: nodes[0], x: '', y: '' } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 		},
@@ -107,15 +103,16 @@ const EditorPane = ( { editingData } ) => {
 					.catch( error => addLogMessage( client, 'Error when adding editor action drag start: ' + error.message ) );
 			}
 			else if ( nodes.length > 0 ) {
-				moveNode( { variables: { id: nodes[ 0 ], x: pointer.canvas.x, y: pointer.canvas.y } } )
+				moveNode( { variables: { id: nodes[0], x: pointer.canvas.x, y: pointer.canvas.y } } )
 					.catch( error => addLogMessage( client, 'Error when moving node: ' + error.message ) );
 			}
 		},
 		click: function handleEditorClick( event ) {
 			const { nodes, edges, pointer } = event;
 			if ( nodes.length === 0 && edges.length === 0 ) {
-				// setNodesInactive();
 				setActiveItem( client, 'app', 'app' );
+				setNodeSelected( { variables: { id: '' } } )
+					.catch( error => addLogMessage( client, 'Error when running setNodeSelected in click event: ' + error.message ) );
 				runAddEditorAction( { variables: { type: 'click', itemID: '', x: pointer.canvas.x, y: pointer.canvas.y } } )
 					.catch( error => addLogMessage( client, 'Error when adding editor click: ' + error.message ) );
 			}
@@ -170,14 +167,14 @@ const EditorPane = ( { editingData } ) => {
 	};
 
 	return (
-		<div className='bordered editor-pane margin-base' id='editor-pane' onClick={handleClick} onKeyDown={handleKeyDown}>
+		<div className='bordered editor-pane margin-base' id='editor-pane' onClick={ handleClick } onKeyDown={ handleKeyDown }>
 			<Graph
-				graph={graph}
-				options={options}
-				events={events}
-				getNetwork={network => {
+				graph={ graph }
+				options={ options }
+				events={ events }
+				getNetwork={ network => {
 					setNetwork( network );
-				}}
+				} }
 			/>
 		</div>
 	);

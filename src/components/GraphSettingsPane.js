@@ -4,7 +4,7 @@ import { Button } from 'semantic-ui-react';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import {
 	RECALCULATE_GRAPH, SEARCH_LINK_BY_LABEL, SEARCH_NODE_BY_LABEL, SET_CAMERA_NODE_INDEX, SET_CAMERA_POS, SET_LINK_LABEL_FILTER,
-	SET_NODE_LABEL_FILTER,
+	SET_NODE_LABEL_FILTER, SET_NODE_SELECTED,
 } from '../queries/LocalMutations';
 import { addLogMessage } from '../utils';
 import withLocalDataAccess from '../HOCs/withLocalDataAccess';
@@ -23,6 +23,7 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 	const [ runSearchLinkLabel ] = useMutation( SEARCH_LINK_BY_LABEL );
 	const [ runSetCameraPos ] = useMutation( SET_CAMERA_POS );
 	const [ runSetCameraNodeIndex ] = useMutation( SET_CAMERA_NODE_INDEX );
+	const [ setNodeSelected ] = useMutation( SET_NODE_SELECTED );
 
 	const { data: nodeLabelSearchString } = useQuery( SEARCH_NODE_LABEL_FILTER );
 	const { data: linkLabelSearchString } = useQuery( SEARCH_LINK_LABEL_FILTER );
@@ -69,11 +70,12 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 
 	const handleNextNode = ( e ) => {
 		try {
-			debugger
 			e.stopPropagation();
 			const { maxNodeIndex } = client.readQuery( { query: MAX_NODE_INDEX } );
 			let { nodeSearchIndex } = client.readQuery( { query: NODE_SEARCH_INDEX } );
-			if ( nodeSearchIndex === "" ) return;
+			if ( nodeSearchIndex === '' ) {
+				return;
+			}
 			nodeSearchIndex += 1;
 			if ( nodeSearchIndex > maxNodeIndex ) {
 				nodeSearchIndex = 0;
@@ -90,11 +92,12 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 
 	const handlePrevNode = ( e ) => {
 		try {
-			debugger
 			e.stopPropagation();
 			const { maxNodeIndex } = client.readQuery( { query: MAX_NODE_INDEX } );
 			let { nodeSearchIndex } = client.readQuery( { query: NODE_SEARCH_INDEX } );
-			if ( nodeSearchIndex === "" ) return;
+			if ( nodeSearchIndex === '' ) {
+				return;
+			}
 			nodeSearchIndex -= 1;
 			if ( nodeSearchIndex < 0 ) {
 				nodeSearchIndex = maxNodeIndex;
@@ -113,11 +116,13 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 		try {
 			// find the node the camera should center
 			const { Nodes } = client.readQuery( { query: NODES_SEARCH_DATA } );
-			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex )
+			let nodeToCenter = Nodes.find( aNode => aNode.searchIndex === nodeSearchIndex );
 			if ( nodeToCenter ) {
 				const { x, y, id } = nodeToCenter;
 				runSetCameraPos( { variables: { x, y, id } } )
 					.catch( e => addLogMessage( client, 'Error when running set camera coords: ' + e.message ) );
+				setNodeSelected( { variables: { id } } )
+					.catch( error => addLogMessage( client, 'Error when running setNodeSelected in select event: ' + error.message ) );
 			}
 		}
 		catch ( e ) {
@@ -134,25 +139,25 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 
 	const handleFit = ( e ) => {
 		e.stopPropagation();
-		let variables = { x: 0, y: 0, type: 'fit' }
+		let variables = { x: 0, y: 0, type: 'fit' };
 		runSetCameraPos( { variables } )
 			.then( () => runSetCameraPos( { variables: { ...variables, type: '' } } ) )
 			.catch( e => addLogMessage( client, 'Error when setting camera position in handleFit: ' + e.message ) );
-	}
+	};
 
 	return (
 		<div className='graph-settings-pane'>
 			<Button
 				className='graph-settings-pane-margin calculate-button settings-button'
-				disabled={isButtonDisabled()}
+				disabled={ isButtonDisabled() }
 				color='blue'
-				onClick={handleClick}>
+				onClick={ handleClick }>
 				Re-calculate Graph
 			</Button>
 			<Button
 				className='graph-settings-pane-margin settings-button fit-button'
 				color='blue'
-				onClick={handleFit}>
+				onClick={ handleFit }>
 				Zoom Out
 			</Button>
 			<div className='search-node-label search'>
@@ -164,14 +169,14 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					id="search-node-label"
 					className='search-input'
 					placeholder='Search...'
-					onChange={handleNodeSearchChange}
-					value={nodeLabelSearchString.searchNodeLabelFilter}
+					onChange={ handleNodeSearchChange }
+					value={ nodeLabelSearchString.searchNodeLabelFilter }
 				/>
-				<Button className='button-left' icon onClick={handlePrevNode}>
-					<Icon name='long arrow alternate left' />
+				<Button className='button-left' icon onClick={ handlePrevNode }>
+					<Icon name='long arrow alternate left'/>
 				</Button>
-				<Button className='button-right' icon onClick={handleNextNode}>
-					<Icon name='long arrow alternate right' />
+				<Button className='button-right' icon onClick={ handleNextNode }>
+					<Icon name='long arrow alternate right'/>
 				</Button>
 			</div>
 			<div className='search-link-label search'>
@@ -183,8 +188,8 @@ const GraphSettingsPane = ( { getMovedNodes, getLinksNeedingRecalculation, getNo
 					id="search-link-label"
 					className='search-input'
 					placeholder='Search...'
-					onChange={handleLinkSearchChange}
-					value={linkLabelSearchString.searchLinkLabelFilter}
+					onChange={ handleLinkSearchChange }
+					value={ linkLabelSearchString.searchLinkLabelFilter }
 				/>
 			</div>
 		</div>

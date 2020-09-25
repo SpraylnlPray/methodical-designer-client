@@ -16,7 +16,7 @@ import {
 import {
 	CALC_NODE_POSITION, EDITOR_NODE_DATA, LINKS_WITH_TAGS, NODES_COLLAPSE, NODES_DATA, NODES_WITH_TAGS,
 	MOVE_NODE_DATA, NODES_SEARCH_DATA, SEARCH_NODE_LABEL_FILTER, SEARCH_LINK_LABEL_FILTER, LINKS_HIDE_DATA, LINKS_CALCULATION,
-	CAMERA_POS, NODE_SEARCH_INDEX, LAST_EDITOR_ACTIONS,
+	CAMERA_POS, NODE_SEARCH_INDEX, LAST_EDITOR_ACTIONS, NODE_SELECTED,
 } from './queries/LocalQueries';
 import Fuse from 'fuse.js';
 import Favicon from 'react-favicon';
@@ -93,6 +93,15 @@ const cache = new InMemoryCache( {
 				listIndex( existingData ) {
 					return existingData || '';
 				},
+				selected( existingData ) {
+					return existingData || false;
+				},
+				shapeProperties( existingData ) {
+					return existingData || { useBorderWithImage: false };
+				},
+				useBorderWithImage( existingData ) {
+					return existingData || false;
+				},
 			},
 		},
 		Link: {
@@ -165,6 +174,9 @@ const client = new ApolloClient( {
 						node.deleted = false;
 						node.needsCalculation = false;
 						node.listIndex = nodesCopy.indexOf( node );
+						node.shapeProperties = {
+							useBorderWithImage: false,
+						};
 						setNodeImage( node );
 					}
 
@@ -497,7 +509,7 @@ const client = new ApolloClient( {
 					const { Nodes } = readNodesFromCache( client, cache, NODES_SEARCH_DATA, 'searchNodeByLabel' );
 					const { searchString } = variables;
 					const nodesCopy = deepCopy( Nodes );
-					
+
 					if ( searchString.length > 0 ) {
 						let setCamCoords = false;
 						let camData = { __typename: 'SetCameraPos', type: 'select', x: 0, y: 0, itemId: '' };
@@ -643,6 +655,24 @@ const client = new ApolloClient( {
 					addLogMessage( client, 'Error in addEditorAction: ' + e.message );
 				}
 			},
+
+			setNodeSelected: ( _root, variables, { cache, client } ) => {
+				try {
+					debugger
+					const { Nodes } = readNodesFromCache( client, cache, NODE_SELECTED, 'setNodeSelected' );
+					const nodesCopy = deepCopy( Nodes );
+					const { id } = variables;
+					nodesCopy.forEach( aNode => {
+						aNode.selected = aNode.id === id;
+						aNode.shapeProperties.useBorderWithImage = aNode.id === id;
+					} );
+
+					writeNodesToCache( client, cache, NODE_SELECTED, { Nodes: nodesCopy }, 'setNodeSelected' );
+				}
+				catch ( e ) {
+					addLogMessage( client, 'Error in setNodeSelected: ' + e.message );
+				}
+			},
 		},
 	},
 } );
@@ -658,7 +688,7 @@ cache.writeQuery( {
       nodeSearchIndex
       linkSearchIndex
       setCameraPos {
-				itemId
+        itemId
         type
         x
         y

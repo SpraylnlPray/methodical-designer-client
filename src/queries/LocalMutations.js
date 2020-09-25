@@ -108,3 +108,9 @@ export const ADD_EDITOR_ACTION = gql`
     addEditorAction(type: $type, itemID: $itemID, x: $x, y: $y) @client
   }
 `;
+
+export const SET_NODE_SELECTED = gql`
+  mutation SetNodeSelected($id: String!) {
+    setNodeSelected(id: $id) @client
+  }
+`;
