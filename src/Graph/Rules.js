@@ -101,8 +101,9 @@ export const FlowerRule = ( next, client, distanceToOther = 350, minDist = 150 )
 					// to get a uniform distribution we need to divide this angle by the amount of connected nodes
 					let deltaAngle = 360 / parent.children.length;
 					// if number of nodes is a multiple of 2, reduce the angle as a connections between them might cover up labels
+					debugger
 					if ( parent.children.length % 2 === 0 ) {
-						deltaAngle = deltaAngle * 3 / 5;
+						deltaAngle = deltaAngle * 0.9;
 					}
 					const deltaRad = toRad( deltaAngle );
 					const index = parent.children.indexOf( nodeToCalculate );
